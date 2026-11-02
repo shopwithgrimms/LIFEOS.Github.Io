@@ -13,8 +13,8 @@ import {
   Share,
   StatusBar,
   StyleSheet,
-  Text,
-  TextInput,
+  Text as NativeText,
+  TextInput as NativeTextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -60,6 +60,34 @@ const Alert = {
 };
 
 const ButtonSoundContext = createContext(null);
+const APPEARANCE_DEFAULTS = {
+  fontFamily: "System", baseFontSize: 1, headingWeight: "800", cardRadius: 12,
+  density: "Comfortable", headerLayout: "Roomy", shadowIntensity: 1,
+  buttonRoundness: 12, tableRowHeight: 44, accentGlow: false,
+  dividerOpacity: 1, scrollbarStyle: "Auto",
+};
+let CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS };
+const setAppearanceSettings = (settings) => {
+  CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS, ...(settings || {}) };
+};
+function Text({ style, ...props }) {
+  const flattened = StyleSheet.flatten(style) || {};
+  const family = CURRENT_APPEARANCE.fontFamily === "Serif" ? (Platform.OS === "ios" ? "Georgia" : "serif")
+    : CURRENT_APPEARANCE.fontFamily === "Monospace" ? (Platform.OS === "ios" ? "Menlo" : "monospace") : undefined;
+  const weight = String(flattened.fontWeight || "");
+  const scaledStyle = {
+    ...(family ? { fontFamily: family } : {}),
+    ...(flattened.fontSize ? { fontSize: Math.round(flattened.fontSize * Number(CURRENT_APPEARANCE.baseFontSize || 1)) } : {}),
+    ...(Number(weight) >= 700 || weight === "bold" ? { fontWeight: CURRENT_APPEARANCE.headingWeight } : {}),
+  };
+  return <NativeText {...props} style={[scaledStyle, style]} />;
+}
+function TextInput({ style, ...props }) {
+  const flattened = StyleSheet.flatten(style) || {};
+  const family = CURRENT_APPEARANCE.fontFamily === "Serif" ? (Platform.OS === "ios" ? "Georgia" : "serif")
+    : CURRENT_APPEARANCE.fontFamily === "Monospace" ? (Platform.OS === "ios" ? "Menlo" : "monospace") : undefined;
+  return <NativeTextInput {...props} style={[family ? { fontFamily: family } : null, flattened.fontSize ? { fontSize: Math.round(flattened.fontSize * Number(CURRENT_APPEARANCE.baseFontSize || 1)) } : null, style]} />;
+}
 
 function Pressable({ onPress, ...props }) {
   const playButtonSound = useContext(ButtonSoundContext);
@@ -335,10 +363,17 @@ function AppIcon({ name, size = 18, color = COLORS.muted, strokeWidth = 1.8 }) {
 }
 
 const EMPTY_DB = {
-  version: 10,
+  version: 11,
   currency: "USD",
   defaultLowStock: 3,
   monthlySalesGoal: 0,
+  monthlyGoals: [],
+  appearanceSettings: { ...APPEARANCE_DEFAULTS },
+  reportSettings: { strictPeriod: true, includeRawComponents: true, includeZeroMovement: false, includeCumulativeCarryover: false },
+  assistantDismissed: false,
+  reListingReminderEnabled: true,
+  celebratedGoalKeys: [],
+  dailyScratchNotes: {},
   themeName: DEFAULT_THEME_NAME,
   customTheme: { ...DEFAULT_CUSTOM_THEME },
   sortModes: {},
@@ -711,8 +746,21 @@ const normalizeDatabase = (saved) => {
     ? Array.from(new Set(source.hiddenDashboardWidgets.filter((id) => validWidgetIds.includes(id))))
     : [];
   const sortModes = source.sortModes && typeof source.sortModes === "object" ? source.sortModes : {};
+  const appearanceSettings = { ...APPEARANCE_DEFAULTS, ...(source.appearanceSettings && typeof source.appearanceSettings === "object" ? source.appearanceSettings : {}) };
+  if (!['System', 'Serif', 'Monospace'].includes(appearanceSettings.fontFamily)) appearanceSettings.fontFamily = APPEARANCE_DEFAULTS.fontFamily;
+  appearanceSettings.baseFontSize = Math.max(0.85, Math.min(1.2, Number(appearanceSettings.baseFontSize) || 1));
+  appearanceSettings.cardRadius = Math.max(4, Math.min(28, Number(appearanceSettings.cardRadius) || APPEARANCE_DEFAULTS.cardRadius));
+  appearanceSettings.buttonRoundness = Math.max(0, Math.min(24, Number(appearanceSettings.buttonRoundness) || 0));
+  appearanceSettings.tableRowHeight = Math.max(36, Math.min(64, Number(appearanceSettings.tableRowHeight) || APPEARANCE_DEFAULTS.tableRowHeight));
+  const reportSettings = { ...EMPTY_DB.reportSettings, ...(source.reportSettings && typeof source.reportSettings === "object" ? source.reportSettings : {}) };
+  const monthlyGoals = Array.isArray(source.monthlyGoals) ? source.monthlyGoals.filter((goal) => goal && /^\d{4}-\d{2}$/.test(goal.month || "")).map((goal) => ({
+    month: goal.month, grossRevenue: Math.max(0, Number(goal.grossRevenue) || 0),
+    ordersCount: Math.max(0, Math.floor(Number(goal.ordersCount) || 0)), itemsSold: Math.max(0, Math.floor(Number(goal.itemsSold) || 0)),
+  })) : [];
+  const celebratedGoalKeys = Array.isArray(source.celebratedGoalKeys) ? Array.from(new Set(source.celebratedGoalKeys.filter((value) => /^\d{4}-\d{2}:(grossRevenue|ordersCount|itemsSold)$/.test(value)))) : [];
+  const dailyScratchNotes = source.dailyScratchNotes && typeof source.dailyScratchNotes === "object" && !Array.isArray(source.dailyScratchNotes) ? source.dailyScratchNotes : {};
   return {
-    ...withCurrentSkuCounters({ ...EMPTY_DB, ...source, version: Math.max(savedVersion, EMPTY_DB.version), businessStartDate: parseDateInput(source.businessStartDate) || "", onboardingCompleted: typeof incoming.onboardingCompleted === "boolean" ? incoming.onboardingCompleted : savedVersion < 7, buttonSoundsEnabled: typeof incoming.buttonSoundsEnabled === "boolean" ? incoming.buttonSoundsEnabled : false, themeName, dateFormat, customTheme, marketplaceFeeRules, dashboardWidgetOrder, hiddenDashboardWidgets, sortModes, listings, dropdownOptions, timeSessions, timerSessions, activeShift, activeTimer, orders }),
+    ...withCurrentSkuCounters({ ...EMPTY_DB, ...source, version: Math.max(savedVersion, EMPTY_DB.version), businessStartDate: parseDateInput(source.businessStartDate) || "", onboardingCompleted: typeof incoming.onboardingCompleted === "boolean" ? incoming.onboardingCompleted : savedVersion < 7, buttonSoundsEnabled: typeof incoming.buttonSoundsEnabled === "boolean" ? incoming.buttonSoundsEnabled : false, themeName, dateFormat, customTheme, marketplaceFeeRules, dashboardWidgetOrder, hiddenDashboardWidgets, sortModes, listings, dropdownOptions, timeSessions, timerSessions, activeShift, activeTimer, orders, appearanceSettings, reportSettings, monthlyGoals, celebratedGoalKeys, dailyScratchNotes }),
     products: source.products.map((product) => ({ ...product, recipe: Array.isArray(product.recipe) ? product.recipe.filter((part) => part && typeof part === "object" && !Array.isArray(part)) : [] })),
     events: source.events.map((event) => ({ ...event, done: !!event.done })),
     workPlans: source.workPlans.map((plan) => ({ ...plan, done: !!plan.done })),
@@ -884,35 +932,76 @@ const orderRestockedQuantity = (order) => {
   if (order && order.restockedQuantity != null) return Math.max(0, Number(order.restockedQuantity) || 0);
   return ((order && order.refundHistory) || []).reduce((sum, entry) => sum + Math.max(0, Number(entry.restockQuantity) || 0), 0);
 };
+const orderLineRestockedQuantities = (order) => {
+  const lines = (order && order.items) || [];
+  const allocated = lines.map(() => 0);
+  const history = (order && order.refundHistory) || [];
+  if (history.some((entry) => entry.productId)) {
+    history.forEach((entry) => {
+      let remaining = Math.max(0, Number(entry.restockQuantity) || 0);
+      for (let index = 0; index < lines.length && remaining > 0; index += 1) {
+        if (lines[index].productId !== entry.productId) continue;
+        const capacity = Math.max(0, Number(lines[index].quantity) || 0) - allocated[index];
+        const amount = Math.min(capacity, remaining);
+        allocated[index] += amount;
+        remaining -= amount;
+      }
+    });
+  } else if (lines.length === 1) {
+    allocated[0] = Math.min(Math.max(0, Number(lines[0].quantity) || 0), orderRestockedQuantity(order));
+  }
+  return allocated;
+};
 const soldQuantityForListing = (listing, orders) => (orders || []).reduce((sum, order) => {
-  const lines = (order.items || []).filter((line) => line.listingId === listing.id || line.listingSku && listing.listingSku && String(line.listingSku).trim().toLowerCase() === String(listing.listingSku).trim().toLowerCase());
-  if (lines.length) {
+  const orderItems = (order.items || []);
+  const matchingIndexes = orderItems.map((line, index) => line.listingId === listing.id || line.listingSku && listing.listingSku && String(line.listingSku).trim().toLowerCase() === String(listing.listingSku).trim().toLowerCase() ? index : -1).filter((index) => index >= 0);
+  if (matchingIndexes.length) {
+    const lines = matchingIndexes.map((index) => orderItems[index]);
     const gross = lines.reduce((lineSum, line) => lineSum + Math.max(0, Number(line.quantity) || 0), 0);
-    const returned = (order.items || []).length === 1 ? Math.min(gross, orderRestockedQuantity(order)) : 0;
+    const returnedByLine = orderLineRestockedQuantities(order);
+    const returned = matchingIndexes.reduce((sum, index) => sum + returnedByLine[index], 0);
     return sum + Math.max(0, gross - returned);
   }
   const topLevelMatches = order.listingId === listing.id || order.listingSku && listing.listingSku && String(order.listingSku).trim().toLowerCase() === String(listing.listingSku).trim().toLowerCase();
   if (topLevelMatches) return sum + Math.max(0, Number(order.quantity) || 0);
   if (listing.status === "Sold" && listing.soldOutOrderId === order.id) {
     const soldLines = (order.items || []).filter((line) => line.productId === listing.productId);
+    const returned = orderLineRestockedQuantities(order).reduce((sum, quantity, index) => sum + (soldLines.includes((order.items || [])[index]) ? quantity : 0), 0);
     const gross = soldLines.reduce((lineSum, line) => lineSum + Math.max(0, Number(line.quantity) || 0), 0);
-    const returned = (order.items || []).length === 1 ? Math.min(gross, orderRestockedQuantity(order)) : 0;
     return sum + Math.max(0, gross - returned);
   }
   return sum;
 }, 0);
 const orderMaterialCost = (order) => {
   const items = (order && order.items) || [];
-  const restocked = items.length === 1 ? Math.min(Math.max(0, Number(items[0].quantity) || 0), orderRestockedQuantity(order)) : 0;
+  const restocked = orderLineRestockedQuantities(order);
   return items.reduce((sum, item, index) => {
     const soldQuantity = Math.max(0, Number(item.quantity) || 0);
-    const returnedToStock = items.length === 1 && index === 0 ? restocked : 0;
+    const returnedToStock = restocked[index] || 0;
     return sum + Math.max(0, soldQuantity - returnedToStock) * Math.max(0, Number(item.unitCost) || 0);
   }, 0);
 };
 const netOrderPayout = (order) => {
-  if (order && order.actualPayout != null && String(order.actualPayout).trim() !== "") return Math.max(0, Number(order.actualPayout) || 0);
-  return Math.max(0, totalOrder(order) - (Number(order && order.fees) || 0) - (Number(order && order.refundAmount) || 0));
+  if (order && order.actualPayout != null && String(order.actualPayout).trim() !== "") return Number(order.actualPayout) || 0;
+  return totalOrder(order) - (Number(order && order.fees) || 0) - (Number(order && order.refundAmount) || 0);
+};
+const orderLineFinancials = (order, expenses = []) => {
+  const lines = (order && order.items) || [];
+  const gross = totalOrder(order);
+  const totalQuantity = lines.reduce((sum, line) => sum + Math.max(0, Number(line.quantity) || 0), 0);
+  const packagingCost = (expenses || []).filter((expense) => expense.orderId === order.id && expense.category === "Packaging").reduce((sum, expense) => sum + Math.max(0, Number(expense.amount) || 0), 0);
+  const returnedByLine = orderLineRestockedQuantities(order);
+  return lines.map((line, index) => {
+    const lineGross = Math.max(0, Number(line.quantity) || 0) * Math.max(0, Number(line.unitPrice) || 0);
+    const share = gross > 0 ? lineGross / gross : totalQuantity > 0 ? Math.max(0, Number(line.quantity) || 0) / totalQuantity : 0;
+    const netRevenue = netOrderPayout(order) * share;
+    const shipping = Math.max(0, Number(order.shippingCost) || 0) * share;
+    const supplies = packagingCost * share;
+    const netUnits = Math.max(0, (Number(line.quantity) || 0) - (returnedByLine[index] || 0));
+    const cost = netUnits * Math.max(0, Number(line.unitCost) || 0);
+    const profit = netRevenue - shipping - supplies - cost;
+    return { line, gross: lineGross, netRevenue, cost, shipping, supplies, profit, marginPercent: lineGross > 0 ? profit / lineGross * 100 : null, roiPercent: cost > 0 ? profit / cost * 100 : null };
+  });
 };
 const SORT_OPTIONS = [
   { label: "Newest first", value: "newest" },
@@ -984,7 +1073,7 @@ const sortBySkuDescending = (records, field) => records.slice().sort((a, b) => {
   if (aSku && !bSku) return -1;
   return bSku.localeCompare(aSku, undefined, { numeric: true, sensitivity: "base" }) || aName.localeCompare(bName, undefined, { numeric: true, sensitivity: "base" });
 });
-const currentRecipeCost = (product, components) => (product.recipe || []).reduce((sum, part) => {
+const currentRecipeCost = (product, components) => Math.max(0, Number(product && product.acquisitionCost) || 0) + (product.recipe || []).reduce((sum, part) => {
   const component = components.find((item) => item.id === part.componentId);
   return sum + (Number(part.quantity) || 0) * (Number(component ? component.cost : part.unitCost) || 0);
 }, 0);
@@ -1038,16 +1127,14 @@ function createFormDefaults(type, record, defaultLowStock, defaults) {
   if (type === "product") {
     const skuRows = (defaults && defaults.products) || [];
     base.sku = "PROD-" + String(firstAvailableSkuNumber(skuRows, "sku", "PROD-")).padStart(3, "0");
+    base.acquisitionCost = "0";
     base.price = ""; base.inventory = "0"; base.recipe = []; base.condition = "Handmade"; base.packageWeight = ""; base.packageWeightUnit = "oz";
   }
   if (type === "listing") { base.status = "Draft"; base.price = ""; base.marketplaces = []; base.startDate = ""; base.relistDate = ""; base.description = ""; base.listingNameOverride = ""; base.descriptionSource = "manual"; base.condition = "Handmade"; base.packageWeight = ""; base.packageWeightUnit = "oz"; }
   if (type === "order") { base.quantity = "1"; base.extraFees = "0"; base.shippingCost = "0"; base.marketplace = "Direct"; base.date = TODAY; base.packageWeight = ""; base.packageWeightUnit = "oz"; }
   if (type === "order") {
-    const line = record && Array.isArray(record.items) ? record.items[0] : null;
-    base.productId = line ? line.productId : "";
-    base.listingId = record ? record.listingId || (line && line.listingId) || "" : "";
-    base.quantity = String(line ? line.quantity : 1);
-    base.unitPrice = line ? String(line.unitPrice) : "";
+    const savedLines = record && Array.isArray(record.items) ? record.items : [];
+    base.orderItems = savedLines.length ? savedLines.map((line) => ({ productId: line.productId || "", listingId: line.listingId || (savedLines.length === 1 ? record.listingId : "") || "", quantity: String(line.quantity == null ? 1 : line.quantity), unitPrice: String(line.unitPrice == null ? "" : line.unitPrice), customPrice: line.customPrice == null ? true : !!line.customPrice })) : [{ productId: "", listingId: "", quantity: "1", unitPrice: "", customPrice: false }];
     base.actualFees = record && record.feeSource === "actual" ? String(record.fees || 0) : "";
   }
   if (type === "listing") base.listingSku = (record && (record.listingSku || record.productSku)) || "LIST-" + String(firstAvailableSkuNumber((defaults && defaults.listings) || [], "listingSku", "LIST-")).padStart(3, "0");
@@ -1062,6 +1149,7 @@ function createFormDefaults(type, record, defaultLowStock, defaults) {
   const result = { ...base, ...(record || {}) };
   if (type === "order" && record && !result.listingId && record.items && record.items[0]) result.listingId = record.items[0].listingId || "";
   if (type === "product") result.description = Array.from(new Set([record && record.description, record && record.notes].map((value) => String(value || "").trim()).filter(Boolean))).join("\n\n");
+  if (type === "product") result.acquisitionCost = String(record && record.acquisitionCost != null ? record.acquisitionCost : base.acquisitionCost);
   return result;
 }
 
@@ -1079,7 +1167,7 @@ function calculateTotals(db) {
   // has not been entered, netOrderPayout estimates gross less fees and refunds.
   const netAfterFees = payouts;
   const cashAfterExpenses = payouts + income - shipping - expenses;
-  const estimatedProfit = netAfterFees - shipping - expenses - materialCosts;
+  const estimatedProfit = netAfterFees + income - shipping - expenses - materialCosts;
   return { gross, fees, shipping, expenses, refunds, income, payouts, netAfterFees, materialCosts, cashAfterExpenses, estimatedProfit, orders: orders.length };
 }
 
@@ -1850,19 +1938,23 @@ function RefundModal({ visible, order, currency, onClose, onSave }) {
   const [amount, setAmount] = useState("");
   const [returnedQuantity, setReturnedQuantity] = useState("0");
   const [restockQuantity, setRestockQuantity] = useState("0");
+  const [returnProductId, setReturnProductId] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const orderId = order ? order.id : "";
   const priorRefund = order ? Number(order.refundAmount) || 0 : 0;
   const priorReturn = order ? Number(order.returnedQuantity) || 0 : 0;
   const remainingRefund = order ? Math.max(0, totalOrder(order) - priorRefund) : 0;
-  const totalQuantity = order ? (order.items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) : 0;
-  const remainingReturn = Math.max(0, totalQuantity - priorReturn);
+  const returnProducts = order ? Array.from(new Map((order.items || []).filter((item) => item.productId).map((item) => [item.productId, { id: item.productId, name: item.productName || item.productSku || "Product", quantity: (order.items || []).filter((line) => line.productId === item.productId).reduce((sum, line) => sum + (Number(line.quantity) || 0), 0) }])).values()) : [];
+  const selectedReturnProduct = returnProducts.find((product) => product.id === returnProductId) || returnProducts[0];
+  const priorReturnForProduct = selectedReturnProduct ? (order.refundHistory || []).filter((entry) => entry.productId === selectedReturnProduct.id).reduce((sum, entry) => sum + (Number(entry.returnedQuantity) || 0), 0) : priorReturn;
+  const remainingReturn = selectedReturnProduct ? Math.max(0, selectedReturnProduct.quantity - priorReturnForProduct) : Math.max(0, (order ? (order.items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) : 0) - priorReturn);
   useEffect(() => {
     if (!visible || !order) return;
     setAmount(String(Math.max(0, totalOrder(order) - (Number(order.refundAmount) || 0))));
     setReturnedQuantity("0");
     setRestockQuantity("0");
+    setReturnProductId(returnProducts[0] && returnProducts[0].id || "");
     setNote("");
     setError("");
   }, [visible, order, orderId, priorRefund, priorReturn]);
@@ -1873,7 +1965,7 @@ function RefundModal({ visible, order, currency, onClose, onSave }) {
     if (!Number.isFinite(refund) || refund <= 0 || refund > remainingRefund + 0.01) { setError(`Enter an amount above zero and no more than ${money(remainingRefund, currency)}.`); return; }
     if (!Number.isFinite(returned) || returned < 0 || returned > remainingReturn) { setError("Enter a return quantity from zero to the remaining number of units."); return; }
     if (!Number.isFinite(restock) || restock < 0 || restock > returned) { setError("Sellable quantity must be between zero and the number returned."); return; }
-    onSave({ amount: refund, returnedQuantity: returned, restockQuantity: restock, note: note.trim() });
+    onSave({ amount: refund, returnedQuantity: returned, restockQuantity: restock, productId: selectedReturnProduct && selectedReturnProduct.id || "", note: note.trim() });
   };
   if (!order) return null;
   return <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -1882,6 +1974,7 @@ function RefundModal({ visible, order, currency, onClose, onSave }) {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}><ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
         <View style={styles.formHero}><Text style={styles.formHeroEyebrow}>SALE CORRECTION</Text><Text style={styles.formHeroTitle}>{(order.items || []).map((item) => item.productName).join(", ") || "Sale"}</Text><Text style={styles.formHeroText}>Refund the amount received, then separately record returned units and what can go back into sellable stock.</Text></View>
         <Field field={{ label: `Refund amount (remaining ${money(remainingRefund, currency)})`, number: true, required: true }} value={amount} onChange={setAmount} />
+        {returnProducts.length > 1 ? <Field field={{ label: "Product being returned", options: returnProducts.map((product) => ({ label: product.name + " · " + product.quantity + " sold", value: product.id })) }} value={selectedReturnProduct && selectedReturnProduct.id || ""} onChange={(value) => { setReturnProductId(value); setReturnedQuantity("0"); setRestockQuantity("0"); }} /> : null}
         <Field field={{ label: `Units returned (up to ${remainingReturn})`, number: true, required: true }} value={returnedQuantity} onChange={(value) => { setReturnedQuantity(value); if (Number(value) < Number(restockQuantity)) setRestockQuantity(value); }} />
         <Field field={{ label: "Returned units safe to restock", number: true, required: true, hint: "Use 0 for damaged, used, or otherwise unsellable returns." }} value={restockQuantity} onChange={setRestockQuantity} />
         <Field field={{ label: "Return note (optional)", multiline: true, placeholder: "Reason, condition, or customer details" }} value={note} onChange={setNote} />
@@ -1910,9 +2003,9 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
   };
   const optionsFor = (key) => (db.dropdownOptions && db.dropdownOptions[key] || DEFAULT_DROPDOWN_OPTIONS[key] || []).map((value) => ({ label: value, value }));
   const supplierOptions = (db.suppliers || []).filter(active).map((item) => ({ label: item.name, value: item.name }));
-  const currentOrderProductId = type === "order" && record && record.items && record.items[0] ? record.items[0].productId : "";
+  const currentOrderProductIds = new Set(type === "order" && record && record.items ? record.items.map((line) => line.productId).filter(Boolean) : []);
   const currentListingProductId = type === "listing" && record ? record.productId : "";
-  const productOptions = (db.products || []).filter((product) => active(product) || product.id === currentOrderProductId).map((product) => {
+  const productOptions = (db.products || []).filter((product) => active(product) || currentOrderProductIds.has(product.id)).map((product) => {
     const available = productAvailableUnits(product, db.listings);
     const listed = Math.max(0, Number(product.inventory) || 0) > 0 && available === 0;
     return { label: product.name + " (" + product.sku + ") · " + available + " ready to sell" + (listed ? " · listed" : "") + (product.archived ? " · archived" : ""), value: product.id };
@@ -1954,7 +2047,13 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
       { key: "gender", label: "Audience or gender (optional)", optionSet: "genders", options: optionsFor("genders"), allowBlank: true, placeholder: "Choose if it applies" },
       { key: "description", label: "Product description", multiline: true, placeholder: "Describe the finished item, materials, colors, and anything you want to remember" },
       { key: "condition", label: "Condition or item type", options: CONDITION_OPTIONS },
+      { key: "cardCondition", label: "Trading card or collectible condition (optional)", placeholder: "Example: Near Mint, LP, graded 9" },
+      { key: "collectibleSetName", label: "Set, series, or collection name (optional)", placeholder: "Example: Base Set · 1st Edition" },
+      { key: "gradingStatus", label: "Grading status (optional)", options: ["Not graded", "PSA", "BGS", "CGC", "SGC", "Other"].map((value) => ({ label: value, value })), allowBlank: true, placeholder: "Choose if relevant" },
+      { key: "grade", label: "Grade or certification number (optional)", placeholder: "Example: 9 · cert 12345678" },
+      { key: "priceChartingUrl", label: "PriceCharting reference link (optional)", placeholder: "Paste a PriceCharting URL" },
       { key: "price", label: "Selling price", number: true, required: true, placeholder: "0.00" },
+      { key: "acquisitionCost", label: "Per-item acquisition or sourcing cost", number: true, placeholder: "0.00", hint: "For resale items, enter what you paid for one item. For handmade products, enter any extra per-item costs beyond the recipe materials. This cost is saved on each sale for item profit and ROI." },
       { key: "inventory", label: record ? "Finished inventory on hand" : "Starting finished inventory", number: true, placeholder: "0", hint: "This is finished stock you physically have, including units reserved by live marketplace listings. Active listings reduce the product’s ready-to-sell count to zero until the listing is paused, archived, or sold." },
       { key: "packageWeight", label: "Final packaged weight", number: true, placeholder: "Example: 4.5" },
       { key: "packageWeightUnit", label: "Package weight unit", options: WEIGHT_UNITS },
@@ -1982,10 +2081,7 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
     ],
     order: [
       { key: "orderSku", label: "Order SKU", required: true, placeholder: "Example: ORDER-001" },
-      { key: "productId", label: "Product sold", options: productOptions, searchable: true, searchPlaceholder: "Search products", required: true, placeholder: "Choose a product" },
-      { key: "quantity", label: "Quantity sold", number: true, required: true, placeholder: "1" },
       { key: "marketplace", label: "Sales platform", optionSet: "marketplaces", options: optionsFor("marketplaces") },
-      { key: "unitPrice", label: "Price per item", number: true, placeholder: "Leave blank to use product price" },
       { key: "extraFees", label: "Additional estimated fees", number: true, placeholder: "0.00", hint: "Added on top of the marketplace fee estimate." },
       { key: "actualFees", label: "Actual fees paid (optional)", number: true, placeholder: "Leave blank to use estimate", hint: "If entered, this replaces the estimated marketplace and extra fees for this sale." },
       { key: "shippingCost", label: "Shipping cost paid by you", number: true, placeholder: "0.00" },
@@ -1999,7 +2095,7 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
       { key: "trackingUrl", label: "Tracking link", placeholder: "Paste the tracking page URL" },
       { key: "date", label: "Sale date", date: true },
       { key: "notes", label: "Sale notes", multiline: true, placeholder: "Order details, customer request, or fee notes" },
-      { key: "actualPayout", label: "Final payout received (optional)", number: true, placeholder: "Leave blank to calculate from sale minus fees", hint: "Use the amount that actually reached your account if the marketplace statement differs from the estimate." },
+      { key: "actualPayout", label: "Actual payout after marketplace fees and refunds (optional)", number: true, placeholder: "Leave blank to calculate from sale minus fees", hint: "Enter the payout before shipping or business expenses that you record separately. This keeps those costs from being deducted twice." },
     ],
     review: [
       { key: "customer", label: "Buyer name or order reference", placeholder: "Optional; you can keep the buyer anonymous" },
@@ -2015,6 +2111,7 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
       { key: "description", label: "Expense", required: true, placeholder: "Example: Packaging supplies" },
       { key: "amount", label: "Amount", number: true, required: true, placeholder: "0.00" },
       { key: "category", label: "Category", optionSet: "expenseCategories", options: optionsFor("expenseCategories") },
+      { key: "orderId", label: "Link packaging cost to an order (optional)", options: [{ label: "No order link", value: "" }, ...orderOptions], searchable: true, allowBlank: true, searchPlaceholder: "Search order number, customer, SKU", placeholder: "Choose an order", hint: "For Packaging expenses, linking the order includes this supply cost in that sale’s item level profit estimate." },
       { key: "expenseType", label: "How was it paid?", required: true, options: [{ label: "Out of pocket", value: "outOfPocket" }, { label: "Deducted from sale payout", value: "salesDeduction" }], hint: "Choose whether you paid this yourself or it was taken from a sale payout. Do not enter a fee here if it is already recorded on the order." },
       { key: "date", label: "Date", date: true },
       { key: "notes", label: "Notes", multiline: true, placeholder: "Optional details" },
@@ -2077,17 +2174,25 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
   const [error, setError] = useState("");
   const submitLock = useRef(false);
   const [submitting, setSubmitting] = useState(false);
-  const selectedOrderProduct = type === "order" ? db.products.find((item) => item.id === values.productId) : null;
-  const selectedSaleListing = type === "order" ? db.listings.find((item) => item.id === values.listingId && item.productId === values.productId) : null;
-  const saleUnitPrice = values.unitPrice === "" ? Number(selectedOrderProduct && selectedOrderProduct.price) || 0 : Math.max(0, asNumber(values.unitPrice, 0));
-  const saleSubtotal = saleUnitPrice * Math.max(0, asNumber(values.quantity, 0));
+  const orderFormLines = (values.orderItems || []).map((line) => {
+    const product = db.products.find((item) => item.id === line.productId);
+    const listing = db.listings.find((item) => item.id === line.listingId && item.productId === line.productId);
+    const unitPrice = String(line.unitPrice == null ? "" : line.unitPrice).trim() === ""
+      ? Number(listing && listing.price != null ? listing.price : product && product.price) || 0
+      : Math.max(0, asNumber(line.unitPrice, 0));
+    return { ...line, product, listing, unitPrice, lineTotal: unitPrice * Math.max(0, asNumber(line.quantity, 0)) };
+  });
+  const saleSubtotal = orderFormLines.reduce((sum, line) => sum + line.lineTotal, 0);
   const feeRule = (db.marketplaceFeeRules || {})[values.marketplace] || {};
   const marketplaceFeeEstimate = Number((saleSubtotal * Math.max(0, asNumber(feeRule.percent, 0)) / 100 + Math.max(0, asNumber(feeRule.fixed, 0))).toFixed(2));
   const extraFeeEstimate = Math.max(0, asNumber(values.extraFees, 0));
   const hasActualFees = String(values.actualFees == null ? "" : values.actualFees).trim() !== "";
   const displayedFees = hasActualFees ? Math.max(0, asNumber(values.actualFees, 0)) : marketplaceFeeEstimate + extraFeeEstimate;
   const actualPayoutEntered = String(values.actualPayout == null ? "" : values.actualPayout).trim() !== "";
-  const estimatedSalePayout = Math.max(0, saleSubtotal - displayedFees);
+  const estimatedSalePayout = saleSubtotal - displayedFees;
+  const updateOrderLine = (index, patch) => setValues((old) => ({ ...old, orderItems: (old.orderItems || []).map((line, lineIndex) => lineIndex === index ? { ...line, ...patch } : line) }));
+  const addOrderLine = () => setValues((old) => ({ ...old, orderItems: (old.orderItems || []).concat([{ productId: "", listingId: "", quantity: "1", unitPrice: "", customPrice: false }]) }));
+  const removeOrderLine = (index) => setValues((old) => ({ ...old, orderItems: (old.orderItems || []).length > 1 ? old.orderItems.filter((_line, lineIndex) => lineIndex !== index) : old.orderItems }));
   useEffect(() => {
     const initial = JSON.parse(initialValuesJson);
     setValues({ ...createFormDefaults(initial.type, initial.record, initial.defaultLowStock, initial), ...(initial.prefill || {}) });
@@ -2149,13 +2254,38 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.formHero}><Text style={styles.formHeroEyebrow}>{record ? "UPDATE YOUR RECORD" : "ADD SOMETHING NEW"}</Text><Text style={styles.formHeroTitle}>{record ? "Edit " : "Create "}{typeLabels[type] || "Record"}</Text><Text style={styles.formHeroText}>{FORM_INTRO[type] || "Add the details you want to keep with this record. You can come back and edit it anytime."}</Text></View>
+          {type === "order" ? <View style={styles.orderLinesEditor}>
+            <View style={styles.sectionHeadingRow}><View style={styles.flex}><Text style={styles.sectionTitle}>Products in this sale</Text><Text style={styles.fieldHint}>Each line keeps its own SKU, quantity, listing, and accepted price.</Text></View><Action label="＋ Add item" quiet onPress={addOrderLine} /></View>
+            {orderFormLines.map((line, index) => {
+              const listingOptions = db.listings.filter((item) => item.productId === line.productId && (active(item) || item.id === line.listingId)).map((item) => ({ label: (item.listingSku || item.productName) + " · " + (item.marketplaces || [item.marketplace].filter(Boolean)).join(", "), value: item.id }));
+              return <View key={index} style={styles.orderLineCard}>
+                <View style={styles.cardTop}><Text style={styles.fieldLabel}>Item {index + 1}{line.product ? " · " + line.product.sku : ""}</Text>{orderFormLines.length > 1 ? <Action label="Remove" quiet onPress={() => removeOrderLine(index)} /> : null}</View>
+                <Field field={{ key: "productId", label: "Product or SKU", options: productOptions, searchable: true, searchPlaceholder: "Search product name or SKU", required: true, placeholder: "Choose a product" }} value={line.productId} onChange={(productId) => {
+                  const product = db.products.find((item) => item.id === productId);
+                  const candidates = db.listings.filter((item) => item.productId === productId && listingReservesProductStock(item, product));
+                  const matched = candidates.find((item) => (item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])).includes(values.marketplace)) || candidates[0] || null;
+                  const defaultPrice = String(matched && matched.price != null ? matched.price : product && product.price || "");
+                  updateOrderLine(index, { productId, listingId: matched ? matched.id : "", ...(!line.customPrice ? { unitPrice: defaultPrice, customPrice: false } : {}) });
+                }} />
+                {listingOptions.length ? <Field field={{ key: "listingId", label: "Marketplace listing (optional)", options: [{ label: "No listing link", value: "" }, ...listingOptions], searchable: true, allowBlank: true, placeholder: "Choose a listing" }} value={line.listingId} onChange={(listingId) => {
+                  const listing = db.listings.find((item) => item.id === listingId);
+                  updateOrderLine(index, { listingId, ...(!line.customPrice ? { unitPrice: String(listing && listing.price != null ? listing.price : line.product && line.product.price || "") } : {}) });
+                }} /> : null}
+                <View style={styles.orderLineInputs}>
+                  <View style={styles.flex}><Field field={{ label: "Quantity", number: true, required: true, placeholder: "1" }} value={line.quantity} onChange={(quantity) => updateOrderLine(index, { quantity })} /></View>
+                  <View style={styles.flex}><Field field={{ label: "Accepted unit price", number: true, placeholder: line.product ? String(line.product.price || "0.00") : "0.00", hint: line.customPrice ? "Custom accepted price is saved for this line." : "Uses the selected listing or product price until you enter an offer." }} value={line.unitPrice} onChange={(unitPrice) => updateOrderLine(index, { unitPrice, customPrice: true })} /></View>
+                </View>
+                <Text style={styles.recordMeta}>{line.product ? line.product.name + " · " + line.product.sku : "Choose a product"} · Line total {money(line.lineTotal, db.currency)}</Text>
+              </View>;
+            })}
+          </View> : null}
           {formSections.map((section) => <View key={section.title} style={styles.formSection}>
             <View style={styles.formSectionHeading}><View style={styles.formSectionMark} /><View style={styles.flex}><Text style={styles.formSectionTitle}>{section.title}</Text><Text style={styles.formSectionText}>{section.description}</Text></View></View>
           {section.fields.map((field) => (
             <React.Fragment key={field.key}>
             <Field field={field} value={values[field.key]} onChange={(value) => setValues((old) => {
               const next = { ...old, [field.key]: value };
-              if ((type === "listing" || type === "order") && field.key === "productId") {
+              if (type === "listing" && field.key === "productId") {
                 const selected = db.products.find((item) => item.id === value);
                 if (selected) {
                   next.packageWeight = String(selected.packageWeight || "");
@@ -2171,12 +2301,6 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
                     if (!next.price) next.price = String(selected.price || "");
                   }
                 }
-                if (type === "order") {
-                  const candidates = db.listings.filter((item) => item.productId === value && listingReservesProductStock(item, selected));
-                  const selectedListing = candidates.find((item) => (item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])).includes(next.marketplace)) || null;
-                  next.listingId = selectedListing ? selectedListing.id : "";
-                  if (selected) next.unitPrice = String(selectedListing && selectedListing.price != null ? selectedListing.price : selected.price || "");
-                }
               }
               if (type === "listing" && field.key === "descriptionSource" && value === "product") {
                 const selected = db.products.find((item) => item.id === next.productId);
@@ -2184,11 +2308,12 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
               }
               if (type === "listing" && field.key === "description") next.descriptionSource = "manual";
               if (type === "order" && field.key === "marketplace") {
-                const selectedProduct = db.products.find((item) => item.id === next.productId);
-                const candidates = db.listings.filter((item) => item.productId === next.productId && listingReservesProductStock(item, selectedProduct));
-                const selectedListing = candidates.find((item) => (item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])).includes(value)) || null;
-                next.listingId = selectedListing ? selectedListing.id : "";
-                if (selectedProduct) next.unitPrice = String(selectedListing && selectedListing.price != null ? selectedListing.price : selectedProduct.price || "");
+                next.orderItems = (next.orderItems || []).map((line) => {
+                  const selectedProduct = db.products.find((item) => item.id === line.productId);
+                  const candidates = db.listings.filter((item) => item.productId === line.productId && listingReservesProductStock(item, selectedProduct));
+                  const selectedListing = candidates.find((item) => (item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])).includes(value)) || null;
+                  return { ...line, listingId: selectedListing ? selectedListing.id : "", ...(!line.customPrice && selectedProduct ? { unitPrice: String(selectedListing && selectedListing.price != null ? selectedListing.price : selectedProduct.price || "") } : {}) };
+                });
               }
               if (type === "review" && field.key === "orderId") {
                 const linkedOrder = db.orders.find((item) => item.id === value);
@@ -2202,7 +2327,7 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
             {type === "product" && field.key === "description" ? <Text style={styles.fieldHint}>{characterCount(values.description)} characters in the product description</Text> : null}
             </React.Fragment>
           ))}</View>)}
-          {type === "order" ? <View style={styles.recipePreview}><Text style={styles.fieldLabel}>{actualPayoutEntered ? "Final payout received" : "Estimated payout after fees"}</Text><Text style={styles.orderPayoutEstimate}>{money(actualPayoutEntered ? asNumber(values.actualPayout, 0) : estimatedSalePayout, db.currency)}</Text><Text style={styles.bodyText}>{actualPayoutEntered ? "Final payout entered" : `${values.marketplace || "Direct"}: ${money(displayedFees, db.currency)} ${hasActualFees ? "actual fees" : "estimated fees"} · ${money(saleSubtotal, db.currency)} sale total`}</Text>{selectedSaleListing ? <Text style={styles.fieldHint}>Automatically linked listing: {selectedSaleListing.listingSku || selectedSaleListing.productName}</Text> : <Text style={styles.fieldHint}>No matching listing for this product and sales platform. The sale can still be saved without a listing link.</Text>}<Text style={styles.fieldHint}>Fee estimates use your optional marketplace rates in Settings. Enter actual fees or the final payout above when your statement is available.</Text></View> : null}
+          {type === "order" ? <View style={styles.recipePreview}><Text style={styles.fieldLabel}>{actualPayoutEntered ? "Actual payout after fees and refunds" : "Estimated payout after fees"}</Text><Text style={styles.orderPayoutEstimate}>{money(actualPayoutEntered ? asNumber(values.actualPayout, 0) : estimatedSalePayout, db.currency)}</Text><Text style={styles.bodyText}>{actualPayoutEntered ? "Actual payout entered" : `${values.marketplace || "Direct"}: ${money(displayedFees, db.currency)} ${hasActualFees ? "actual fees" : "estimated fees"} · ${money(saleSubtotal, db.currency)} sale total across ${orderFormLines.length} item line${orderFormLines.length === 1 ? "" : "s"}`}</Text><Text style={styles.fieldHint}>Fixed marketplace fees apply once per order; percentage fees use the combined item subtotal. Selected listings are saved separately on each product line.</Text><Text style={styles.fieldHint}>Fee estimates use your optional marketplace rates in Settings. Enter actual fees or the actual payout after fees and refunds above when your statement is available, before separately recorded shipping or business expenses.</Text></View> : null}
           {type === "product" ? <RecipeEditor components={db.components} recipe={values.recipe || []} onChange={(recipe) => setValues((old) => ({ ...old, recipe }))} /> : null}
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <Text style={styles.formFootnote}>Your records are saved on this device. Back up your data from Settings.</Text>
@@ -2227,7 +2352,7 @@ const HELP_COPY = {
   Calendar: ["The calendar automatically shows sale status history, scheduled go-live dates, discount start/end dates, relisting plans, and clocked shifts with their break totals. The Next up list shows every upcoming match when expanded. Filter sale stages such as Ready to Ship or Shipped, then filter discounts and relists by Planned or Done. Tasks, events, and work blocks you add are grouped under Schedules; shift records and breaks are under Time tracking. Select a date to review its entries.", "Example: change an order to Shipped and it appears on the chosen date. A shift you clocked in and out of appears on its work date with its task, project, worked time, and break total."],
   Time: ["Clock in and out to keep a shift record, or run the focus timer for a single task. Add break minutes to subtract breaks from worked time. Link saved tasks, add a project or collection name, and write a private note; linking a task does not complete it. Shift times and break totals also appear on the Calendar and Dashboard. Time is tracked on this device and is not a payroll system.", "Example: clock in at 09:00, link ‘Pack customer orders,’ enter ‘Holiday collection,’ take a 30-minute break, and clock out at 13:00. The Dashboard and Calendar show the shift, project, task, and 3.5 hours worked."],
   Production: ["Production turns a saved product recipe into an inventory transaction. Choose a product and enter a positive quantity; decimals are supported for items tracked by weight or volume. The app multiplies every recipe amount by that number, subtracts those component quantities, and adds the finished quantity to product inventory. Check the recipe units and available component stock first; this tracker does not place purchase orders for shortages.", "Example: one candle recipe uses 200 g wax and one wick. Recording 3 candles subtracts 600 g wax and 3 wicks, then adds 3 candles to finished inventory."],
-  Reports: ["Reports summarize only the sales, inventory, fees, expenses, and other activity entered in this tracker. They are not connected to your shops, bank, tax service, or accounting software. Compare figures with source statements and correct missing or duplicated records before relying on a total. Profit uses saved product recipe costs and entered expenses; it does not estimate labor or taxes.", "Example: if the report says 12 orders and your marketplace statement says 13, find the missing sale in Orders before using the total in your monthly review."],
+  Reports: ["Reports summarize only the sales, inventory, fees, expenses, and other activity entered in this tracker. They are not connected to your shops, bank, tax service, or accounting software. Compare figures with source statements and correct missing or duplicated records before relying on a total. Profit uses saved per-unit product costs, including recipe materials and acquisition or sourcing costs, plus entered expenses; it does not estimate labor or taxes.", "Example: if the report says 12 orders and your marketplace statement says 13, find the missing sale in Orders before using the total in your monthly review."],
   Suppliers: ["Use this directory for the supplier or shop name, contact method, website, category, and your purchasing notes. Reuse the same supplier name on component and restock records so you can recognize the relationship. Notes can hold useful buying details such as minimum order, package size, or typical delivery time; this is not a purchase-order system.", "Example: add ‘Northside Bead Co.’ with its order email and website, then note ‘Minimum order $25; brass chain usually ships in 3–5 days.’ Use that same name when recording a clasp restock."],
   Settings: ["Business profile stores the shop name, display currency, and defaults. Theme and colors affect appearance; marketplace options control the channel choices in listings and orders. Fee rules are estimates: the percent applies to the item subtotal and the fixed amount is added once per order. Data and backups lets you copy backup text, restore it, clear business records, or perform a full factory reset. Records stay in this browser on this device; there is no login or cloud sync yet.", "Example: for an illustrative 6.5% fee plus $0.30 per order on a $40 sale, the estimate is $2.90 ($2.60 + $0.30), before any extra fee. These are sample numbers only, not a marketplace’s actual rates. Check the channel’s current fee schedule and enter its real rules."],
   "Help & FAQ": ["Search the guide for setup steps, supplier choices, purchase dates, backup and restore instructions, and answers about how tracker data is stored. Use the page links to jump straight to a feature.", "Example: search for ‘purchase date’ to learn how to enter the date on a restock, or search for ‘backup’ to copy a text backup and restore it later."],
@@ -2360,6 +2485,17 @@ function BulkCreateListingsModal({ visible, products = [], listings = [], market
   const [priceOverrides, setPriceOverrides] = useState({});
   const [selectedMarketplaces, setSelectedMarketplaces] = useState([]);
   const [search, setSearch] = useState("");
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantQuery, setAssistantQuery] = useState("");
+  const [assistantResponse, setAssistantResponse] = useState("Choose a question or ask about today’s sales, shipping, tasks, or stock.");
+  const [goalMonthInput, setGoalMonthInput] = useState(TODAY.slice(0, 7));
+  const [goalGrossInput, setGoalGrossInput] = useState("");
+  const [goalOrdersInput, setGoalOrdersInput] = useState("");
+  const [goalItemsInput, setGoalItemsInput] = useState("");
+  const [bulkDeleteMode, setBulkDeleteMode] = useState("");
+  const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -2623,6 +2759,7 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
     ["Materials", Array.isArray(record.materials) ? record.materials.join(", ") : record.materials],
     ["Sizes", Array.isArray(record.sizes) ? record.sizes.join(", ") : record.sizes], ["Audience or gender", record.gender],
     ["Product description", record.description || (!record.colors && !record.sizes && !record.gender ? record.materials : "")], ["Condition", record.condition],
+    ["Collectible condition", record.cardCondition], ["Set or series", record.collectibleSetName], ["Grading status", record.gradingStatus], ["Grade or certification", record.grade], ["PriceCharting reference", record.priceChartingUrl],
     ["Price", record.price != null ? money(record.price, currency) : type === "order" ? money(totalOrder(record), currency) : ""],
     ["Inventory", record.inventory != null ? String(record.inventory) : ""], ["Final packaged weight", weight],
     ["Marketplace", record.marketplace || (record.marketplaces || []).join(", ")], ["Status", record.status],
@@ -2639,7 +2776,7 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
   ].filter(([, value]) => value);
   return <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
     <SafeAreaView style={styles.modalSafe}>
-      <View style={styles.modalHeader}><Pressable onPress={onClose}><Text style={styles.modalCancel}>Close</Text></Pressable><Text style={styles.modalTitle}>Details</Text>{type !== "order" || (!record.refundedAt && !(Number(record.refundAmount) > 0) && (record.items || []).length <= 1) ? <Pressable onPress={onEdit}><Text style={styles.modalSave}>Edit</Text></Pressable> : <View style={styles.modalHeaderSpacer} />}</View>
+      <View style={styles.modalHeader}><Pressable onPress={onClose}><Text style={styles.modalCancel}>Close</Text></Pressable><Text style={styles.modalTitle}>Details</Text>{type !== "order" || (!record.refundedAt && !(Number(record.refundAmount) > 0)) ? <Pressable onPress={onEdit}><Text style={styles.modalSave}>Edit</Text></Pressable> : <View style={styles.modalHeaderSpacer} />}</View>
       <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.cardTitle}>{title}</Text>
         {details.map(([label, value]) => <View key={label} style={styles.detailLine}><Text style={styles.detailLabel}>{label}</Text><Text style={styles.detailValue}>{value}</Text></View>)}
@@ -2654,7 +2791,11 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
 }
 
 function Card({ children, style }) {
-  return <View style={[styles.card, style]}>{children}</View>;
+  const compact = CURRENT_APPEARANCE.density === "Compact";
+  const spacious = CURRENT_APPEARANCE.density === "Spacious";
+  const padding = compact ? 8 : spacious ? 15 : 10;
+  const shadow = Math.max(0, Math.min(1.5, Number(CURRENT_APPEARANCE.shadowIntensity) || 0));
+  return <View style={[styles.card, { borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding, elevation: shadow, shadowOpacity: shadow * 0.08, shadowRadius: 4 + shadow * 4 }, style]}>{children}</View>;
 }
 
 function SettingsAccordion({ title, subtitle, expanded, onPress, children }) {
@@ -2674,7 +2815,7 @@ function Pill({ text, tone }) {
 
 function Action({ label, onPress, quiet }) {
   return (
-    <Pressable onPress={onPress} android_ripple={{ color: COLORS.ripple }} style={({ pressed }) => [styles.actionButton, quiet && styles.actionQuiet, pressed && styles.pressedState]}>
+    <Pressable onPress={onPress} android_ripple={{ color: COLORS.ripple }} style={({ pressed }) => [styles.actionButton, quiet && styles.actionQuiet, { borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12 }, CURRENT_APPEARANCE.accentGlow && !quiet ? { shadowColor: COLORS.wine, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3 } : null, pressed && styles.pressedState]}>
       <Text style={styles.actionButtonText}>{label}</Text>
     </Pressable>
   );
@@ -2713,6 +2854,10 @@ export default function App() {
   }, []);
 
   const [db, setDb] = useState(() => normalizeDatabase(EMPTY_DB));
+  useEffect(() => {
+    setAppearanceSettings(db.appearanceSettings);
+    styles = makeStyles();
+  }, [db.appearanceSettings]);
   const [ready, setReady] = useState(false);
   const [screen, setScreen] = useState("Dashboard");
   const [navigationStack, setNavigationStack] = useState(["Dashboard"]);
@@ -2792,7 +2937,7 @@ export default function App() {
   const [customThemeSections, setCustomThemeSections] = useState({ surfaces: true, typography: false, accents: false, borders: false });
   const [customPresetChoice, setCustomPresetChoice] = useState(DEFAULT_THEME_NAME);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
-  const [settingsSections, setSettingsSections] = useState({ profile: true, appearance: true, marketplaces: true, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
+  const [settingsSections, setSettingsSections] = useState({ profile: true, appearance: true, aesthetic: false, marketplaces: true, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
   const [backupOpen, setBackupOpen] = useState(false);
   const [pendingRecordConfirmation, setPendingRecordConfirmation] = useState(null);
   const [recordActionNotice, setRecordActionNotice] = useState("");
@@ -3511,6 +3656,7 @@ export default function App() {
     let saleProduct = null;
     let saleListing = null;
     let saleQty = 0;
+    let saleLines = [];
     if (type === "product") {
       productSku = normalizeProductSku(values.sku);
       if (!productSku) {
@@ -3589,28 +3735,39 @@ export default function App() {
       }
     }
     if (type === "order") {
-      if (record && (record.items || []).length > 1) { Alert.alert("This sale has multiple products", "This version can safely edit one-product sales. Keep this order unchanged so its product lines and inventory history are preserved."); return false; }
       if (record && (record.refundedAt || Number(record.refundAmount) > 0)) { Alert.alert("This sale has a refund", "A sale with a recorded refund cannot be edited. Add another correction note or review the refund history instead."); return false; }
       const orderSku = String(values.orderSku || "").trim().toLowerCase();
       if (!orderSku || db.orders.some((item) => item.id !== record?.id && String(item.orderSku || "").trim().toLowerCase() === orderSku)) { Alert.alert("Choose a unique order SKU", "Each sale needs its own order code. Check the code and try again."); return false; }
-      saleProduct = db.products.find((x) => x.id === values.productId && (active(x) || !!record));
-      saleListing = values.listingId ? db.listings.find((item) => item.id === values.listingId && item.productId === values.productId) : null;
-      if (values.listingId && !saleListing) { Alert.alert("Check the listing", "Choose a listing connected to the product in this sale, or clear the listing field."); return false; }
-      if (!record && saleListing && !listingReservesProductStock(saleListing, saleProduct)) saleListing = null;
-      const enteredQuantity = asNumber(values.quantity, 0);
-      if (!Number.isFinite(enteredQuantity)) { Alert.alert("Check the sale quantity", "Enter a valid number for the quantity."); return false; }
-      saleQty = enteredQuantity;
-      if (!saleProduct || saleQty <= 0) { Alert.alert("Check this sale", "Choose an active product and enter a quantity above zero."); return false; }
-      const quantityAlreadyOnThisSale = record ? (record.items || []).filter((item) => item.productId === saleProduct.id).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) : 0;
-      const savedListingId = record && (record.listingId || record.items && record.items[0] && record.items[0].listingId);
-      const thisSaleUsesListing = !!saleListing && (listingReservesProductStock(saleListing, saleProduct) || savedListingId === saleListing.id);
-      const availableForEdit = thisSaleUsesListing
-        ? Math.max(0, Number(saleProduct.inventory) || 0) + quantityAlreadyOnThisSale
-        : productAvailableUnits(saleProduct, db.listings) + quantityAlreadyOnThisSale;
-      if (availableForEdit < saleQty) {
-        Alert.alert("Not enough finished inventory ready to sell", "There are " + availableForEdit + " units available after accounting for active listing reservations and the current sale. Record production, or pause/archive the unsold listing before recording a direct sale.");
-        return false;
+      const requestedLines = Array.isArray(values.orderItems) ? values.orderItems : [];
+      saleLines = requestedLines.map((line) => {
+        const product = db.products.find((item) => item.id === line.productId && (active(item) || !!record));
+        const listing = line.listingId ? db.listings.find((item) => item.id === line.listingId && item.productId === line.productId) : null;
+        const quantity = asNumber(line.quantity, NaN);
+        const rawUnitPrice = String(line.unitPrice == null ? "" : line.unitPrice).trim();
+        const unitPrice = rawUnitPrice === "" ? Number(listing && listing.price != null ? listing.price : product && product.price) || 0 : asNumber(rawUnitPrice, NaN);
+        return product && listing == null && line.listingId ? null : product && Number.isFinite(quantity) && quantity > 0 && Number.isFinite(unitPrice) && unitPrice >= 0 ? { product, listing, quantity, unitPrice, customPrice: !!line.customPrice } : null;
+      });
+      if (!saleLines.length || saleLines.some((line) => !line)) { Alert.alert("Check the sale items", "Choose a product for every line, enter a quantity above zero, and use a valid accepted price. Remove any extra blank lines."); return false; }
+      const quantitiesByProduct = new Map();
+      const listingsByProduct = new Map();
+      saleLines.forEach((line) => {
+        quantitiesByProduct.set(line.product.id, (quantitiesByProduct.get(line.product.id) || 0) + line.quantity);
+        if (line.listing && listingReservesProductStock(line.listing, line.product)) listingsByProduct.set(line.product.id, true);
+      });
+      for (const [productId, requestedQuantity] of quantitiesByProduct) {
+        const product = db.products.find((item) => item.id === productId);
+        const quantityAlreadyOnThisSale = record ? (record.items || []).filter((item) => item.productId === productId).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) : 0;
+        const available = listingsByProduct.get(productId)
+          ? Math.max(0, Number(product.inventory) || 0) + quantityAlreadyOnThisSale
+          : productAvailableUnits(product, db.listings) + quantityAlreadyOnThisSale;
+        if (available < requestedQuantity) {
+          Alert.alert("Not enough finished inventory ready to sell", product.name + " has " + available + " units available after accounting for active listing reservations and this sale. Record production, or pause/archive an unsold listing before recording a direct sale.");
+          return false;
+        }
       }
+      saleProduct = saleLines[0].product;
+      saleListing = saleLines[0].listing;
+      saleQty = saleLines.reduce((sum, line) => sum + line.quantity, 0);
     }
     setDb((old) => {
       const next = { ...old };
@@ -3691,9 +3848,11 @@ export default function App() {
           id: productId,
           name: productName, sku, category: values.category || "Other",
           price: Math.max(0, asNumber(values.price, 0)),
+          acquisitionCost: Math.max(0, asNumber(values.acquisitionCost, 0)),
           inventory: startingInventory,
           recipe: parsedRecipe, colors: values.colors || "", materials: values.materials || "", sizes: values.sizes || "", gender: values.gender || "",
           description: String(values.description || "").trim(), condition: values.condition || "Handmade",
+          cardCondition: String(values.cardCondition || "").trim(), collectibleSetName: String(values.collectibleSetName || "").trim(), gradingStatus: values.gradingStatus || "", grade: String(values.grade || "").trim(), priceChartingUrl: String(values.priceChartingUrl || "").trim(),
           packageWeight: Math.max(0, asNumber(values.packageWeight, 0)), packageWeightUnit: values.packageWeightUnit || "oz",
           notes: String(values.description || "").trim(), images: record && record.images || [], archived: record ? !!record.archived : false,
           status: record ? record.status : "Available",
@@ -3774,31 +3933,34 @@ export default function App() {
           notes: String(values.notes || "").trim(),
         });
       } else if (type === "order") {
-        const product = saleProduct;
-        const quantity = saleQty;
-        const unitPrice = values.unitPrice === "" ? Number(saleListing && saleListing.price != null ? saleListing.price : product.price) || 0 : Math.max(0, asNumber(values.unitPrice, 0));
-        const productCost = currentRecipeCost(product, old.components);
-        const subtotal = unitPrice * quantity;
+        const lineItems = saleLines.map(({ product, listing, quantity, unitPrice, customPrice }) => {
+          const originalPrice = Number(listing && listing.price != null ? listing.price : product.price) || 0;
+          const discountPercent = originalPrice > 0 ? Math.max(0, (originalPrice - unitPrice) / originalPrice * 100) : 0;
+          return { productId: product.id, productName: product.name, productSku: product.sku, listingId: listing ? listing.id : "", listingName: listing ? listing.productName : "", listingSku: listing ? listing.listingSku : "", quantity, unitPrice, customPrice, originalPrice, discountPercent, unitCost: currentRecipeCost(product, old.components) };
+        });
+        const subtotal = lineItems.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
         const orderFeeRule = (old.marketplaceFeeRules || {})[values.marketplace || "Direct"] || {};
         const estimatedMarketplaceFees = Number((subtotal * Math.max(0, asNumber(orderFeeRule.percent, 0)) / 100 + Math.max(0, asNumber(orderFeeRule.fixed, 0))).toFixed(2));
         const extraFees = Math.max(0, asNumber(values.extraFees, 0));
         const hasActualFees = String(values.actualFees == null ? "" : values.actualFees).trim() !== "";
         const fees = hasActualFees ? Math.max(0, asNumber(values.actualFees, 0)) : estimatedMarketplaceFees + extraFees;
-        const originalPrice = Number(saleListing && saleListing.price != null ? saleListing.price : product.price) || 0;
-        const discountPercent = originalPrice > 0 ? Math.max(0, (originalPrice - unitPrice) / originalPrice * 100) : 0;
-        const line = { productId: product.id, productName: product.name, productSku: product.sku, listingId: saleListing ? saleListing.id : "", listingName: saleListing ? saleListing.productName : "", listingSku: saleListing ? saleListing.listingSku : "", quantity, unitPrice, originalPrice, discountPercent, unitCost: productCost };
         const orderId = record ? record.id : uid("order");
         const previousQuantities = {};
-        (record && record.items || []).forEach((item) => { previousQuantities[item.productId] = (previousQuantities[item.productId] || 0) + (Number(item.quantity) || 0); });
-        const inventoryChanges = { ...previousQuantities, [product.id]: (previousQuantities[product.id] || 0) - quantity };
+        const currentQuantities = {};
+        (record && record.items || []).forEach((item) => { if (item.productId) previousQuantities[item.productId] = (previousQuantities[item.productId] || 0) + (Number(item.quantity) || 0); });
+        lineItems.forEach((item) => { currentQuantities[item.productId] = (currentQuantities[item.productId] || 0) + item.quantity; });
+        const inventoryChanges = {};
+        new Set([...Object.keys(previousQuantities), ...Object.keys(currentQuantities)]).forEach((productId) => { inventoryChanges[productId] = (previousQuantities[productId] || 0) - (currentQuantities[productId] || 0); });
         const enteredOrderSku = String(values.orderSku || (record && record.orderSku) || ("ORDER-" + String(firstAvailableSkuNumber(old.orders, "orderSku", "ORDER-")).padStart(3, "0"))).trim();
         const enteredAt = new Date().toISOString();
+        const productsWithOtherLiveListings = old.reListingReminderEnabled === false ? [] : Array.from(new Set(lineItems.map((item) => item.productId))).flatMap((productId) => old.listings.filter((listing) => listing.productId === productId && active(listing) && !lineItems.some((line) => line.listingId === listing.id) && ["Active", "Scheduled"].includes(listing.status)).map((listing) => (listing.listingSku || listing.productName) + " (" + listingAnalyticsChannels(listing).join(", ") + ")"));
         const order = {
           ...(record || {}), id: orderId, orderSku: enteredOrderSku, createdAt: record ? record.createdAt : enteredAt, updatedAt: record ? enteredAt : null, date: values.date || today,
-          items: [line], fees, feeSource: hasActualFees ? "actual" : "estimated", estimatedMarketplaceFees, extraFees,
-          listingId: saleListing ? saleListing.id : "", listingName: saleListing ? saleListing.productName : "", listingSku: saleListing ? saleListing.listingSku : "",
+          items: lineItems, quantity: lineItems.reduce((sum, line) => sum + line.quantity, 0),
+          fees, feeSource: hasActualFees ? "actual" : "estimated", estimatedMarketplaceFees, extraFees,
+          listingId: lineItems.length === 1 ? lineItems[0].listingId : "", listingName: lineItems.length === 1 ? lineItems[0].listingName : "", listingSku: lineItems.length === 1 ? lineItems[0].listingSku : "",
           shippingCost: Math.max(0, asNumber(values.shippingCost, 0)),
-          packageWeight: Math.max(0, asNumber(values.packageWeight, product.packageWeight || 0)), packageWeightUnit: values.packageWeightUnit || product.packageWeightUnit || "oz",
+          packageWeight: Math.max(0, asNumber(values.packageWeight, 0)), packageWeightUnit: values.packageWeightUnit || "oz",
           marketplace: values.marketplace || "Direct", customer: values.customer || "",
           trackingNumber: String(values.trackingNumber || "").trim(), trackingCarrier: String(values.trackingCarrier || "").trim(), trackingUrl: String(values.trackingUrl || "").trim(),
           paymentMethod: values.paymentMethod || "", shippingMethod: values.shippingMethod || "", notes: values.notes || "",
@@ -3806,34 +3968,31 @@ export default function App() {
           timeline: record ? record.timeline || [] : [{ status: old.dropdownOptions?.fulfillmentStatuses?.[0] || "Needs Packaging", date: values.date || today, enteredAt }],
           auditLog: record ? record.auditLog || [] : [],
           refundedAt: record ? record.refundedAt || null : null, refundAmount: record ? Number(record.refundAmount) || 0 : 0,
-          actualPayout: String(values.actualPayout == null ? "" : values.actualPayout).trim() === "" ? null : Math.max(0, asNumber(values.actualPayout, 0)),
+          actualPayout: String(values.actualPayout == null ? "" : values.actualPayout).trim() === "" ? null : asNumber(values.actualPayout, 0),
+          deListReminderChannels: productsWithOtherLiveListings,
         };
         if (record) {
           const changes = Object.keys(order).filter((field) => !["auditLog", "createdAt", "updatedAt"].includes(field) && JSON.stringify(record[field]) !== JSON.stringify(order[field])).map((field) => ({ field, from: record[field] == null ? null : record[field], to: order[field] == null ? null : order[field] }));
           if (changes.length) order.auditLog = (record.auditLog || []).concat([{ id: uid("edit"), action: "Sale details edited", date: new Date().toISOString(), changes }]);
         }
         next.orders = record ? old.orders.map((item) => item.id === order.id ? order : item) : [order, ...old.orders];
-        next.products = old.products.map((item) => inventoryChanges[item.id]
-          ? { ...item, inventory: (Number(item.inventory) || 0) + inventoryChanges[item.id] }
-          : item);
-        const remainingProductStock = (Number(product.inventory) || 0) + (inventoryChanges[product.id] || 0);
-        if (saleQty > 0) {
-          const now = new Date().toISOString();
-          next.listings = old.listings.map((listing) => {
-            if (listing.soldOutOrderId === order.id && listing.productId !== product.id) return { ...listing, status: listing.soldOutPreviousStatus || "Active", needsArchive: false, soldOutAt: null, soldOutOrderId: null, soldOutPreviousStatus: null, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: "Listing stock status cleared after sale product changed", date: now, changes: [{ field: "status", from: listing.status || "Sold", to: listing.soldOutPreviousStatus || "Active" }, { field: "needsArchive", from: true, to: false }] }]) };
-            if (listing.productId !== product.id || !active(listing)) return listing;
-            if (!["Active", "Scheduled"].includes(listing.status) && listing.soldOutOrderId !== order.id) return listing;
-            if (remainingProductStock <= 0) {
-              const soldThroughThisListing = !!saleListing && listing.id === saleListing.id;
-              const soldOutStatus = soldThroughThisListing ? "Sold" : "Out of stock";
-              if (listing.needsArchive && listing.status === soldOutStatus && listing.soldOutOrderId === order.id) return listing;
-              const previousStatus = listing.needsArchive ? listing.soldOutPreviousStatus || "Active" : listing.status || "Active";
-              return { ...listing, status: soldOutStatus, needsArchive: true, soldOutAt: today, soldOutOrderId: order.id, soldOutPreviousStatus: previousStatus, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: soldThroughThisListing ? "Listing sold out" : "Listing paused because product stock sold out", date: now, changes: [{ field: "status", from: listing.status || "Active", to: soldOutStatus }, { field: "needsArchive", from: !!listing.needsArchive, to: true }], note: "Finished inventory reached zero after " + order.orderSku + (soldThroughThisListing ? " through this listing" : "; this listing did not record the sale") }]) };
-            }
-            if (listing.soldOutOrderId === order.id) return { ...listing, status: listing.soldOutPreviousStatus || "Active", needsArchive: false, soldOutAt: null, soldOutOrderId: null, soldOutPreviousStatus: null, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: "Sold-out status cleared after sale correction", date: now, changes: [{ field: "status", from: "Sold", to: listing.soldOutPreviousStatus || "Active" }, { field: "needsArchive", from: true, to: false }] }]) };
-            return listing;
-          });
-        }
+        next.products = old.products.map((item) => inventoryChanges[item.id] ? { ...item, inventory: (Number(item.inventory) || 0) + inventoryChanges[item.id] } : item);
+        const now = new Date().toISOString();
+        next.listings = old.listings.map((listing) => {
+          if (listing.soldOutOrderId === order.id && !currentQuantities[listing.productId]) return { ...listing, status: listing.soldOutPreviousStatus || "Active", needsArchive: false, soldOutAt: null, soldOutOrderId: null, soldOutPreviousStatus: null, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: "Listing stock status cleared after sale product changed", date: now, changes: [{ field: "status", from: listing.status || "Sold", to: listing.soldOutPreviousStatus || "Active" }, { field: "needsArchive", from: true, to: false }] }]) };
+          if (!inventoryChanges[listing.productId] || !active(listing) || !["Active", "Scheduled"].includes(listing.status) && listing.soldOutOrderId !== order.id) return listing;
+          const product = old.products.find((item) => item.id === listing.productId);
+          const remainingStock = (Number(product && product.inventory) || 0) + inventoryChanges[listing.productId];
+          if (remainingStock <= 0) {
+            const soldThroughThisListing = lineItems.some((line) => line.listingId === listing.id);
+            const soldOutStatus = soldThroughThisListing ? "Sold" : "Out of stock";
+            if (listing.needsArchive && listing.status === soldOutStatus && listing.soldOutOrderId === order.id) return listing;
+            const previousStatus = listing.needsArchive ? listing.soldOutPreviousStatus || "Active" : listing.status || "Active";
+            return { ...listing, status: soldOutStatus, needsArchive: true, soldOutAt: today, soldOutOrderId: order.id, soldOutPreviousStatus: previousStatus, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: soldThroughThisListing ? "Listing sold out" : "Listing paused because product stock sold out", date: now, changes: [{ field: "status", from: listing.status || "Active", to: soldOutStatus }, { field: "needsArchive", from: !!listing.needsArchive, to: true }], note: "Finished inventory reached zero after " + order.orderSku + (soldThroughThisListing ? " through this listing" : "; review other sales channels") }]) };
+          }
+          if (listing.soldOutOrderId === order.id) return { ...listing, status: listing.soldOutPreviousStatus || "Active", needsArchive: false, soldOutAt: null, soldOutOrderId: null, soldOutPreviousStatus: null, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: "Sold-out status cleared after sale correction", date: now, changes: [{ field: "status", from: "Sold", to: listing.soldOutPreviousStatus || "Active" }, { field: "needsArchive", from: true, to: false }] }]) };
+          return listing;
+        });
         const inventoryTransaction = Object.entries(inventoryChanges).filter(([, amount]) => amount !== 0).map(([productId, amount]) => ({
           id: uid(record ? "saleedit" : "sale"), productId, quantity: amount, kind: record ? "Sale correction" : "Sale", orderId: order.id, date: new Date().toISOString(), note: order.marketplace,
         }));
@@ -3842,7 +4001,7 @@ export default function App() {
         update("expenses", {
           description: String(values.description || "").trim(),
           amount: Math.max(0, asNumber(values.amount, 0)), category: values.category || "Other",
-          expenseType: values.expenseType || "outOfPocket", date: values.date || today, notes: values.notes || "",
+          orderId: values.orderId || "", expenseType: values.expenseType || "outOfPocket", date: values.date || today, notes: values.notes || "",
         });
       } else if (type === "income") {
         update("incomes", { description: String(values.description || "").trim(), amount: Math.max(0, asNumber(values.amount, 0)), category: String(values.category || "Other").trim(), date: values.date || today, notes: values.notes || "" });
@@ -4023,9 +4182,9 @@ export default function App() {
           if (!order) return old;
           const soldByProduct = {};
           (order.items || []).forEach((line) => { soldByProduct[line.productId] = (soldByProduct[line.productId] || 0) + (Number(line.quantity) || 0); });
-          const alreadyRestocked = Number(order.restockedQuantity) || 0;
+          const restockedByLine = orderLineRestockedQuantities(order);
+          (order.items || []).forEach((line, index) => { soldByProduct[line.productId] = Math.max(0, (soldByProduct[line.productId] || 0) - (restockedByLine[index] || 0)); });
           const productIds = Object.keys(soldByProduct);
-          if (productIds.length === 1) soldByProduct[productIds[0]] = Math.max(0, soldByProduct[productIds[0]] - alreadyRestocked);
           const now = new Date().toISOString();
           return withCurrentSkuCounters({
             ...old,
@@ -4122,6 +4281,70 @@ export default function App() {
         }]);
         return withCurrentSkuCounters(next);
       }),
+    });
+  };
+
+  const toggleBulkDeleteSelection = (key, id) => {
+    if (bulkDeleteMode !== key) { setBulkDeleteMode(key); setBulkDeleteIds([id]); return; }
+    setBulkDeleteIds((current) => current.includes(id) ? current.filter((item) => item !== id) : current.concat([id]));
+  };
+  const beginBulkDelete = (key) => {
+    setBulkDeleteMode(bulkDeleteMode === key ? "" : key);
+    setBulkDeleteIds([]);
+  };
+  const confirmBulkDelete = (key) => {
+    const ids = Array.from(new Set(bulkDeleteIds));
+    if (!ids.length) { Alert.alert("Select records first", "Choose one or more rows before deleting them."); return; }
+    const selected = (db[key] || []).filter((item) => ids.includes(item.id));
+    const blocked = [];
+    if (key === "components") {
+      const used = selected.filter((component) => db.products.some((product) => active(product) && (product.recipe || []).some((part) => part.componentId === component.id || !part.componentId && String(part.sku || "").toLowerCase() === String(component.sku || "").toLowerCase())));
+      if (used.length) blocked.push("Components used by product recipes: " + used.map((item) => item.name).join(", "));
+    }
+    if (key === "products") {
+      selected.forEach((product) => {
+        const refs = [];
+        if (db.listings.some((listing) => listing.productId === product.id)) refs.push("listings");
+        if (db.orders.some((order) => (order.items || []).some((line) => line.productId === product.id))) refs.push("orders");
+        if ((db.deletedOrders || []).some((order) => (order.items || []).some((line) => line.productId === product.id))) refs.push("deleted sale history");
+        if (db.reviews.some((review) => review.productId === product.id)) refs.push("reviews");
+        if (db.productions.some((batch) => batch.productId === product.id)) refs.push("production history");
+        if (refs.length) blocked.push(product.name + " is linked to " + refs.join(", "));
+      });
+    }
+    if (key === "listings") {
+      selected.forEach((listing) => {
+        const used = db.orders.some((order) => (order.items || []).some((line) => line.listingId === listing.id || line.listingSku && String(line.listingSku).toLowerCase() === String(listing.listingSku || "").toLowerCase())) || (db.deletedOrders || []).some((order) => (order.items || []).some((line) => line.listingId === listing.id || line.listingSku && String(line.listingSku).toLowerCase() === String(listing.listingSku || "").toLowerCase()));
+        if (used) blocked.push(listing.listingSku + " is linked to saved sale history");
+      });
+    }
+    if (blocked.length) { Alert.alert("Resolve linked records first", blocked.join("\n\n") + "\n\nThese rows were kept so saved recipes and sale history stay connected."); return; }
+    const keyLabel = key === "components" ? "component" : key === "products" ? "product" : "listing";
+    requestRecordConfirmation({
+      title: "Delete " + selected.length + " " + keyLabel + (selected.length === 1 ? "?" : "s?"),
+      message: "This permanently removes the selected records after checking links. Product materials for unsold finished inventory will be returned to component stock. The deletion cannot be undone; export a backup first if you need a copy.",
+      confirmLabel: "Delete selected",
+      successMessage: selected.length + " " + keyLabel + (selected.length === 1 ? " deleted." : "s deleted."),
+      onConfirm: () => {
+        const selectedIds = new Set(selected.map((item) => item.id));
+        const now = new Date().toISOString();
+        setData((old) => {
+          const next = { ...old, [key]: (old[key] || []).filter((item) => !selectedIds.has(item.id)) };
+          if (key === "products") {
+            const returned = {};
+            selected.filter(active).forEach((product) => (product.recipe || []).forEach((part) => {
+              const quantity = Math.max(0, Number(part.quantity) || 0) * Math.max(0, Number(product.inventory) || 0);
+              if (part.componentId && quantity > 0) returned[part.componentId] = (returned[part.componentId] || 0) + quantity;
+            }));
+            next.components = old.components.map((component) => returned[component.id] ? { ...component, quantity: (Number(component.quantity) || 0) + returned[component.id] } : component);
+            next.componentTransactions = (old.componentTransactions || []).concat(Object.entries(returned).map(([componentId, quantity]) => ({ id: uid("bulk-product-delete"), componentId, quantity, kind: "Materials returned after product deletion", date: now, note: "Selected products deleted after dependency check" })));
+          }
+          if (key === "components") next.componentTransactions = (old.componentTransactions || []).filter((entry) => !selectedIds.has(entry.componentId) || entry.kind !== "Opening balance");
+          return withCurrentSkuCounters(next);
+        });
+        setBulkDeleteMode("");
+        setBulkDeleteIds([]);
+      },
     });
   };
 
@@ -4240,16 +4463,15 @@ export default function App() {
     const returnQuantity = Math.max(0, asNumber(values.returnedQuantity, 0));
     const restockQuantity = Math.max(0, asNumber(values.restockQuantity, 0));
     const totalQuantity = (target.items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-    if (refundAmount <= 0 || refundAmount > total - currentRefund + 0.01 || !Number.isFinite(returnQuantity) || returnQuantity > totalQuantity - (Number(target.returnedQuantity) || 0) || !Number.isFinite(restockQuantity) || restockQuantity > returnQuantity) {
+    const returnProductId = values.productId || ((target.items || []).length === 1 ? target.items[0].productId : "");
+    const productQuantity = (target.items || []).filter((line) => line.productId === returnProductId).reduce((sum, line) => sum + (Number(line.quantity) || 0), 0);
+    const priorProductReturns = (target.refundHistory || []).filter((entry) => entry.productId === returnProductId).reduce((sum, entry) => sum + (Number(entry.returnedQuantity) || 0), 0);
+    const remainingForProduct = returnProductId ? Math.max(0, productQuantity - priorProductReturns) : Math.max(0, totalQuantity - (Number(target.returnedQuantity) || 0));
+    if (refundAmount <= 0 || refundAmount > total - currentRefund + 0.01 || !Number.isFinite(returnQuantity) || returnQuantity > remainingForProduct || !Number.isFinite(restockQuantity) || restockQuantity > returnQuantity) {
       Alert.alert("Check refund details", "The amount or item quantities are outside the remaining sale balance.");
       return;
     }
-    const productIds = Array.from(new Set((target.items || []).map((item) => item.productId).filter(Boolean)));
-    if (restockQuantity > 0 && productIds.length !== 1) {
-      Alert.alert("Choose a product for stock", "This sale contains more than one product. Record its refund first, then adjust each returned product's stock from its own inventory record.");
-      return;
-    }
-    const productId = productIds[0];
+    const productId = returnProductId;
     if (restockQuantity > 0 && !db.products.some((product) => product.id === productId)) {
       Alert.alert("Product not found", "The sale's product is no longer available, so the returned stock was not changed.");
       return;
@@ -4257,11 +4479,12 @@ export default function App() {
     const now = new Date().toISOString();
     const cumulativeRefund = currentRefund + refundAmount;
     const fullyRefunded = cumulativeRefund >= total - 0.01;
-    const historyEntry = { id: uid("refund"), amount: refundAmount, returnedQuantity: returnQuantity, restockQuantity, note: values.note || "", date: now };
+    const returnedProduct = (target.items || []).find((line) => line.productId === productId);
+    const historyEntry = { id: uid("refund"), amount: refundAmount, productId: productId || "", productName: returnedProduct && returnedProduct.productName || "", returnedQuantity: returnQuantity, restockQuantity, note: values.note || "", date: now };
     setData((old) => ({
       ...old,
       products: restockQuantity ? old.products.map((product) => product.id === productId ? { ...product, inventory: (Number(product.inventory) || 0) + restockQuantity } : product) : old.products,
-      listings: restockQuantity ? old.listings.map((listing) => listing.soldOutOrderId === target.id ? { ...listing, status: listing.soldOutPreviousStatus || "Active", needsArchive: false, soldOutAt: null, soldOutOrderId: null, soldOutPreviousStatus: null, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: "Listing stock restored after customer return", date: now, changes: [{ field: "status", from: "Sold", to: listing.soldOutPreviousStatus || "Active" }, { field: "needsArchive", from: true, to: false }] }]) } : listing) : old.listings,
+      listings: restockQuantity ? old.listings.map((listing) => listing.soldOutOrderId === target.id && listing.productId === productId ? { ...listing, status: listing.soldOutPreviousStatus || "Active", needsArchive: false, soldOutAt: null, soldOutOrderId: null, soldOutPreviousStatus: null, auditLog: (listing.auditLog || []).concat([{ id: uid("audit"), action: "Listing stock restored after customer return", date: now, changes: [{ field: "status", from: "Sold", to: listing.soldOutPreviousStatus || "Active" }, { field: "needsArchive", from: true, to: false }] }]) } : listing) : old.listings,
       productTransactions: restockQuantity ? (old.productTransactions || []).concat([{
         id: uid("return"), productId, quantity: restockQuantity, kind: "Refund return", orderId: target.id, date: now, note: values.note || "Returned units marked safe to resell",
       }]) : old.productTransactions || [],
@@ -4577,6 +4800,47 @@ export default function App() {
   });
 
   const saveSettings = (key, value) => setData((old) => ({ ...old, [key]: value }));
+  const saveAppearanceSetting = (key, value) => {
+    const current = { ...APPEARANCE_DEFAULTS, ...(db.appearanceSettings || {}) };
+    const next = { ...current, [key]: value };
+    if (key === "baseFontSize") next[key] = Math.max(0.85, Math.min(1.2, Number(value) || 1));
+    if (key === "cardRadius") next[key] = Math.max(4, Math.min(28, Number(value) || 12));
+    if (key === "buttonRoundness") next[key] = Math.max(0, Math.min(24, Number(value) || 0));
+    if (key === "tableRowHeight") next[key] = Math.max(36, Math.min(64, Number(value) || 44));
+    if (key === "shadowIntensity") next[key] = Math.max(0, Math.min(1.5, Number(value) || 0));
+    if (key === "dividerOpacity") next[key] = Math.max(0.15, Math.min(1, Number(value) || 0.15));
+    saveSettings("appearanceSettings", next);
+  };
+  const goalActualsFor = (month) => {
+    const monthOrders = db.orders.filter((order) => parseDateInput(order.date)?.slice(0, 7) === month);
+    const itemsSold = monthOrders.reduce((sum, order) => (order.items || []).reduce((lineSum, line, index) => lineSum + Math.max(0, Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0), sum), 0);
+    return { grossRevenue: monthOrders.reduce((sum, order) => sum + totalOrder(order), 0), ordersCount: monthOrders.length, itemsSold };
+  };
+  const saveMonthlyGoal = () => {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(goalMonthInput)) { Alert.alert("Choose a target month", "Enter a month in YYYY-MM format, such as 2026-11."); return; }
+    const targets = { grossRevenue: goalGrossInput, ordersCount: goalOrdersInput, itemsSold: goalItemsInput };
+    for (const [label, value] of Object.entries(targets)) if (String(value).trim() !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0)) { Alert.alert("Check the goal amount", label + " must be a number of zero or more."); return; }
+    const goal = { month: goalMonthInput, grossRevenue: Math.max(0, Number(goalGrossInput) || 0), ordersCount: Math.max(0, Math.floor(Number(goalOrdersInput) || 0)), itemsSold: Math.max(0, Math.floor(Number(goalItemsInput) || 0)) };
+    setData((old) => ({ ...old, monthlyGoals: (old.monthlyGoals || []).filter((item) => item.month !== goal.month).concat([goal]).sort((a, b) => a.month.localeCompare(b.month)) }));
+  };
+  useEffect(() => {
+    const saved = (db.monthlyGoals || []).find((goal) => goal.month === goalMonthInput);
+    setGoalGrossInput(saved && saved.grossRevenue ? String(saved.grossRevenue) : "");
+    setGoalOrdersInput(saved && saved.ordersCount ? String(saved.ordersCount) : "");
+    setGoalItemsInput(saved && saved.itemsSold ? String(saved.itemsSold) : "");
+  }, [goalMonthInput, db.monthlyGoals]);
+  useEffect(() => {
+    if (!ready) return;
+    const month = TODAY.slice(0, 7);
+    const goal = (db.monthlyGoals || []).find((item) => item.month === month);
+    if (!goal) return;
+    const actuals = goalActualsFor(month);
+    const metricNames = { grossRevenue: "gross revenue", ordersCount: "orders", itemsSold: "items sold" };
+    const completed = ["grossRevenue", "ordersCount", "itemsSold"].filter((key) => Number(goal[key]) > 0 && actuals[key] >= Number(goal[key]) && !(db.celebratedGoalKeys || []).includes(month + ":" + key));
+    if (!completed.length) return;
+    Alert.alert("Monthly goal reached", "You reached your " + completed.map((key) => metricNames[key]).join(", ") + " target for " + month + ". Set another goal for next month when you’re ready.");
+    setData((old) => ({ ...old, celebratedGoalKeys: Array.from(new Set((old.celebratedGoalKeys || []).concat(completed.map((key) => month + ":" + key)))) }));
+  }, [ready, db.monthlyGoals, db.orders, db.celebratedGoalKeys]);
   const saveMarketplaceFeeRule = (marketplace, field, value) => setData((old) => ({
     ...old,
     marketplaceFeeRules: {
@@ -5033,11 +5297,22 @@ export default function App() {
     const periodIsCurrentMonth = dashboardPeriod === "month" && dashboardRange.start.slice(0, 7) === TODAY.slice(0, 7);
     const dashboardResetLabel = ({ day: "Today", week: "This week", month: "This month", year: "This year" })[dashboardPeriod] || "Today";
     const monthSales = periodTotals.gross;
-    const salesGoal = Math.max(0, Number(db.monthlySalesGoal) || 0);
+    const selectedMonthGoal = (db.monthlyGoals || []).find((goal) => goal.month === TODAY.slice(0, 7));
+    const salesGoal = Math.max(0, Number(selectedMonthGoal && selectedMonthGoal.grossRevenue || db.monthlySalesGoal) || 0);
     const salesProgress = periodIsCurrentMonth && salesGoal > 0 ? Math.min(100, Math.round((monthSales / salesGoal) * 100)) : 0;
     const readyToShip = db.orders.filter((order) => !order.archived && !order.refundedAt && ["Needs Packaging", "Packaging"].includes(order.status)).length;
     const shippedOrders = db.orders.filter((order) => !order.archived && !order.refundedAt && order.status === "Shipped").length;
     const todayTasks = openTasks.filter((task) => task.dueDate === TODAY).length;
+    const todayEvents = db.events.filter((event) => active(event) && !event.done && event.date === TODAY);
+    const todayDueTasks = openTasks.filter((task) => task.dueDate && task.dueDate <= TODAY);
+    const readyToShipOrders = db.orders.filter((order) => active(order) && !order.refundedAt && ["Needs Packaging", "Packaging", "Ready to Ship"].includes(order.status));
+    const selectedGoal = (db.monthlyGoals || []).find((goal) => goal.month === goalMonthInput) || (goalMonthInput === TODAY.slice(0, 7) && Number(db.monthlySalesGoal) > 0 ? { month: goalMonthInput, grossRevenue: Number(db.monthlySalesGoal), ordersCount: 0, itemsSold: 0 } : { month: goalMonthInput, grossRevenue: 0, ordersCount: 0, itemsSold: 0 });
+    const selectedGoalActuals = goalActualsFor(goalMonthInput);
+    const monthlyGoalRows = [
+      { key: "grossRevenue", label: "Gross revenue", format: (value) => money(value, db.currency) },
+      { key: "ordersCount", label: "Orders", format: (value) => String(value) },
+      { key: "itemsSold", label: "Items sold", format: (value) => String(value) },
+    ].filter((row) => Number(selectedGoal[row.key]) > 0);
     const activeListings = db.listings.filter(active);
     const liveListings = activeListings.filter((listing) => listingReservesProductStock(listing, db.products.find((product) => product.id === listing.productId)));
     const activeProducts = db.products.filter(active);
@@ -5119,12 +5394,12 @@ export default function App() {
           </Card>
           <View style={styles.metricGrid}>
             <Metric label="Gross sales" value={money(periodTotals.gross, db.currency)} />
-            <Metric label="Estimated profit" value={money(periodTotals.estimatedProfit, db.currency)} sub="Payout less shipping, expenses, and materials" color={periodTotals.estimatedProfit < 0 ? COLORS.red : COLORS.green} />
+            <Metric label="Estimated profit" value={money(periodTotals.estimatedProfit, db.currency)} sub="Payout plus other income, less shipping, expenses, and product costs" color={periodTotals.estimatedProfit < 0 ? COLORS.red : COLORS.green} />
             <Metric label="Fees + shipping" value={money(periodTotals.fees + periodTotals.shipping, db.currency)} />
             <Metric label="Expenses" value={money(periodTotals.expenses, db.currency)} />
           </View>
           <View style={styles.dashboardCashSummary}><Text style={styles.dashboardCashSummaryText}>Payout after fees and refunds <Text style={styles.dashboardCashSummaryValue}>{money(periodTotals.payouts, db.currency)}</Text>  ·  Other income <Text style={styles.dashboardCashSummaryValue}>{money(periodTotals.income, db.currency)}</Text>  ·  Refunds recorded <Text style={styles.dashboardCashSummaryValue}>{money(periodTotals.refunds, db.currency)}</Text></Text></View>
-          <Text style={styles.metricNote}>Payout uses your actual final payout when entered; otherwise it estimates sales less fees and refunds. Estimated profit then subtracts shipping, expenses, and materials.</Text>
+          <Text style={styles.metricNote}>Payout uses your actual final payout when entered; otherwise it estimates sales less fees and refunds. Estimated profit adds other income, then subtracts shipping, expenses, and saved product costs.</Text>
         </>
       ),
       fulfillment: (
@@ -5206,6 +5481,24 @@ export default function App() {
     const hiddenWidgets = db.hiddenDashboardWidgets || [];
     const widgetOrder = db.dashboardWidgetOrder || DEFAULT_DASHBOARD_WIDGET_ORDER;
     return <>
+      <Card style={styles.commandCenterCard}>
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Today’s command center</Text><Text style={styles.fieldHint}>Your first look at deadlines, shipments, and the next useful step.</Text></View><Pill text={db.activeShift ? "Shift active" : dateLabel(TODAY)} tone={db.activeShift ? "green" : "neutral"} /></View>
+        <View style={styles.metricGrid}>
+          <Metric label="Calendar today" value={String(todayEvents.length)} sub={todayEvents.slice(0, 2).map((event) => event.title).join(" · ") || "No events scheduled"} />
+          <Metric label="Tasks due or overdue" value={String(todayDueTasks.length)} sub={todayDueTasks.slice(0, 2).map((task) => task.title).join(" · ") || "No open deadlines"} />
+          <Metric label="Orders to ship" value={String(readyToShipOrders.length)} sub="Packaging or ready to ship" />
+        </View>
+        <Text style={styles.fieldLabel}>Quick note for today</Text>
+        <TextInput value={(db.dailyScratchNotes || {})[TODAY] || ""} onChangeText={(value) => setData((old) => ({ ...old, dailyScratchNotes: { ...(old.dailyScratchNotes || {}), [TODAY]: value } }))} placeholder="A thought, reminder, or next step…" placeholderTextColor={COLORS.placeholder} style={styles.dailyScratchInput} multiline />
+        <Text style={styles.fieldHint}>Briefing: {todayDueTasks.length ? todayDueTasks.length + " task(s) need attention" : "No tasks are due"}; {readyToShipOrders.length ? readyToShipOrders.length + " order(s) need shipping work" : "shipping queue is clear"}; {todayEvents.length ? "calendar events are scheduled" : "calendar is open"}.</Text>
+      </Card>
+      <Card style={styles.monthlyGoalsCard}>
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Monthly goals</Text><Text style={styles.fieldHint}>Set a month and any combination of sales, order, and item targets.</Text></View><Text style={styles.goalMonthLabel}>{goalMonthInput}</Text></View>
+        <TextInput value={goalMonthInput} onChangeText={setGoalMonthInput} placeholder="YYYY-MM" placeholderTextColor={COLORS.placeholder} style={styles.goalMonthInput} accessibilityLabel="Goal target month in YYYY-MM format" />
+        <View style={styles.goalInputRow}><View style={styles.flex}><Field field={{ label: "Gross revenue", number: true, placeholder: "Skip this target" }} value={goalGrossInput} onChange={setGoalGrossInput} /></View><View style={styles.flex}><Field field={{ label: "Orders", number: true, placeholder: "Optional" }} value={goalOrdersInput} onChange={setGoalOrdersInput} /></View><View style={styles.flex}><Field field={{ label: "Items sold", number: true, placeholder: "Optional" }} value={goalItemsInput} onChange={setGoalItemsInput} /></View></View>
+        <View style={styles.actionRow}><Action label="Save monthly goals" onPress={saveMonthlyGoal} />{goalMonthInput === TODAY.slice(0, 7) && monthlyGoalRows.some((row) => selectedGoalActuals[row.key] >= Number(selectedGoal[row.key])) ? <Action label="Set next month’s goals" quiet onPress={() => { const next = new Date(goalMonthInput + "-01T12:00:00"); next.setMonth(next.getMonth() + 1); setGoalMonthInput(localDateKey(next).slice(0, 7)); }} /> : null}</View>
+        {monthlyGoalRows.length ? monthlyGoalRows.map((row) => { const progress = Math.min(100, Math.floor(selectedGoalActuals[row.key] / Number(selectedGoal[row.key]) * 100)); return <View key={row.key} style={styles.monthlyGoalRow}><View style={styles.cardTop}><Text style={styles.detailLabel}>{row.label}</Text><Text style={styles.detailValue}>{row.format(selectedGoalActuals[row.key])} / {row.format(Number(selectedGoal[row.key]))}</Text></View><View style={styles.salesGoalTrack}><View style={[styles.salesGoalFill, { width: progress + "%" }]} /></View><Text style={styles.fieldHint}>{progress}% complete · Selected month only</Text></View>; }) : <Text style={styles.fieldHint}>Leave any target blank to hide that progress bar. Enter 0 to turn a saved target off.</Text>}
+      </Card>
       {!hiddenWidgets.includes("welcome") ? <React.Fragment key="welcome">{widgetContent.welcome}</React.Fragment> : null}
       {widgetContent.fulfillment}
       {widgetOrder.filter((id) => id !== "welcome" && id !== "fulfillment" && !hiddenWidgets.includes(id)).map((id) => <React.Fragment key={id}>{widgetContent[id]}</React.Fragment>)}
@@ -5235,7 +5528,7 @@ export default function App() {
     const totalValue = activeComponents.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.cost) || 0), 0);
     return (
       <>
-        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Materials inventory</Text><Text style={styles.infoBannerText}>Component stock is shared with product recipes, production, and sales. Record purchases through Restock so your quantities and costs stay in sync.</Text><View style={styles.actionRow}><Action label="＋ Add component" onPress={() => beginAdd("component")} /><Action label="＋ Restock" quiet onPress={() => beginAdd("restock")} /></View></View>
+        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Materials inventory</Text><Text style={styles.infoBannerText}>Component stock is shared with product recipes, production, and sales. Record purchases through Restock so your quantities and costs stay in sync.</Text><View style={styles.actionRow}><Action label="＋ Add component" onPress={() => beginAdd("component")} /><Action label="＋ Restock" quiet onPress={() => beginAdd("restock")} /><Action label={bulkDeleteMode === "components" ? "Cancel selection" : "Multi-delete"} quiet onPress={() => beginBulkDelete("components")} />{bulkDeleteMode === "components" ? <Action label={`Delete selected (${bulkDeleteIds.length})`} onPress={() => confirmBulkDelete("components")} /> : null}</View></View>
         <View style={styles.metricGrid}><Metric label="Active components" value={String(activeComponents.length)} /><Metric label="Low or out of stock" value={String(lowStock.length)} /><Metric label="Units tracked" value={String(activeComponents.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0))} /><Metric label="Stock value at cost" value={money(totalValue, db.currency)} /></View>
         <ChoiceChips label="Filter components" options={["All", ...categories]} value={componentCategoryFilter} onChange={setComponentCategoryFilter} />
         <View style={styles.actionRow}><Action label={expandedAttributeFilters.components ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("components") ? " · " + attributeFilterCount("components") + " active" : "")} quiet onPress={() => toggleAttributeFilters("components")} />{attributeFilterCount("components") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("components")} /> : null}</View>
@@ -5253,7 +5546,7 @@ export default function App() {
           const toggleExpanded = () => setExpandedComponentIds((old) => old.includes(item.id) ? [] : [item.id]);
           return (
             <Card key={item.id} style={styles.compactComponentCard}>
-              <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle} numberOfLines={2}>{item.name}</Text><Text style={styles.recordMeta}>{item.sku} · {item.category || "Other"} · {item.quantity} {item.unit || "pieces"} on hand</Text><Text style={styles.recordMeta}>{money(item.cost, db.currency)} per unit · {money((Number(item.quantity) || 0) * (Number(item.cost) || 0), db.currency)} stock value</Text><Text style={styles.recordMeta}>Used in {usingProducts.length} active product recipe{usingProducts.length === 1 ? "" : "s"}</Text></View><Pill text={item.archived ? "Archived" : Number(item.quantity) <= 0 ? "Out of stock" : low ? "Low stock" : "In stock"} tone={item.archived ? "neutral" : Number(item.quantity) <= 0 ? "red" : low ? "amber" : "green"} /></View>
+              <View style={styles.cardTop}>{bulkDeleteMode === "components" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("components", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle} numberOfLines={2}>{item.name}</Text><Text style={styles.recordMeta}>{item.sku} · {item.category || "Other"} · {item.quantity} {item.unit || "pieces"} on hand</Text><Text style={styles.recordMeta}>{money(item.cost, db.currency)} per unit · {money((Number(item.quantity) || 0) * (Number(item.cost) || 0), db.currency)} stock value</Text><Text style={styles.recordMeta}>Used in {usingProducts.length} active product recipe{usingProducts.length === 1 ? "" : "s"}</Text></View><Pill text={item.archived ? "Archived" : Number(item.quantity) <= 0 ? "Out of stock" : low ? "Low stock" : "In stock"} tone={item.archived ? "neutral" : Number(item.quantity) <= 0 ? "red" : low ? "amber" : "green"} /></View>
               <View style={styles.componentCardActions}><Action label={expanded ? "Hide details" : "Details"} quiet onPress={toggleExpanded} />{expanded && !item.archived ? <Action label="Restock" onPress={() => beginAdd("restock", { componentId: item.id })} /> : null}<Action label="Duplicate" quiet onPress={() => duplicateRecord("component", item)} /><Action label="Edit" quiet onPress={() => beginEdit("component", { ...item, cost: String(item.cost), quantity: String(item.quantity), lowStock: String(item.lowStock) })} /></View>
               {expanded ? <>
                 <View style={styles.detailLine}><Text style={styles.detailLabel}>Low-stock alert</Text><Text style={styles.detailValue}>{item.lowStock} {item.unit || "pieces"}</Text></View>
@@ -5292,7 +5585,7 @@ export default function App() {
     const inventoryValue = activeProducts.reduce((sum, item) => sum + (Number(item.inventory) || 0) * (Number(item.price) || 0), 0);
     return (
       <>
-        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Your product catalog</Text><Text style={styles.infoBannerText}>Live marketplace listings reserve a product’s finished stock. Product cards show ready-to-sell units separately from finished units on hand; archiving or pausing an unsold listing releases the remaining finished units. Production checks each recipe against component stock.</Text><View style={styles.actionRow}><Action label="＋ Add product" onPress={() => beginAdd("product")} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("product")} /><Action label="＋ Make products" quiet onPress={() => navigateToScreen("Production")} />{!showArchivedProducts && outOfStockProducts.length ? <Action label={"Archive all out of stock · " + outOfStockProducts.length} quiet onPress={archiveAllOutOfStockProducts} /> : null}</View>{!showArchivedProducts && outOfStockProducts.length ? <Text style={styles.infoBannerText}>One click also archives linked unsold listings. Listings tied to recorded sales, orders, production history, and component stock stay unchanged. Restore products and their unsold listings anytime from Show archived products.</Text> : null}</View>
+        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Your product catalog</Text><Text style={styles.infoBannerText}>Live marketplace listings reserve a product’s finished stock. Product cards show ready-to-sell units separately from finished units on hand; archiving or pausing an unsold listing releases the remaining finished units. Production checks each recipe against component stock.</Text><View style={styles.actionRow}><Action label="＋ Add product" onPress={() => beginAdd("product")} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("product")} /><Action label="＋ Make products" quiet onPress={() => navigateToScreen("Production")} /><Action label={bulkDeleteMode === "products" ? "Cancel selection" : "Multi-delete"} quiet onPress={() => beginBulkDelete("products")} />{bulkDeleteMode === "products" ? <Action label={`Delete selected (${bulkDeleteIds.length})`} onPress={() => confirmBulkDelete("products")} /> : null}{!showArchivedProducts && outOfStockProducts.length ? <Action label={"Archive all out of stock · " + outOfStockProducts.length} quiet onPress={archiveAllOutOfStockProducts} /> : null}</View>{!showArchivedProducts && outOfStockProducts.length ? <Text style={styles.infoBannerText}>One click also archives linked unsold listings. Listings tied to recorded sales, orders, production history, and component stock stay unchanged. Restore products and their unsold listings anytime from Show archived products.</Text> : null}</View>
         <View style={styles.metricGrid}><Metric label="Active products" value={String(activeProducts.length)} /><Metric label="Finished units on hand" value={String(activeProducts.reduce((sum, item) => sum + (Number(item.inventory) || 0), 0))} /><Metric label="Out of stock" value={String(activeProducts.filter((item) => Number(item.inventory) <= 0).length)} /><Metric label="Retail value on hand" value={money(inventoryValue, db.currency)} /></View>
         <ChoiceChips label="Filter products" options={["All", ...categories]} value={productCategoryFilter} onChange={setProductCategoryFilter} />
         <View style={styles.actionRow}><Action label={expandedAttributeFilters.products ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("products") ? " · " + attributeFilterCount("products") + " active" : "")} quiet onPress={() => toggleAttributeFilters("products")} />{attributeFilterCount("products") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("products")} /> : null}</View>
@@ -5314,7 +5607,7 @@ export default function App() {
           const toggleExpanded = () => setExpandedProductIds((old) => old.includes(item.id) ? [] : [item.id]);
           return (
             <Card key={item.id}>
-              <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{item.name}</Text><Text style={styles.recordMeta}>{item.sku} · {item.category || "Other"} · {readyToSell} ready to sell · {reservedByListings} reserved in live listings · {finishedOnHand} finished on hand</Text><Text style={styles.recordMeta}>{money(item.price, db.currency)} each · {money(finishedOnHand * (Number(item.price) || 0), db.currency)} retail value on hand</Text><Text style={styles.recordMeta}>{recipes.length} component{recipes.length === 1 ? "" : "s"} in recipe · {activeProductListings.length} live listing{activeProductListings.length === 1 ? "" : "s"}</Text></View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={item.archived ? "Archived" : readyToSell > 0 ? "In stock" : finishedOnHand > 0 ? "Listed" : "Out of stock"} tone={item.archived ? "neutral" : readyToSell > 0 ? "green" : finishedOnHand > 0 ? "amber" : "amber"} /><Action label="Duplicate" quiet onPress={() => duplicateRecord("product", item)} /><Action label="Edit" quiet onPress={() => beginEdit("product", { ...item, price: String(item.price), inventory: String(item.inventory), recipe: recipes.map((part) => ({ ...part, quantity: String(part.quantity) })) })} /></View></View>
+              <View style={styles.cardTop}>{bulkDeleteMode === "products" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("products", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle}>{item.name}</Text><Text style={styles.recordMeta}>{item.sku} · {item.category || "Other"} · {readyToSell} ready to sell · {reservedByListings} reserved in live listings · {finishedOnHand} finished on hand</Text><Text style={styles.recordMeta}>{money(item.price, db.currency)} each · {money(finishedOnHand * (Number(item.price) || 0), db.currency)} retail value on hand</Text><Text style={styles.recordMeta}>{money(currentRecipeCost(item, db.components), db.currency)} unit cost including recipe and sourcing · {recipes.length} component{recipes.length === 1 ? "" : "s"} in recipe · {activeProductListings.length} live listing{activeProductListings.length === 1 ? "" : "s"}</Text></View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={item.archived ? "Archived" : readyToSell > 0 ? "In stock" : finishedOnHand > 0 ? "Listed" : "Out of stock"} tone={item.archived ? "neutral" : readyToSell > 0 ? "green" : finishedOnHand > 0 ? "amber" : "amber"} /><Action label="Duplicate" quiet onPress={() => duplicateRecord("product", item)} /><Action label="Edit" quiet onPress={() => beginEdit("product", { ...item, price: String(item.price), acquisitionCost: String(item.acquisitionCost || 0), inventory: String(item.inventory), recipe: recipes.map((part) => ({ ...part, quantity: String(part.quantity) })) })} /></View></View>
               <View style={styles.actionRow}><Action label={expanded ? "Hide details" : "Show details"} quiet onPress={toggleExpanded} />{expanded && recipes.length > 0 && !item.archived ? <Action label="Make" quiet onPress={() => { setProductionProduct(item.id); navigateToScreen("Production"); }} /> : null}</View>
               {expanded ? <>
                 {item.description || item.materials || item.notes ? <Text style={styles.bodyText}>{item.description || item.materials || item.notes}</Text> : null}
@@ -5527,7 +5820,7 @@ export default function App() {
     });
     return (
       <>
-        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Listings, promotion plans, and relists</Text><Text style={styles.infoBannerText}>Search and filter your marketplace listings. Live listings reserve the linked product’s finished stock, so it no longer shows as ready to sell. Archiving or pausing an unsold listing releases those finished units back to the product. Sold units stay deducted, and sold listings keep their sold count in history.</Text><View style={styles.actionRow}><Action label="＋ Add listing" onPress={() => beginAdd("listing")} /><Action label="Bulk create listings" onPress={() => setBulkCreateListingsOpen(true)} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("listing")} /><Action label="Bulk edit listing dates" quiet onPress={() => setBulkEditType("listingDates")} /><Action label="Listing analytics" quiet onPress={() => navigateToScreen("Listing Analytics")} /></View></View>
+        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Listings, promotion plans, and relists</Text><Text style={styles.infoBannerText}>Search and filter your marketplace listings. Live listings reserve the linked product’s finished stock, so it no longer shows as ready to sell. Archiving or pausing an unsold listing releases those finished units back to the product. Sold units stay deducted, and sold listings keep their sold count in history.</Text><View style={styles.actionRow}><Action label="＋ Add listing" onPress={() => beginAdd("listing")} /><Action label="Bulk create listings" onPress={() => setBulkCreateListingsOpen(true)} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("listing")} /><Action label="Bulk edit listing dates" quiet onPress={() => setBulkEditType("listingDates")} /><Action label="Listing analytics" quiet onPress={() => navigateToScreen("Listing Analytics")} /><Action label={bulkDeleteMode === "listings" ? "Cancel selection" : "Multi-delete"} quiet onPress={() => beginBulkDelete("listings")} />{bulkDeleteMode === "listings" ? <Action label={`Delete selected (${bulkDeleteIds.length})`} onPress={() => confirmBulkDelete("listings")} /> : null}</View></View>
         <View style={styles.metricGrid}><Metric label="Live now" value={String(actualListings)} /><Metric label="Need archiving" value={String(needsArchive)} /><Metric label="Discounts planned" value={String(scheduledDiscounts)} /><Metric label="Relists coming up" value={String(relistsDue)} /></View>
         <View style={styles.metricGrid}><Metric label="Sales channels" value={String(listingChannels.size)} /><Metric label="Products represented" value={String(representedProducts.size)} /><Metric label="Combined asking prices" value={money(combinedAskingPrices, db.currency)} /><Metric label="Product descriptions to review" value={String(descriptionsToReview.length)} /></View>
         <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Listing calendar</Text><Text style={styles.subtle}>{listingCalendarItems.length} dated listing events</Text></View>
@@ -5575,7 +5868,7 @@ export default function App() {
             : item.needsArchive ? item.status === "Sold" ? (soldCount || 1) + " sold · archive this listing" : "Out of stock · archive this listing"
               : noProductStock ? "Out of stock · make more or archive"
               : item.status === "Paused" ? "Paused" : item.startDate && item.startDate > TODAY ? "Planned" : item.status || "Draft";
-          return <Card key={item.id}><View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{item.productName}</Text>{item.listingNameOverride ? <Text style={styles.recordMeta}>Custom listing title</Text> : null}<Text style={styles.recordMeta}>{item.listingSku || "LIST SKU missing"} · {item.productSku || "Product SKU missing"}</Text><Text style={styles.recordMeta}>{characterCount(item.productName)} title characters · {characterCount(item.description)} description characters</Text><Text style={styles.recordMeta}>{item.marketplace || "Marketplace not saved"} · {item.price != null ? money(item.price, db.currency) : "Price not saved"}</Text>{soldCount > 0 ? <Text style={styles.recordMeta}>{soldCount} sold total on this listing</Text> : null}{listingDescriptionNeedsUpdate(item) ? <Text style={styles.errorText}>Product description changed · review details</Text> : null}</View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={statusText} tone={item.archived || item.status === "Sold" ? "gray" : item.needsArchive || noProductStock ? "red" : item.status === "Active" ? "green" : "amber"} /><Pill text={daysListedLabel} tone={listingAgeTone(item)} /><Action label="Edit" quiet onPress={() => editListing(item)} /></View></View>
+          return <Card key={item.id}><View style={styles.cardTop}>{bulkDeleteMode === "listings" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("listings", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle}>{item.productName}</Text>{item.listingNameOverride ? <Text style={styles.recordMeta}>Custom listing title</Text> : null}<Text style={styles.recordMeta}>{item.listingSku || "LIST SKU missing"} · {item.productSku || "Product SKU missing"}</Text><Text style={styles.recordMeta}>{characterCount(item.productName)} title characters · {characterCount(item.description)} description characters</Text><Text style={styles.recordMeta}>{item.marketplace || "Marketplace not saved"} · {item.price != null ? money(item.price, db.currency) : "Price not saved"}</Text>{soldCount > 0 ? <Text style={styles.recordMeta}>{soldCount} sold total on this listing</Text> : null}{listingDescriptionNeedsUpdate(item) ? <Text style={styles.errorText}>Product description changed · review details</Text> : null}</View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={statusText} tone={item.archived || item.status === "Sold" ? "gray" : item.needsArchive || noProductStock ? "red" : item.status === "Active" ? "green" : "amber"} /><Pill text={daysListedLabel} tone={listingAgeTone(item)} /><Action label="Edit" quiet onPress={() => editListing(item)} /></View></View>
             <View style={styles.actionRow}><Action label={expandedListingIds.includes(item.id) ? "Hide details" : "Show details"} quiet onPress={() => setExpandedListingIds((old) => old.includes(item.id) ? [] : [item.id])} /><Action label="Copy title" quiet onPress={() => copyListingText(item, "title")} /><Action label="Copy description" quiet onPress={() => copyListingText(item, "description")} /></View>
             {expandedListingIds.includes(item.id) ? <>
             {(() => {
@@ -5733,6 +6026,8 @@ export default function App() {
   };
 
   const renderBusinessOverview = () => {
+    const reportSettings = { ...EMPTY_DB.reportSettings, ...(db.reportSettings || {}) };
+    const updateReportSetting = (key, value) => { setBusinessReportReady(false); setData((old) => ({ ...old, reportSettings: { ...EMPTY_DB.reportSettings, ...(old.reportSettings || {}), [key]: value } })); };
     const validDates = !!parseDateInput(businessOverviewStart) && !!parseDateInput(businessOverviewEnd);
     const parsedStart = parseDateInput(businessOverviewStart) || TODAY;
     const parsedEnd = parseDateInput(businessOverviewEnd) || TODAY;
@@ -5773,7 +6068,7 @@ export default function App() {
     const outOfPocketExpenses = periodExpenses.filter((item) => item.expenseType !== "salesDeduction").reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const expenseTotal = salesDeductionExpenses + outOfPocketExpenses;
     const otherIncome = periodIncomes.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    const estimatedProfit = payouts - shipping - salesDeductionExpenses - outOfPocketExpenses - materialCosts;
+    const estimatedProfit = payouts + otherIncome - shipping - salesDeductionExpenses - outOfPocketExpenses - materialCosts;
     const cashAfterExpenses = payouts + otherIncome - shipping - expenseTotal;
     const unitsOrdered = periodOrders.reduce((sum, order) => sum + (order.items || []).reduce((lineSum, item) => lineSum + Math.max(0, Number(item.quantity) || 0), 0), 0);
     const soldProducts = new Map();
@@ -5787,16 +6082,20 @@ export default function App() {
       channelRow.units += (order.items || []).reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
       channelSales.set(channel, channelRow);
       const lines = order.items || [];
+      const lineFinancialRows = orderLineFinancials(order, db.expenses || []);
+      const returnedByLine = orderLineRestockedQuantities(order);
       lines.forEach((line, index) => {
         const matchedProduct = (db.products || []).find((product) => product.id === line.productId || (!line.productId && line.productSku && String(product.sku || "").toLowerCase() === String(line.productSku).toLowerCase()));
         const key = matchedProduct ? matchedProduct.id : line.productId || "sku:" + (line.productSku || line.productName || "unknown");
-        const row = soldProducts.get(key) || { productId: matchedProduct ? matchedProduct.id : line.productId || "", productName: line.productName || matchedProduct && matchedProduct.name || "Deleted or unlinked product", productSku: line.productSku || matchedProduct && matchedProduct.sku || "", units: 0, gross: 0, materialCost: 0 };
+        const row = soldProducts.get(key) || { productId: matchedProduct ? matchedProduct.id : line.productId || "", productName: line.productName || matchedProduct && matchedProduct.name || "Deleted or unlinked product", productSku: line.productSku || matchedProduct && matchedProduct.sku || "", units: 0, gross: 0, materialCost: 0, estimatedProfit: 0, roiCost: 0 };
         const quantity = Math.max(0, Number(line.quantity) || 0);
-        const returned = lines.length === 1 && index === 0 ? Math.min(quantity, orderRestockedQuantity(order)) : 0;
+        const returned = returnedByLine[index] || 0;
         const netUnits = Math.max(0, quantity - returned);
         row.units += netUnits;
         row.gross += quantity * Math.max(0, Number(line.unitPrice) || 0);
         row.materialCost += netUnits * Math.max(0, Number(line.unitCost) || 0);
+        row.estimatedProfit += lineFinancialRows[index] ? lineFinancialRows[index].profit : 0;
+        row.roiCost += lineFinancialRows[index] ? lineFinancialRows[index].cost : 0;
         soldProducts.set(key, row);
       });
     });
@@ -5866,7 +6165,7 @@ export default function App() {
       const product = (db.products || []).find((item) => item.id === entry.productId);
       return `${recordDate(entry.date)} · ${product ? product.name : "Deleted product"} · ${entry.kind || "Stock change"} · ${Number(entry.quantity) > 0 ? "+" : ""}${entry.quantity}${entry.note ? " · " + entry.note : ""}`;
     });
-    const componentLines = (db.components || []).map((item) => `${item.archived ? "Archived" : "Active"} · ${item.sku || "No SKU"} · ${item.name} · ${Number(item.quantity) || 0} ${item.unit || "units"} on hand · ${money(item.cost, db.currency)}/unit · ${item.category || "Other"}`).sort((a, b) => a.localeCompare(b));
+    const componentLines = reportSettings.includeRawComponents ? (db.components || []).map((item) => `${item.archived ? "Archived" : "Active"} · ${item.sku || "No SKU"} · ${item.name} · ${Number(item.quantity) || 0} ${item.unit || "units"} on hand · ${money(item.cost, db.currency)}/unit · ${item.category || "Other"}`).sort((a, b) => a.localeCompare(b)) : [];
     const productLines = (db.products || []).map((item) => {
       const onHand = Math.max(0, Number(item.inventory) || 0);
       const ready = productAvailableUnits(item, db.listings || []);
@@ -5874,9 +6173,9 @@ export default function App() {
       const recipeCost = currentRecipeCost(item, db.components || []);
       const sales = productSales(item);
       const recipe = (item.recipe || []).map((part) => `${part.quantity} ${part.unit || "units"} ${part.name}`).join(", ") || "No recipe saved";
-      return `${item.archived ? "Archived" : "Active"} · ${item.sku || "No SKU"} · ${item.name} · ${ready} ready / ${reserved} reserved / ${onHand} finished on hand · ${money(item.price, db.currency)} price · ${money(recipeCost, db.currency)} current recipe cost/unit · ${sales ? sales.units + " sold in range" : "no recorded sales in range"} · Recipe: ${recipe}`;
+      return `${item.archived ? "Archived" : "Active"} · ${item.sku || "No SKU"} · ${item.name} · ${ready} ready / ${reserved} reserved / ${onHand} finished on hand · ${money(item.price, db.currency)} price · ${money(recipeCost, db.currency)} current unit cost including recipe and sourcing · ${sales ? sales.units + " sold in range" : "no recorded sales in range"} · Recipe: ${recipe}`;
     }).sort((a, b) => a.localeCompare(b));
-    const noSaleProducts = (db.products || []).filter((product) => !productSales(product) || productSales(product).units <= 0);
+    const noSaleProducts = reportSettings.includeZeroMovement ? (db.products || []).filter((product) => !productSales(product) || productSales(product).units <= 0) : [];
     const dateRangeText = `${dateLabel(rangeStart)} – ${dateLabel(rangeEnd)}`;
     const fmtList = (items, fallback = "None recorded.") => items.length ? items.join("\n") : fallback;
     const discountLines = discounts.map(({ listing, plan }) => `${listing.listingSku || "Listing"} · ${listing.productName} · ${plan.percent}% · ${dateLabel(plan.startDate)}${plan.endDate ? " to " + dateLabel(plan.endDate) : " onward"}${plan.notes ? " · " + plan.notes : ""}`);
@@ -5915,11 +6214,11 @@ export default function App() {
       "",
       "AT A GLANCE",
       `Orders ${periodOrders.length} · Units sold ${salesRows.reduce((sum, row) => sum + row.units, 0)} · Gross sales ${money(gross, db.currency)} · Refunds ${money(refunds, db.currency)} · Fees ${money(fees, db.currency)} · Payouts ${money(payouts, db.currency)}`,
-      `Product material cost on recorded sales ${money(materialCosts, db.currency)} · Shipping paid ${money(shipping, db.currency)} · Expenses ${money(expenseTotal, db.currency)} · Estimated profit ${money(estimatedProfit, db.currency)} · Other income ${money(otherIncome, db.currency)} · Cash after expenses ${money(cashAfterExpenses, db.currency)}`,
+      `Product cost of goods sold ${money(materialCosts, db.currency)} · Shipping paid ${money(shipping, db.currency)} · Expenses ${money(expenseTotal, db.currency)} · Estimated profit ${money(estimatedProfit, db.currency)} · Other income ${money(otherIncome, db.currency)} · Cash after expenses ${money(cashAfterExpenses, db.currency)}`,
       `Current catalog snapshot ${activeComponents.length} active / ${archivedComponents.length} archived components · ${activeProducts.length} active / ${archivedProducts.length} archived products · ${liveListings.length} live stock-reserving listings`,
       "",
       "SALES BY PRODUCT",
-      fmtList(salesRows.map((row) => `${row.productName}${row.productSku ? " (" + row.productSku + ")" : ""} · ${row.units} units · ${money(row.gross, db.currency)} gross line sales · ${money(row.materialCost, db.currency)} recorded material cost`)),
+      fmtList(salesRows.map((row) => `${row.productName}${row.productSku ? " (" + row.productSku + ")" : ""} · ${row.units} net units · ${money(row.gross, db.currency)} gross line sales · ${money(row.materialCost, db.currency)} saved product cost · estimated item profit ${money(row.estimatedProfit, db.currency)}${row.gross > 0 ? " · " + (row.estimatedProfit / row.gross * 100).toFixed(1) + "% margin" : ""}${row.roiCost > 0 ? " · " + (row.estimatedProfit / row.roiCost * 100).toFixed(1) + "% ROI on recorded product cost" : ""}`)),
       "",
       "PRODUCTS WITH NO RECORDED SALES IN THIS PERIOD",
       fmtList(noSaleProducts.map((item) => `${item.sku || "No SKU"} · ${item.name} · ${item.archived ? "Archived" : "Active"} · ${Math.max(0, Number(item.inventory) || 0)} finished on hand`)),
@@ -5979,13 +6278,13 @@ export default function App() {
       "",
       "CURRENT COMPONENT CATALOG (snapshot today)",
       `${activeComponents.length} active components · ${componentStockUnits} total units across tracked units · ${money(componentStockValue, db.currency)} stock value at current cost`,
-      fmtList(componentLines),
+      reportSettings.includeRawComponents ? fmtList(componentLines) : "Raw component detail rows hidden by report settings.",
       "",
       "CURRENT LISTINGS (snapshot today)",
       fmtList(currentListingLines),
       "",
       "REPORT NOTES",
-      "This report uses records saved in this tracker and the dates on those records. Marketplace analytics are entered manually; the first saved snapshot is a baseline, and only later observed increases are counted. Current stock, product recipes, and current component costs are snapshots today, not reconstructed historical balances. Estimated profit uses saved order payouts or estimated gross less fees and refunds, then subtracts shipping, recorded expenses, and saved unit material costs. It does not include labor, taxes, missing records, or unentered marketplace costs. Other income is shown separately and is included in cash after expenses, not in estimated profit.",
+      "This report uses records saved in this tracker. Sales, expenses, and activity are filtered inclusively by their saved ISO calendar date within the selected range. Marketplace analytics are entered manually; the first saved snapshot is a baseline, and only later observed increases are counted. Current stock, product recipes, and current component costs are snapshots today, not reconstructed historical balances. Estimated profit uses saved order payouts or estimated gross less fees and refunds, adds other recorded income, then subtracts shipping, recorded expenses, and saved per-unit product costs. Item-level profit allocates order payout, shipping, and order-linked packaging costs by each line's share of the sale subtotal. It does not include labor, taxes, missing records, or unentered marketplace costs.",
     ];
     const reportSectionsByMarker = new Map();
     BUSINESS_OVERVIEW_REPORT_OPTIONS.forEach((section) => section.markers.forEach((marker) => reportSectionsByMarker.set(marker, section.key)));
@@ -6000,7 +6299,12 @@ export default function App() {
       } else if (currentReportBlock) currentReportBlock.lines.push(line);
       else reportCoverLines.push(line);
     });
-    const reportText = [...reportCoverLines, ...reportBlocks.filter((block) => businessOverviewSections.includes(block.key)).flatMap((block) => block.lines)].join("\n");
+    const cumulativeContextLines = reportSettings.includeCumulativeCarryover ? (() => {
+      const allTimeOrders = (db.orders || []).filter((order) => !order.archived);
+      const allTimeUnits = allTimeOrders.reduce((sum, order) => sum + (order.items || []).reduce((lineSum, item, index) => lineSum + Math.max(0, Number(item.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0), 0), 0);
+      return ["ALL-TIME CONTEXT (separate from the selected date range)", `${allTimeOrders.length} orders · ${allTimeUnits} net units · ${money(allTimeOrders.reduce((sum, order) => sum + totalOrder(order), 0), db.currency)} gross recorded sales.`];
+    })() : [];
+    const reportText = [...reportCoverLines, "PERIOD SCOPE: " + dateRangeText + " (inclusive; date-bounded activity only)", ...cumulativeContextLines, ...reportBlocks.filter((block) => businessOverviewSections.includes(block.key)).flatMap((block) => block.lines)].join("\n");
     const toggleReportSection = (key) => {
       setBusinessReportReady(false);
       setBusinessOverviewSections((current) => current.includes(key) ? current.filter((item) => item !== key) : current.concat([key]));
@@ -6050,12 +6354,15 @@ export default function App() {
     return <>
       <View style={styles.infoBanner}>
         <Text style={styles.infoBannerTitle}>A full picture of your business for any date range</Text>
-        <Text style={styles.infoBannerText}>Choose the first and last day to review. This report gathers saved sales, costs, production, material movement, listing activity, marketplace statistics, and work records. Marketplace totals are entered by you. The stock catalog is shown as it is today; dated history lists the recorded changes during your chosen range.</Text>
+        <Text style={styles.infoBannerText}>Choose a first and last day. Sales and activity use only records dated within that inclusive range. Today’s inventory snapshots stay separate from period activity; optional cumulative totals appear in their own section.</Text>
         <View style={[styles.analyticsDateRange, !wideLayout && { flexDirection: "column" }]}>
           <View style={styles.flex}><Field field={{ label: "Start date", date: true }} value={businessOverviewStart} onChange={(value) => { setBusinessOverviewStart(value); setBusinessReportReady(false); }} /></View>
           <View style={styles.flex}><Field field={{ label: "End date", date: true }} value={businessOverviewEnd} onChange={(value) => { setBusinessOverviewEnd(value); setBusinessReportReady(false); }} /></View>
         </View>
         <Text style={[styles.fieldHint, !validDates && { color: COLORS.red }]}>Report range: {validDates ? dateRangeText : "Enter valid start and end dates."} If the dates are entered in reverse order, the report automatically uses the earlier date first.</Text>
+        <ChoiceChips label="Reporting scope" options={[{ label: "Strict period only", value: false }, { label: "Add cumulative context", value: true }]} value={!!reportSettings.includeCumulativeCarryover} onChange={(value) => updateReportSetting("includeCumulativeCarryover", value)} />
+        <ChoiceChips label="Raw component rows" options={[{ label: "Hide details", value: false }, { label: "Include details", value: true }]} value={!!reportSettings.includeRawComponents} onChange={(value) => updateReportSetting("includeRawComponents", value)} />
+        <ChoiceChips label="Products with zero sales in this period" options={[{ label: "Hide zero movement", value: false }, { label: "Show zero movement", value: true }]} value={!!reportSettings.includeZeroMovement} onChange={(value) => updateReportSetting("includeZeroMovement", value)} />
         <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Choose report sections</Text><Text style={styles.subtle}>{businessOverviewSections.length} of {BUSINESS_OVERVIEW_REPORT_OPTIONS.length} selected</Text></View>
         <Text style={styles.fieldHint}>Check the information you want included. You can remove sections before making the report.</Text>
         <View style={styles.actionRow}><Action label="Select all" quiet onPress={() => { setBusinessOverviewSections(BUSINESS_OVERVIEW_REPORT_OPTIONS.map((section) => section.key)); setBusinessReportReady(false); }} /><Action label="Clear all" quiet onPress={() => { setBusinessOverviewSections([]); setBusinessReportReady(false); }} /></View>
@@ -6078,9 +6385,9 @@ export default function App() {
         <Metric label="Current active catalog" value={`${activeProducts.length} products · ${activeComponents.length} components`} sub={`${liveListings.length} live listings reserve product stock`} />
       </View>
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Money and sales</Text></View>
-      <Card><Text style={styles.cardTitle}>Period financial summary</Text><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Gross product sales</Text><Text style={styles.financeBreakdownValue}>{money(gross, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Refunds recorded</Text><Text style={styles.financeBreakdownValue}>−{money(refunds, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Marketplace fees</Text><Text style={styles.financeBreakdownValue}>−{money(fees, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Payouts (actual when entered, otherwise estimated)</Text><Text style={styles.financeBreakdownValue}>{money(payouts, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Product material cost on sold units</Text><Text style={styles.financeBreakdownValue}>−{money(materialCosts, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Shipping and recorded expenses</Text><Text style={styles.financeBreakdownValue}>−{money(shipping + expenseTotal, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Estimated profit</Text><Text style={[styles.financeBreakdownValue, { color: COLORS.wine, fontWeight: "800" }]}>{money(estimatedProfit, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Other income · cash after expenses</Text><Text style={styles.financeBreakdownValue}>{money(otherIncome, db.currency)} · {money(cashAfterExpenses, db.currency)}</Text></View><Text style={styles.fieldHint}>The estimate follows the Finances page: saved actual payout when present, otherwise gross less fees and refunds, then shipping, recorded expenses, and saved material cost. Labor and taxes are not included.</Text></Card>
+      <Card><Text style={styles.cardTitle}>Period financial summary</Text><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Gross product sales</Text><Text style={styles.financeBreakdownValue}>{money(gross, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Refunds recorded</Text><Text style={styles.financeBreakdownValue}>−{money(refunds, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Marketplace fees</Text><Text style={styles.financeBreakdownValue}>−{money(fees, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Payouts (actual when entered, otherwise estimated)</Text><Text style={styles.financeBreakdownValue}>{money(payouts, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Saved product cost on sold units</Text><Text style={styles.financeBreakdownValue}>−{money(materialCosts, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Shipping and recorded expenses</Text><Text style={styles.financeBreakdownValue}>−{money(shipping + expenseTotal, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Estimated profit</Text><Text style={[styles.financeBreakdownValue, { color: COLORS.wine, fontWeight: "800" }]}>{money(estimatedProfit, db.currency)}</Text></View><View style={styles.financeBreakdownRow}><Text style={styles.financeBreakdownLabel}>Other income · cash after expenses</Text><Text style={styles.financeBreakdownValue}>{money(otherIncome, db.currency)} · {money(cashAfterExpenses, db.currency)}</Text></View><Text style={styles.fieldHint}>The estimate follows the Finances page: saved actual payout when present, otherwise gross less fees and refunds, then shipping, recorded expenses, and saved product cost. Labor and taxes are not included.</Text></Card>
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Sales by product</Text><Text style={styles.subtle}>{salesRows.length} products sold</Text></View>
-      {salesRows.length ? salesRows.slice(0, 20).map((row, index) => <Card key={row.productId || row.productSku || row.productName} style={styles.historyCard}><View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{index + 1}. {row.productName}</Text><Text style={styles.recordMeta}>{row.productSku || "SKU not saved"} · {row.units} net units · {money(row.gross, db.currency)} gross line sales · {money(row.materialCost, db.currency)} saved material cost</Text></View></View></Card>) : <Text style={styles.bodyText}>No product sales were recorded during this range.</Text>}
+      {salesRows.length ? salesRows.slice(0, 20).map((row, index) => <Card key={row.productId || row.productSku || row.productName} style={styles.historyCard}><View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{index + 1}. {row.productName}</Text><Text style={styles.recordMeta}>{row.productSku || "SKU not saved"} · {row.units} net units · {money(row.gross, db.currency)} gross line sales · {money(row.materialCost, db.currency)} saved product cost</Text><Text style={styles.bodyText}>Estimated item profit {money(row.estimatedProfit, db.currency)} · {row.gross > 0 ? (row.estimatedProfit / row.gross * 100).toFixed(1) + "% margin" : "margin n/a"} · {row.roiCost > 0 ? (row.estimatedProfit / row.roiCost * 100).toFixed(1) + "% ROI on recorded cost" : "ROI unavailable without recorded product cost"}</Text></View></View></Card>) : <Text style={styles.bodyText}>No product sales were recorded during this range.</Text>}
       {noSaleProducts.length ? <Card><Text style={styles.cardTitle}>Products with no recorded sales in this range</Text>{noSaleProducts.map((item) => <Text key={item.id} style={styles.bodyText}>{item.sku} · {item.name} · {item.archived ? "Archived" : "Active"} · {Number(item.inventory) || 0} finished on hand</Text>)}</Card> : null}
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Marketplace performance</Text></View>
       <View style={styles.metricGrid}>{analyticsMetricValues.map((metric) => <Metric key={metric.label} {...metric} />)}</View>
@@ -6091,7 +6398,7 @@ export default function App() {
       <Card><Text style={styles.cardTitle}>Production in range</Text><Text style={styles.bodyText}>{periodProductions.length} batches · {producedUnits} finished units made · {money(recordedProductionCost, db.currency)} saved batch material cost.</Text><Text style={styles.fieldHint}>Batch cost uses the recipe and component costs saved at the time production was recorded. Per-unit recipe estimates below use today’s recipe and component costs.</Text>{productionLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>)}{!productionLines.length ? <Text style={styles.bodyText}>No production batches in this range.</Text> : null}</Card>
       <Card><Text style={styles.cardTitle}>Product catalog and current stock</Text><Text style={styles.fieldHint}>Finished stock and estimated recipe cost are current snapshots. “Ready” excludes products reserved by live listings.</Text>{productLines.length ? productLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No products saved.</Text>}</Card>
       <Card><Text style={styles.cardTitle}>Component inventory changes during range</Text>{componentMovementLines.length ? componentMovementLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No component stock changes were recorded.</Text>}<Text style={[styles.cardTitle, { marginTop: 14 }]}>Product inventory changes during range</Text>{productMovementLines.length ? productMovementLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No product stock changes were recorded.</Text>}</Card>
-      <Card><Text style={styles.cardTitle}>Current component catalog</Text><Text style={styles.fieldHint}>{activeComponents.length} active components · {componentStockUnits} combined units across different measurement units · {money(componentStockValue, db.currency)} current stock value. Counts and costs are today’s snapshot.</Text>{componentLines.length ? componentLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No components saved.</Text>}</Card>
+      <Card><Text style={styles.cardTitle}>Current component catalog</Text><Text style={styles.fieldHint}>{activeComponents.length} active components · {componentStockUnits} combined units across different measurement units · {money(componentStockValue, db.currency)} current stock value. Counts and costs are today’s snapshot.</Text>{reportSettings.includeRawComponents ? componentLines.length ? componentLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No components saved.</Text> : <Text style={styles.bodyText}>Raw component detail rows are hidden. The stock total remains visible.</Text>}</Card>
       <Card><Text style={styles.cardTitle}>Component purchases and restocks</Text><Text style={styles.bodyText}>{periodPurchases.length} purchases · {money(periodPurchaseSpend, db.currency)} recorded material and shipping spend.</Text>{purchaseLines.length ? purchaseLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No purchases were recorded during this range.</Text>}</Card>
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Listing lifecycle</Text></View>
       <Card><Text style={styles.bodyText}>Listings created {periodListings.length} · First listed {periodFirstListings.length} · Relist history entries {periodRelists.length} · Relist plans in range {plannedRelists.length} · Discount plans overlapping range {discounts.length}</Text><Text style={[styles.cardTitle, { marginTop: 12 }]}>Listings created in this range</Text>{createdListingLines.length ? createdListingLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No saved creation dates in this range.</Text>}<Text style={[styles.cardTitle, { marginTop: 12 }]}>First listed in this range</Text>{periodFirstListings.map((item) => <Text key={item.id} style={styles.bodyText}>{item.listingSku || "Listing"} · {item.productName} · {dateLabel(item.startDate)} · {listingAnalyticsChannels(item).join(", ") || "No marketplace saved"}</Text>)}{!periodFirstListings.length ? <Text style={styles.bodyText}>No first listing dates in this range.</Text> : null}<Text style={[styles.cardTitle, { marginTop: 12 }]}>Discount plans overlapping this range</Text>{discountLines.length ? discountLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No discount plans overlap this range.</Text>}<Text style={[styles.cardTitle, { marginTop: 12 }]}>Relisting history</Text>{relistLines.length ? relistLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>) : <Text style={styles.bodyText}>No relist history was recorded in this range.</Text>}<Text style={[styles.cardTitle, { marginTop: 12 }]}>Planned relist dates</Text>{plannedRelists.length ? plannedRelists.map(({ listing, date }) => <Text key={listing.id} style={styles.bodyText}>{listing.listingSku || "Listing"} · {listing.productName} · {dateLabel(date)} · {listing.relistDone ? "Completed" : "Planned"}</Text>) : <Text style={styles.bodyText}>No planned relist dates fall in this range.</Text>}</Card>
@@ -6100,7 +6407,7 @@ export default function App() {
       <Card><Text style={styles.cardTitle}>Income and expenses</Text><Text style={styles.bodyText}>Other income {money(otherIncome, db.currency)} · Out of pocket {money(outOfPocketExpenses, db.currency)} · Deducted from sales payouts {money(salesDeductionExpenses, db.currency)}</Text>{incomeLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>)}{expenseLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>)}{!incomeLines.length && !expenseLines.length ? <Text style={styles.bodyText}>No additional income or expenses were recorded.</Text> : null}</Card>
       <Card><Text style={styles.cardTitle}>Reviews</Text><Text style={styles.bodyText}>{periodReviews.length} reviews · {periodReviews.length ? averageReview.toFixed(1) + "/5 average rating" : "No reviews recorded in this range"}</Text>{reviewLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>)}</Card>
       <Card><Text style={styles.cardTitle}>Tracked work and schedule</Text><Text style={styles.bodyText}>{formatDuration(trackedHours)} tracked across {periodTimeSessions.length + periodTimerSessions.length} sessions · {periodTasks.length} tasks due · {periodEvents.length} calendar events · {periodWorkPlans.length} planned work blocks.</Text>{workLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>)}{workPlanLines.map((line) => <Text key={line} style={styles.bodyText}>{line}</Text>)}{periodTasks.map((item) => <Text key={item.id} style={styles.bodyText}>Task · {item.title || item.name} · {item.done ? "Done" : "Open"} · due {dateLabel(item.dueDate || item.date)}</Text>)}{periodEvents.map((item) => <Text key={item.id} style={styles.bodyText}>Event · {item.title || item.name} · {dateLabel(item.date)} · {item.done ? "Done" : "Open"}</Text>)}</Card>
-      <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>How to interpret this report</Text><Text style={styles.infoBannerText}>This report only includes records saved in GRIMMS. Marketplace analytics are manual snapshots; increases are assigned to the later check, and the first snapshot is a baseline. Product and component stock plus current recipe costs are today’s snapshot, while inventory history and production batches show dated activity. Estimated profit uses the saved payout when entered or an estimate from gross sales less fees and refunds, then subtracts saved shipping, expenses, and product material costs. It excludes labor, taxes, and costs or sales you have not entered. Other income is shown separately and included in cash after expenses.</Text></View>
+      <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>How to interpret this report</Text><Text style={styles.infoBannerText}>This report only includes records saved in GRIMMS. Marketplace analytics are manual snapshots; increases are assigned to the later check, and the first snapshot is a baseline. Product and component stock plus current recipe and sourcing costs are today’s snapshot, while inventory history and production batches show dated activity. Estimated profit uses the saved payout when entered or an estimate from gross sales less fees and refunds, adds other recorded income, then subtracts saved shipping, expenses, and product costs. It excludes labor, taxes, and costs or sales you have not entered.</Text></View>
     </>;
   };
 
@@ -6354,11 +6661,12 @@ export default function App() {
             <View style={styles.detailLine}><Text style={styles.detailLabel}>Tracking link</Text><Text style={styles.detailValue}>{order.trackingUrl || "Not saved"}</Text></View>
             <View style={styles.detailLine}><Text style={styles.detailLabel}>Payment / delivery</Text><Text style={styles.detailValue}>{[order.paymentMethod, order.shippingMethod].filter(Boolean).join(" · ") || "Not saved"}</Text></View>
             <View style={styles.detailLine}><Text style={styles.detailLabel}>Final packaged weight</Text><Text style={styles.detailValue}>{order.packageWeight ? order.packageWeight + " " + (order.packageWeightUnit || "oz") : "Not entered"}</Text></View>
-            {items.map((item, index) => <View key={item.productId + index} style={styles.detailLine}><Text style={styles.detailLabel}>{item.quantity} × {item.productName} · {item.productSku}{Number(item.discountPercent) > 0 ? " · " + Number(item.discountPercent).toFixed(2) + "% off" : ""}{item.listingSku ? " · Listing " + item.listingSku : ""}</Text><Text style={styles.detailValue}>{money(item.unitPrice, db.currency)} each{item.originalPrice != null && Number(item.originalPrice) > Number(item.unitPrice) ? " · was " + money(item.originalPrice, db.currency) : ""}</Text></View>)}
+            {items.map((item, index) => { const financial = orderLineFinancials(order, db.expenses)[index]; return <View key={item.productId + index}><View style={styles.detailLine}><Text style={styles.detailLabel}>{item.quantity} × {item.productName} · {item.productSku}{Number(item.discountPercent) > 0 ? " · " + Number(item.discountPercent).toFixed(2) + "% off" : ""}{item.listingSku ? " · Listing " + item.listingSku : ""}</Text><Text style={styles.detailValue}>{money(item.unitPrice, db.currency)} each{item.originalPrice != null && Number(item.originalPrice) > Number(item.unitPrice) ? " · was " + money(item.originalPrice, db.currency) : ""}</Text></View>{financial ? <Text style={styles.itemProfitMeta}>Estimated item profit {money(financial.profit, db.currency)} · {financial.marginPercent == null ? "margin n/a" : financial.marginPercent.toFixed(1) + "% margin"} · {financial.roiPercent == null ? "ROI n/a" : financial.roiPercent.toFixed(1) + "% ROI"}</Text> : null}</View>; })}
+            {order.deListReminderChannels && order.deListReminderChannels.length ? <View style={styles.crossPlatformReminder}><Text style={styles.crossPlatformReminderTitle}>Cross-platform sale reminder</Text><Text style={styles.bodyText}>Review these other active listings after recording this sale: {order.deListReminderChannels.join(" · ")}. Mark each as sold or pause/remove it on its marketplace to prevent a second buyer from purchasing the same inventory.</Text><Action label="Review Listings" quiet onPress={() => navigateToScreen("Listings")} /></View> : null}
             <Text style={styles.recordMeta}>{order.feeSource === "actual" ? "Actual fees" : "Estimated fees"} {money(order.fees || 0, db.currency)} · Marketplace estimate {money(order.estimatedMarketplaceFees || 0, db.currency)} · Extra estimate {money(order.extraFees || 0, db.currency)} · Shipping paid {money(order.shippingCost || 0, db.currency)}</Text>
             <Text style={styles.recordMeta}>{order.actualPayout != null ? "Actual payout entered: " + money(order.actualPayout, db.currency) : "Estimated payout after fees and refunds: " + money(netOrderPayout(order), db.currency)}</Text>
             {Number(order.refundAmount) > 0 ? <Text style={styles.recordMeta}>Refunded {money(order.refundAmount, db.currency)}{order.returnedQuantity ? ` · ${order.returnedQuantity} returned` : ""}{order.restockedQuantity ? ` · ${order.restockedQuantity} restocked` : ""}</Text> : null}
-            <View style={styles.actionRow}>{!order.archived && !order.refundedAt && !(Number(order.refundAmount) > 0) && items.length <= 1 ? <Action label="Edit sale" quiet onPress={() => beginEdit("order", order)} /> : null}{!order.archived && !order.refundedAt ? <Action label="Record refund or return" onPress={() => setRefundEditor(order)} /> : null}{order.archived ? <Action label="Restore order" onPress={() => restoreRecord("orders", order)} /> : <Action label="Archive order" quiet onPress={() => archiveRecord("orders", order, "order")} />}<Action label="Delete accidental sale" quiet onPress={() => permanentlyDeleteRecord("orders", order, "order")} /></View>
+            <View style={styles.actionRow}>{!order.archived && !order.refundedAt && !(Number(order.refundAmount) > 0) ? <Action label="Edit sale" quiet onPress={() => beginEdit("order", order)} /> : null}{!order.archived && !order.refundedAt ? <Action label="Record refund or return" onPress={() => setRefundEditor(order)} /> : null}{order.archived ? <Action label="Restore order" onPress={() => restoreRecord("orders", order)} /> : <Action label="Archive order" quiet onPress={() => archiveRecord("orders", order, "order")} />}<Action label="Delete accidental sale" quiet onPress={() => permanentlyDeleteRecord("orders", order, "order")} /></View>
             {order.refundHistory && order.refundHistory.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Refund and return history</Text>{order.refundHistory.map((entry) => <View key={entry.id} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>{money(entry.amount, db.currency)} refunded · {entry.returnedQuantity || 0} returned · {entry.restockQuantity || 0} restocked</Text><Text style={styles.recordMeta}>{dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</Text></View></View>)}</View> : null}
             <Field field={{ label: "Sale notes", multiline: true, placeholder: "Example: gift wrap requested" }} value={order.notes || ""} onChange={(notes) => saveOrderNotes(order, notes)} />
             <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Progress history · shown on Calendar</Text>{(order.timeline || []).map((step, index) => { const stepDate = parseDateInput(step.date) || timestampDateKey(step.date) || timestampDateKey(step.enteredAt) || timestampDateKey(order.updatedAt) || timestampDateKey(order.createdAt) || parseDateInput(order.date) || order.date; return <View key={step.status + index} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>✓ {step.status}</Text><Pressable accessibilityRole="button" accessibilityLabel={"Edit date and status for " + step.status} onPress={() => setTimelineEditor({ orderId: order.id, index, date: stepDate, status: step.status })}><Text style={styles.actionText}>Edit status/date · {dateLabel(stepDate)}</Text></Pressable></View><View style={styles.actionRow}><Action label="Delete entry" quiet onPress={() => deleteOrderTimelineStep(order, index)} /></View></View>; })}</View>
@@ -6414,7 +6722,7 @@ export default function App() {
     const outOfPocketExpenseTotal = outOfPocketExpenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const payout = orders.reduce((sum, order) => sum + netOrderPayout(order), 0);
     const netAfterFees = payout;
-    const estimatedProfit = netAfterFees - shipping - salesDeductionExpenseTotal - outOfPocketExpenseTotal - materialCosts;
+    const estimatedProfit = netAfterFees + otherIncome - shipping - salesDeductionExpenseTotal - outOfPocketExpenseTotal - materialCosts;
     const periodLabel = financePeriod === "all" ? "All time" : financePeriod === "day" ? dateLabel(financeAnchor) : bounds ? dateLabel(bounds.start) + " – " + dateLabel(bounds.end) : "Choose a date";
     const shiftPeriod = (delta) => {
       const date = new Date(financeAnchor + "T12:00:00");
@@ -6429,10 +6737,10 @@ export default function App() {
     const visibleIncomeRows = sortRecords(incomes.filter((item) => !query || [item.description, item.category, item.notes].join(" ").toLowerCase().includes(query)), db.sortModes.incomes || "newest");
     const financeRows = (rows) => rows.map(([label, amount, hint]) => <View key={label} style={styles.financeBreakdownRow}><View style={styles.flex}><Text style={styles.financeBreakdownLabel}>{label}</Text>{hint ? <Text style={styles.financeBreakdownHint}>{hint}</Text> : null}</View><Text style={styles.financeBreakdownValue}>{money(amount, db.currency)}</Text></View>);
     return <>
-      <ScreenDashboardHeader title="Finances" description="Review gross sales, fees, refunds, shipping, business expenses, and saved recipe costs for the selected period." metrics={[
+      <ScreenDashboardHeader title="Finances" description="Review gross sales, fees, refunds, shipping, business expenses, and saved product costs for the selected period." metrics={[
         { label: "Gross sales", value: money(gross, db.currency) },
         { label: "Fees and refunds", value: money(fees + refunds, db.currency) },
-        { label: "Material costs", value: money(materialCosts, db.currency) },
+        { label: "Product costs", value: money(materialCosts, db.currency) },
         { label: "Estimated profit", value: money(estimatedProfit, db.currency), color: estimatedProfit < 0 ? COLORS.red : COLORS.green },
       ]} actions={[
         { label: "＋ Add expense", onPress: () => beginAdd("expense", { date: financePeriod === "all" ? TODAY : financeAnchor }) },
@@ -6440,10 +6748,10 @@ export default function App() {
       ]} />
       <ChoiceChips label="Reporting period" options={[{ label: "Daily", value: "day" }, { label: "Weekly", value: "week" }, { label: "Monthly", value: "month" }, { label: "Yearly", value: "year" }, { label: "All time", value: "all" }]} value={financePeriod} onChange={setFinancePeriod} />
       {financePeriod !== "all" ? <View style={styles.planningPeriodNav}><Pressable onPress={() => shiftPeriod(-1)} style={styles.monthArrow}><Text style={styles.monthArrowText}>‹</Text></Pressable><Text style={styles.planningPeriodText}>{periodLabel}</Text><Pressable onPress={() => shiftPeriod(1)} style={styles.monthArrow}><Text style={styles.monthArrowText}>›</Text></Pressable></View> : <Text style={styles.fieldHint}>All saved dates</Text>}
-      <Card style={styles.financeSummaryCard}><Text style={styles.profitLabel}>ESTIMATED PROFIT</Text><Text style={styles.financeSummaryValue}>{money(estimatedProfit, db.currency)}</Text><Text style={styles.financeSummaryCaption}>Gross sales less refunds, marketplace fees, business-paid shipping, recorded expenses, and recipe material costs. Actual payouts are shown separately; labor and taxes are not included.</Text></Card>
-      <Card style={styles.financeBreakdownCard}><Text style={styles.cardTitle}>Money received</Text>{financeRows([["Gross sales", gross], ["Payout after fees, refunds, and sale deductions", payout - salesDeductionExpenseTotal, "Order fees and refunds are already deducted; this also subtracts any other costs marked as taken from the sale payout."], ["Other income", otherIncome]])}</Card>
+      <Card style={styles.financeSummaryCard}><Text style={styles.profitLabel}>ESTIMATED PROFIT</Text><Text style={styles.financeSummaryValue}>{money(estimatedProfit, db.currency)}</Text><Text style={styles.financeSummaryCaption}>Sales payout plus other recorded income, less business-paid shipping, recorded expenses, and saved product costs. Actual payouts are used as entered; labor and taxes are not included.</Text></Card>
+      <Card style={styles.financeBreakdownCard}><Text style={styles.cardTitle}>Sales and payout reference</Text>{financeRows([["Gross sales", gross], ["Payout after fees and refunds", payout, "Gross sales less fees and refunds, or the actual payout entered before separately recorded shipping and business expenses."], ["Other income", otherIncome]])}</Card>
       <Card style={styles.financeBreakdownCard}><Text style={styles.cardTitle}>Taken from sales</Text>{financeRows([["Refunds", refunds], ["Marketplace fees withheld", fees, "These reduce your sales payout; they are not out-of-pocket costs."], ["Other deductions from sale payout", salesDeductionExpenseTotal], ["Payout received or estimated", payout, "Actual entered payout is used as-is. Otherwise this is gross sales less fees and refunds."]])}</Card>
-      <Card style={styles.financeBreakdownCard}><Text style={styles.cardTitle}>Costs included in estimated profit</Text>{financeRows([["Shipping paid by you", shipping], ["Business expenses", salesDeductionExpenseTotal + outOfPocketExpenseTotal], ["Recipe material costs for units not returned to stock", materialCosts]])}</Card>
+      <Card style={styles.financeBreakdownCard}><Text style={styles.cardTitle}>Costs included in estimated profit</Text>{financeRows([["Shipping paid by you", shipping], ["Business expenses", salesDeductionExpenseTotal + outOfPocketExpenseTotal], ["Saved product costs for units not returned to stock", materialCosts]])}</Card>
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Income · {periodLabel}</Text></View>
       {visibleIncomeRows.length ? visibleIncomeRows.map((item) => <Card key={item.id}><View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{item.description}</Text><Text style={styles.recordMeta}>{item.category || "Other"} · {dateLabel(item.date)}</Text>{item.notes ? <Text style={styles.bodyText}>{item.notes}</Text> : null}</View><Text style={styles.detailText}>+{money(item.amount, db.currency)}</Text></View><View style={styles.actionRow}><Action label="Edit" quiet onPress={() => beginEdit("income", { ...item, amount: String(item.amount) })} /><Action label="Delete" quiet onPress={() => permanentlyDeleteRecord("incomes", item, "income")} /></View></Card>) : <Text style={styles.bodyText}>No separate income records in this period. Recorded sales are shown above.</Text>}
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Expenses · {periodLabel}</Text></View>
@@ -7029,6 +7337,7 @@ export default function App() {
       ...db.suppliers.filter((x) => x.archived).map((x) => ({ ...x, group: "suppliers", label: "Supplier" })),
     ];
     const summaryPreferences = db.businessSummaryPreferences || { enabled: true, daily: true, weekly: true, monthly: true };
+    const appearance = { ...APPEARANCE_DEFAULTS, ...(db.appearanceSettings || {}) };
     const updateSummaryPreference = (key, value) => setData((old) => ({ ...old, businessSummaryPreferences: { enabled: true, daily: true, weekly: true, monthly: true, ...(old.businessSummaryPreferences || {}), [key]: value } }));
     const toggleSection = (key) => setSettingsSections((old) => ({ ...old, [key]: !old[key] }));
     const toggleCustomThemeSection = (key) => setCustomThemeSections((old) => ({ ...old, [key]: !old[key] }));
@@ -7101,6 +7410,27 @@ export default function App() {
           </SettingsAccordion>)}
           <Text style={styles.fieldHint}>Pick a swatch or enter a six-digit hex code, like #E5394F. Changing a color switches the app to Custom.</Text>
         </Card>
+      </SettingsAccordion>
+      <SettingsAccordion title="Aesthetic Studio" subtitle="12 app-wide style controls · changes preview as you adjust them" expanded={settingsSections.aesthetic} onPress={() => toggleSection("aesthetic")}>
+        <Text style={styles.bodyText}>Style settings are saved with your tracker and work independently from your selected color palette.</Text>
+        <ChoiceChips label="Font family" options={["System", "Serif", "Monospace"]} value={appearance.fontFamily} onChange={(value) => saveAppearanceSetting("fontFamily", value)} />
+        <Field field={{ label: "Base font size scale (0.85 to 1.2)", number: true, placeholder: "1.0" }} value={String(appearance.baseFontSize)} onChange={(value) => saveAppearanceSetting("baseFontSize", value)} />
+        <ChoiceChips label="Heading weight" options={[{ label: "Bold", value: "700" }, { label: "Extra bold", value: "800" }, { label: "Black", value: "900" }]} value={String(appearance.headingWeight)} onChange={(value) => saveAppearanceSetting("headingWeight", value)} />
+        <Field field={{ label: "Card border radius (4 to 28 px)", number: true }} value={String(appearance.cardRadius)} onChange={(value) => saveAppearanceSetting("cardRadius", value)} />
+        <ChoiceChips label="Padding density" options={["Compact", "Comfortable", "Spacious"]} value={appearance.density} onChange={(value) => saveAppearanceSetting("density", value)} />
+        <ChoiceChips label="Header layout" options={["Compact", "Roomy"]} value={appearance.headerLayout} onChange={(value) => saveAppearanceSetting("headerLayout", value)} />
+        <Field field={{ label: "Shadow intensity (0 to 1.5)", number: true }} value={String(appearance.shadowIntensity)} onChange={(value) => saveAppearanceSetting("shadowIntensity", value)} />
+        <Field field={{ label: "Button roundness (0 to 24 px)", number: true }} value={String(appearance.buttonRoundness)} onChange={(value) => saveAppearanceSetting("buttonRoundness", value)} />
+        <Field field={{ label: "Table row height (36 to 64 px)", number: true }} value={String(appearance.tableRowHeight)} onChange={(value) => saveAppearanceSetting("tableRowHeight", value)} />
+        <ChoiceChips label="Accent glow" options={[{ label: "Off", value: false }, { label: "On", value: true }]} value={!!appearance.accentGlow} onChange={(value) => saveAppearanceSetting("accentGlow", value)} />
+        <Field field={{ label: "Divider opacity (0.15 to 1)", number: true }} value={String(appearance.dividerOpacity)} onChange={(value) => saveAppearanceSetting("dividerOpacity", value)} />
+        <ChoiceChips label="Scrollbar style" options={["Auto", "Visible", "Minimal"]} value={appearance.scrollbarStyle} onChange={(value) => saveAppearanceSetting("scrollbarStyle", value)} />
+        <View style={[styles.aestheticPreview, { borderRadius: appearance.cardRadius, padding: appearance.density === "Compact" ? 8 : appearance.density === "Spacious" ? 18 : 13 }]}>
+          <Text style={[styles.cardTitle, { fontSize: 18 * Number(appearance.baseFontSize || 1), fontWeight: appearance.headingWeight }]}>Live preview · GRIMMS</Text>
+          <Text style={styles.bodyText}>This card, button, and sample row use your current app-wide appearance.</Text>
+          <View style={[styles.aestheticPreviewRow, { minHeight: appearance.tableRowHeight }]}><Text style={styles.detailLabel}>Sample product · PROD-014</Text><Text style={styles.detailValue}>$28.00</Text></View>
+          <Action label="Preview button" onPress={() => {}} />
+        </View>
       </SettingsAccordion>
       <SettingsAccordion title="Dashboard widgets" subtitle="Show, hide, and arrange your dashboard" expanded={settingsSections.widgets} onPress={() => toggleSection("widgets")}>
         <View style={styles.sectionHeadingRow}><Text style={styles.bodyText}>Show or hide widgets and move them to arrange your home screen.</Text><Action label="Reset" quiet onPress={resetDashboardWidgets} /></View>
@@ -7211,6 +7541,51 @@ export default function App() {
   };
 
   const screenTitle = isFulfillmentPage ? fulfillmentPageTitle : screen === "More" ? "All pages" : screen === "Time" ? "Time tracking" : screen;
+  const searchableRecords = [
+    ...db.components.map((record) => ({ type: "component", page: "Components", record, title: record.name, detail: [record.sku, record.category, record.supplier].filter(Boolean).join(" · ") })),
+    ...db.products.map((record) => ({ type: "product", page: "Products", record, title: record.name, detail: [record.sku, record.category, record.condition].filter(Boolean).join(" · ") })),
+    ...db.listings.map((record) => ({ type: "listing", page: "Listings", record, title: record.productName || record.listingNameOverride || "Listing", detail: [record.listingSku, record.productSku, (record.marketplaces || []).join(", "), record.status].filter(Boolean).join(" · ") })),
+    ...db.orders.map((record) => ({ type: "order", page: "Orders", record, title: record.orderSku || "Sale", detail: [(record.items || []).map((line) => [line.productName, line.productSku, line.listingSku].filter(Boolean).join(" ")).join(", "), record.customer, record.trackingNumber].filter(Boolean).join(" · ") })),
+    ...db.expenses.map((record) => ({ type: "expense", page: "Finances", record, title: record.description, detail: [record.category, record.date].filter(Boolean).join(" · ") })),
+    ...db.incomes.map((record) => ({ type: "income", page: "Finances", record, title: record.description, detail: [record.category, record.date].filter(Boolean).join(" · ") })),
+    ...db.tasks.map((record) => ({ type: "task", page: "Calendar", record, title: record.title, detail: [record.dueDate, record.priority, record.category].filter(Boolean).join(" · ") })),
+    ...db.events.map((record) => ({ type: "event", page: "Calendar", record, title: record.title, detail: [record.date, record.kind].filter(Boolean).join(" · ") })),
+    ...db.notes.map((record) => ({ type: "note", page: "Notes", record, title: record.title, detail: [record.category, record.tags, record.date].filter(Boolean).join(" · ") })),
+    ...db.suppliers.map((record) => ({ type: "supplier", page: "Suppliers", record, title: record.name, detail: [record.category, record.contact].filter(Boolean).join(" · ") })),
+  ];
+  const globalSearchResults = globalSearchQuery.trim() ? searchableRecords.filter((row) => [row.title, row.detail, JSON.stringify(row.record)].join(" ").toLowerCase().includes(globalSearchQuery.trim().toLowerCase())).slice(0, 40) : [];
+  const openGlobalSearchResult = (row) => {
+    setGlobalSearchOpen(false);
+    setGlobalSearchQuery("");
+    navigateRoot(row.page);
+    openDetails(row.type, row.record);
+  };
+  const answerAssistantQuestion = (query) => {
+    const text = String(query || "").trim();
+    if (!text) return;
+    setAssistantQuery(text);
+    const normalized = text.toLowerCase();
+    const todaysOrders = db.orders.filter((order) => parseDateInput(order.date)?.slice(0, 10) === TODAY && !order.archived);
+    const shippingOrders = db.orders.filter((order) => active(order) && !order.refundedAt && ["Needs Packaging", "Packaging", "Ready to Ship"].includes(order.status));
+    const dueTasks = db.tasks.filter((task) => active(task) && !task.done && task.dueDate && task.dueDate <= TODAY);
+    const lowStockComponents = db.components.filter((item) => active(item) && Number(item.quantity) <= Number(item.lowStock));
+    if (/money|sales|revenue|profit|made|earned|payout/.test(normalized)) {
+      const todayExpenses = db.expenses.filter((item) => item.date === TODAY);
+      const totals = calculateTotals({ ...db, orders: todaysOrders, expenses: todayExpenses, incomes: db.incomes.filter((item) => item.date === TODAY) });
+      setAssistantResponse("Today: " + money(totals.gross, db.currency) + " in recorded gross sales across " + todaysOrders.length + " order(s). Estimated profit after fees, refunds, shipping, expenses, product costs and other income is " + money(totals.estimatedProfit, db.currency) + ".");
+    } else if (/ship|pack|fulfill|order/.test(normalized)) {
+      setAssistantResponse(shippingOrders.length + " order(s) need shipping work: " + (shippingOrders.slice(0, 5).map((order) => (order.orderSku || "Sale") + " · " + order.status).join("; ") || "the queue is clear") + ".");
+    } else if (/task|deadline|due|priority/.test(normalized)) {
+      setAssistantResponse(dueTasks.length + " open task(s) are due today or overdue: " + (dueTasks.slice(0, 5).map((task) => task.title + " · due " + dateLabel(task.dueDate)).join("; ") || "nothing is overdue or due today") + ".");
+    } else if (/stock|component|material|supply|inventory/.test(normalized)) {
+      setAssistantResponse(lowStockComponents.length + " component(s) are low or out of stock: " + (lowStockComponents.slice(0, 5).map((item) => item.name + " · " + item.quantity + " " + (item.unit || "units")).join("; ") || "all tracked components are above their alert levels") + ".");
+    } else if (/calendar|event|today/.test(normalized)) {
+      const events = db.events.filter((event) => active(event) && !event.done && event.date === TODAY);
+      setAssistantResponse(events.length + " event(s) on today’s calendar: " + (events.map((event) => event.title).join("; ") || "there are none") + ".");
+    } else {
+      setAssistantResponse("I can answer from your saved tracker about today’s sales and profit, orders to ship, due tasks, low stock, and calendar events. Try one of those questions.");
+    }
+  };
   const renderSettingsShortcut = () => {
     const selected = screen === "Settings";
     return <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => { navigateRoot("Settings"); setSearch(""); setMobileNavOpen(false); }} style={[styles.sidebarLink, styles.sidebarSettingsLink, selected && styles.sidebarLinkSelected]}>
@@ -7262,6 +7637,7 @@ export default function App() {
           <Pressable style={styles.brand} onPress={() => navigateRoot("Dashboard")}><View style={styles.brandMark}><Text style={styles.brandMarkText}>G</Text></View><View><Text style={styles.brandName}>GRIMMS</Text><Text style={styles.brandSub}>BUSINESS TRACKER</Text></View></Pressable>
         </View>
         <View style={styles.topActions}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Search SKU, order number, product, or barcode" style={styles.globalSearchButton} onPress={() => setGlobalSearchOpen(true)}><AppIcon name="search" size={17} color={COLORS.ink} />{wideLayout ? <Text style={styles.globalSearchButtonText}>SKU / order search</Text> : null}</Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={"What's new" + (unreadAnnouncementCount ? ", " + unreadAnnouncementCount + " unread" : "")} style={styles.mailboxButton} onPress={() => setAnnouncementOpen(true)}>
             <AppIcon name="mail" size={19} color={COLORS.ink} />
             {unreadAnnouncementCount ? <View style={styles.mailCountBadge}><Text style={styles.mailCountText}>{unreadAnnouncementCount > 9 ? "9+" : unreadAnnouncementCount}</Text></View> : null}
@@ -7287,7 +7663,7 @@ export default function App() {
         </View>
       </View>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView style={styles.mainScroll} contentContainerStyle={[styles.pageContent, wideLayout && styles.pageContentWide]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <ScrollView style={styles.mainScroll} contentContainerStyle={[styles.pageContent, wideLayout && styles.pageContentWide]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
           {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
           {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
           {contentForScreen()}
@@ -7503,6 +7879,25 @@ export default function App() {
           </View>
         </View>
       </Modal>
+      <Pressable accessibilityRole="button" accessibilityLabel="Open friendly business assistant" style={styles.assistantFab} onPress={() => setAssistantOpen(true)}><Text style={styles.assistantFabText}>✦</Text></Pressable>
+      <Modal visible={globalSearchOpen} transparent animationType="fade" onRequestClose={() => setGlobalSearchOpen(false)}>
+        <View style={styles.globalSearchOverlay}><Pressable style={styles.globalSearchScrim} accessibilityLabel="Close quick search" onPress={() => setGlobalSearchOpen(false)} /><View style={styles.globalSearchPanel}>
+          <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Quick search</Text><Text style={styles.fieldHint}>Search products, components, listings, orders, and notes. Barcode scanners work in this field.</Text></View><Pressable onPress={() => setGlobalSearchOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
+          <TextInput value={globalSearchQuery} onChangeText={setGlobalSearchQuery} placeholder="Scan or enter a SKU, barcode, order number…" placeholderTextColor={COLORS.placeholder} style={styles.globalSearchInput} autoCapitalize="none" autoCorrect={false} returnKeyType="search" />
+          <ScrollView style={styles.globalSearchResults} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
+            {globalSearchQuery.trim() ? globalSearchResults.length ? globalSearchResults.map((row) => <Pressable key={row.type + row.record.id} style={styles.globalSearchResult} onPress={() => openGlobalSearchResult(row)}><View style={styles.flex}><Text style={styles.recordTitle}>{row.title || "Untitled record"}</Text><Text style={styles.recordMeta}>{row.type} · {row.detail || "No extra details"}</Text></View><Text style={styles.helpLinkArrow}>›</Text></Pressable>) : <Text style={styles.bodyText}>No saved records match this code or search.</Text> : <Text style={styles.bodyText}>Start typing or scan a barcode. Matching records appear here as you enter the code.</Text>}
+          </ScrollView>
+        </View></View>
+      </Modal>
+      <Modal visible={assistantOpen} transparent animationType="fade" onRequestClose={() => setAssistantOpen(false)}>
+        <View style={styles.assistantOverlay}><Pressable style={styles.assistantScrim} accessibilityLabel="Close assistant" onPress={() => setAssistantOpen(false)} /><View style={styles.assistantPanel}>
+          <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Grimm · your business sidekick</Text><Text style={styles.fieldHint}>Answers use the records saved in this browser.</Text></View><Pressable onPress={() => setAssistantOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
+          <View style={styles.assistantChips}>{[["Money made today?", "How much money did I make today?"], ["Orders to ship", "How many orders need to be shipped?"], ["Due tasks", "What tasks are due?"], ["Low stock", "Which supplies are low on stock?"]].map(([label, query]) => <Pressable key={label} style={styles.assistantChip} onPress={() => answerAssistantQuestion(query)}><Text style={styles.assistantChipText}>{label}</Text></Pressable>)}</View>
+          <View style={styles.assistantResponse}><Text style={styles.assistantResponseText}>{assistantResponse}</Text></View>
+          <View style={styles.assistantAskRow}><TextInput value={assistantQuery} onChangeText={setAssistantQuery} placeholder="Ask about sales, shipping, tasks, or stock…" placeholderTextColor={COLORS.placeholder} style={styles.assistantInput} onSubmitEditing={() => answerAssistantQuestion(assistantQuery)} returnKeyType="send" /><Action label="Ask" onPress={() => answerAssistantQuestion(assistantQuery)} /></View>
+          <Text style={styles.fieldHint}>This assistant reads your saved tracker data. It does not connect to marketplace accounts.</Text>
+        </View></View>
+      </Modal>
     </SafeAreaView>
     </ButtonSoundContext.Provider>
   );
@@ -7545,7 +7940,7 @@ function makeStyles() { return StyleSheet.create({
   loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.paper },
   loadingText: { color: COLORS.muted, marginTop: 12, fontSize: 14 },
   logoMark: { color: COLORS.wine, fontSize: 36, fontWeight: "800" },
-  topBar: { height: 54, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomColor: COLORS.line, borderBottomWidth: StyleSheet.hairlineWidth, backgroundColor: COLORS.card },
+  topBar: { height: CURRENT_APPEARANCE.headerLayout === "Compact" ? 46 : 54, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomColor: mixHex(COLORS.line, COLORS.card, 1 - Math.max(0.15, Math.min(1, Number(CURRENT_APPEARANCE.dividerOpacity) || 1))), borderBottomWidth: StyleSheet.hairlineWidth, backgroundColor: COLORS.card },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
   brandMark: { width: 36, height: 36, borderRadius: 12, backgroundColor: COLORS.wine, alignItems: "center", justifyContent: "center" },
   brandMarkText: { color: COLORS.onAccent, fontSize: 21, fontWeight: "800", fontFamily: Platform.OS === "ios" ? "Georgia" : "serif" },
@@ -7635,7 +8030,7 @@ function makeStyles() { return StyleSheet.create({
   fulfillmentListCount: { color: COLORS.wine, fontSize: 16, fontWeight: "800", width: 30, textAlign: "center" },
   fulfillmentListLabel: { color: COLORS.ink, fontSize: 12, fontWeight: "600", flex: 1 },
   fulfillmentListArrow: { color: COLORS.muted, fontSize: 22, paddingHorizontal: 2 },
-  card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, padding: 10, marginBottom: 6 },
+  card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, padding: CURRENT_APPEARANCE.density === "Compact" ? 8 : CURRENT_APPEARANCE.density === "Spacious" ? 15 : 10, marginBottom: 6 },
   settingsAccordion: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, marginBottom: 7, overflow: "hidden" },
   settingsAccordionHeader: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: COLORS.card },
   settingsAccordionTitle: { color: COLORS.ink, fontSize: 13, fontWeight: "800" },
@@ -7649,7 +8044,7 @@ function makeStyles() { return StyleSheet.create({
   compactComponentCard: { padding: 12, marginBottom: 8 },
   componentCardActions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 9 },
   compactCalendarPlanCard: { padding: 11, marginBottom: 7 },
-  detailLine: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 9 },
+  detailLine: { minHeight: CURRENT_APPEARANCE.tableRowHeight, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: mixHex(COLORS.line, COLORS.card, 1 - Math.max(0.15, Math.min(1, Number(CURRENT_APPEARANCE.dividerOpacity) || 1))), paddingVertical: 9 },
   detailLabel: { flex: 1, color: COLORS.muted, fontSize: 11, lineHeight: 16 },
   detailValue: { flex: 1, color: COLORS.ink, fontSize: 12, fontWeight: "600", textAlign: "right", lineHeight: 17 },
   flex: { flex: 1 },
@@ -7945,7 +8340,7 @@ function makeStyles() { return StyleSheet.create({
   financeCashHint: { color: COLORS.onAccent, opacity: 0.8, fontSize: 10, marginTop: 3 },
   financeCashValue: { color: COLORS.onAccent, fontSize: 17, fontWeight: "800" },
   financeBreakdownCard: { marginTop: 2 },
-  financeBreakdownRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 40, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.line },
+  financeBreakdownRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: CURRENT_APPEARANCE.tableRowHeight, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: mixHex(COLORS.line, COLORS.card, 1 - Math.max(0.15, Math.min(1, Number(CURRENT_APPEARANCE.dividerOpacity) || 1))) },
   financeBreakdownLabel: { color: COLORS.ink, fontSize: 12, fontWeight: "600" },
   financeBreakdownHint: { color: COLORS.muted, fontSize: 10, lineHeight: 14, marginTop: 3 },
   financeBreakdownValue: { color: COLORS.ink, fontSize: 12, fontWeight: "700", textAlign: "right" },
@@ -8000,6 +8395,43 @@ function makeStyles() { return StyleSheet.create({
   backupFeedbackText: { color: COLORS.ink, fontSize: 12, lineHeight: 17, fontWeight: "600" },
   backupReview: { borderWidth: 1, borderColor: COLORS.line, borderRadius: 11, backgroundColor: COLORS.card, padding: 12, marginTop: 11 },
   backupInput: { minHeight: 300, maxHeight: 480, backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, borderRadius: 12, marginTop: 12, padding: 12, textAlignVertical: "top", color: COLORS.ink, fontSize: 10, fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace" },
+  globalSearchButton: { minHeight: 34, minWidth: 36, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.card },
+  globalSearchButtonText: { color: COLORS.ink, fontSize: 10, fontWeight: "700" },
+  globalSearchOverlay: { flex: 1, justifyContent: "center", alignItems: "center", padding: 14 },
+  globalSearchScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(20,18,20,0.5)" },
+  globalSearchPanel: { width: "100%", maxWidth: 720, maxHeight: "88%", backgroundColor: COLORS.paper, borderColor: COLORS.line, borderWidth: 1, borderRadius: 18, padding: 16, elevation: 8 },
+  globalSearchInput: { minHeight: 46, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, color: COLORS.ink, backgroundColor: COLORS.card, marginTop: 13, fontSize: 13 },
+  globalSearchResults: { maxHeight: 420, marginTop: 9 },
+  globalSearchResult: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 8 },
+  assistantFab: { position: "absolute", right: 17, bottom: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: COLORS.wine, borderWidth: 2, borderColor: COLORS.card, alignItems: "center", justifyContent: "center", elevation: 7, shadowColor: COLORS.wine, shadowOpacity: 0.24, shadowRadius: 7 },
+  assistantFabText: { color: COLORS.onAccent, fontSize: 25, fontWeight: "800" },
+  assistantOverlay: { flex: 1, justifyContent: "flex-end" },
+  assistantScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(20,18,20,0.4)" },
+  assistantPanel: { width: "100%", maxWidth: 620, maxHeight: "82%", alignSelf: "center", backgroundColor: COLORS.paper, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: COLORS.line, padding: 16, paddingBottom: 22, elevation: 10 },
+  assistantChips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12 },
+  assistantChip: { minHeight: 34, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 18, backgroundColor: COLORS.rose, borderWidth: 1, borderColor: COLORS.line },
+  assistantChipText: { color: COLORS.wine, fontSize: 11, fontWeight: "700" },
+  assistantResponse: { marginTop: 12, padding: 13, borderRadius: 14, backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line },
+  assistantResponseText: { color: COLORS.ink, fontSize: 13, lineHeight: 19 },
+  assistantAskRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 11 },
+  assistantInput: { flex: 1, minHeight: 42, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 11, paddingVertical: 8, color: COLORS.ink, backgroundColor: COLORS.card, fontSize: 12 },
+  commandCenterCard: { borderColor: COLORS.softLine, marginBottom: 12 },
+  dailyScratchInput: { minHeight: 64, maxHeight: 130, borderWidth: 1, borderColor: COLORS.line, borderRadius: 11, padding: 10, color: COLORS.ink, backgroundColor: COLORS.soft, textAlignVertical: "top", fontSize: 12, marginTop: 4 },
+  monthlyGoalsCard: { borderColor: COLORS.line, marginBottom: 14 },
+  goalMonthLabel: { color: COLORS.wine, fontSize: 12, fontWeight: "800" },
+  goalMonthInput: { alignSelf: "flex-start", minWidth: 110, borderWidth: 1, borderColor: COLORS.line, borderRadius: 9, paddingHorizontal: 10, paddingVertical: 7, marginTop: 10, marginBottom: 7, backgroundColor: COLORS.card, color: COLORS.ink, fontSize: 12 },
+  goalInputRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  monthlyGoalRow: { marginTop: 10, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line },
+  orderLinesEditor: { marginBottom: 9 },
+  orderLineCard: { backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line, borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding: 11, marginTop: 7, marginBottom: 7 },
+  orderLineInputs: { flexDirection: "row", gap: 8 },
+  itemProfitMeta: { color: COLORS.green, fontSize: 10, lineHeight: 14, paddingHorizontal: 3, paddingBottom: 8 },
+  crossPlatformReminder: { padding: 12, marginVertical: 10, borderWidth: 1, borderColor: COLORS.amber, borderRadius: 12, backgroundColor: COLORS.amberBg },
+  crossPlatformReminderTitle: { color: COLORS.amber, fontSize: 13, fontWeight: "800", marginBottom: 5 },
+  bulkDeleteCheckbox: { minWidth: 31, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: COLORS.softAlt },
+  bulkDeleteCheckboxText: { color: COLORS.wine, fontSize: 23, lineHeight: 26 },
+  aestheticPreview: { marginTop: 13, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, shadowColor: COLORS.wine, shadowOpacity: CURRENT_APPEARANCE.accentGlow ? 0.2 : 0, shadowRadius: 7, elevation: CURRENT_APPEARANCE.shadowIntensity },
+  aestheticPreviewRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, marginVertical: 8, paddingVertical: 6 },
   chooserBackdrop: { flex: 1, backgroundColor: "rgba(38,32,31,0.42)", justifyContent: "flex-end" },
   chooserCard: { backgroundColor: COLORS.paper, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 18, paddingBottom: 30 },
   chooserGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9, marginTop: 6 },
