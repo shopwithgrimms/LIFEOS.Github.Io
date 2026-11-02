@@ -2485,17 +2485,6 @@ function BulkCreateListingsModal({ visible, products = [], listings = [], market
   const [priceOverrides, setPriceOverrides] = useState({});
   const [selectedMarketplaces, setSelectedMarketplaces] = useState([]);
   const [search, setSearch] = useState("");
-  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
-  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [assistantQuery, setAssistantQuery] = useState("");
-  const [assistantResponse, setAssistantResponse] = useState("Choose a question or ask about today’s sales, shipping, tasks, or stock.");
-  const [goalMonthInput, setGoalMonthInput] = useState(TODAY.slice(0, 7));
-  const [goalGrossInput, setGoalGrossInput] = useState("");
-  const [goalOrdersInput, setGoalOrdersInput] = useState("");
-  const [goalItemsInput, setGoalItemsInput] = useState("");
-  const [bulkDeleteMode, setBulkDeleteMode] = useState("");
-  const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -2864,6 +2853,17 @@ export default function App() {
   const [modalType, setModalType] = useState("");
   const [bulkEditType, setBulkEditType] = useState("");
   const [bulkCreateListingsOpen, setBulkCreateListingsOpen] = useState(false);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantQuery, setAssistantQuery] = useState("");
+  const [assistantResponse, setAssistantResponse] = useState("Choose a question or ask about today’s sales, shipping, tasks, or stock.");
+  const [goalMonthInput, setGoalMonthInput] = useState(TODAY.slice(0, 7));
+  const [goalGrossInput, setGoalGrossInput] = useState("");
+  const [goalOrdersInput, setGoalOrdersInput] = useState("");
+  const [goalItemsInput, setGoalItemsInput] = useState("");
+  const [bulkDeleteMode, setBulkDeleteMode] = useState("");
+  const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
   const [editingRecord, setEditingRecord] = useState(null);
   const [formPrefill, setFormPrefill] = useState(null);
   const [detailSelection, setDetailSelection] = useState(null);
