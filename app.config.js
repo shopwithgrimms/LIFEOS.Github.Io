@@ -16,13 +16,13 @@ module.exports = ({ config }) => ({
   description: "A browser-based tracker for a small creative business.",
   experiments: {
     ...config.experiments,
-    baseUrl: pagesBaseUrl
+    baseUrl: pagesBaseUrl,
   },
   web: {
     ...config.web,
     bundler: "metro",
     output: "single",
     name: "GRIMMS Business Tracker",
-    shortName: "GRIMMS Tracker"
-  }
+    shortName: "GRIMMS Tracker",
+  },
 });
