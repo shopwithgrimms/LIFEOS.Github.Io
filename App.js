@@ -62,10 +62,10 @@ const Alert = {
 const ButtonSoundContext = createContext(null);
 const FONT_FAMILY_OPTIONS = ["System", "Arial", "Aptos", "Trebuchet MS", "Verdana", "Georgia", "Palatino Linotype", "Times New Roman", "Courier New", "Consolas", "Comic Sans MS", "Impact", "Tahoma", "Garamond", "Franklin Gothic Medium"];
 const APPEARANCE_DEFAULTS = {
-  templateName: "Quiet Atelier · Stone and Blue (Light)", fontFamily: "System", baseFontSize: 1,
-  headingWeight: "800", cardRadius: 16, density: "Comfortable", headerLayout: "Roomy",
-  shadowIntensity: 0.55, buttonRoundness: 14, tableRowHeight: 46, accentGlow: false,
-  dividerOpacity: 0.85, scrollbarStyle: "Auto", cardStyle: "soft",
+  templateName: "Lo-fi Paper Desk", fontFamily: "System", baseFontSize: 1,
+  headingWeight: "700", cardRadius: 10, density: "Comfortable", headerLayout: "Roomy",
+  shadowIntensity: 0.12, buttonRoundness: 8, tableRowHeight: 48, accentGlow: false,
+  dividerOpacity: 0.7, scrollbarStyle: "Auto", cardStyle: "paper",
 };
 let CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS };
 const setAppearanceSettings = (settings) => {
@@ -232,12 +232,25 @@ const THEMES = THEME_SPECS.flatMap((spec) => [
   { name: spec[0] + " — Light Mode", mode: "light", colors: makeThemeColors(spec) },
   { name: spec[0] + " — Dark Mode", mode: "dark", colors: makeThemeColors(spec, true) },
 ]).concat([{ name: CUSTOM_THEME_NAME, mode: "dark", colors: makeCustomThemeColors(DEFAULT_CUSTOM_THEME) }]);
-const TEMPLATE_STYLE_NAMES = ["Quiet Atelier", "Rose Boutique", "Cherry Studio", "Forest Workroom", "Golden Ledger", "Midnight Circuit", "Lavender Archive", "Tidal Glass", "Coral Market", "Noir Rose", "Playful Pop", "Modern Minimal"];
-const TEMPLATE_CARD_STYLES = ["soft", "floating", "outlined", "ledger", "colorBlock", "minimal"];
-const VISUAL_TEMPLATES = THEME_SPECS.flatMap((spec, index) => [
-  { name: TEMPLATE_STYLE_NAMES[index % TEMPLATE_STYLE_NAMES.length] + " · " + spec[0] + " (Light)", themeName: spec[0] + " — Light Mode", description: "A complete light look with " + ["soft cards", "lifted panels", "clear outlines", "ledger rows", "color-block cards", "quiet minimal surfaces"][index % 6] + ".", appearance: { cardRadius: [18, 22, 8, 12, 3, 16][index % 6], density: ["Spacious", "Spacious", "Comfortable", "Comfortable", "Compact", "Comfortable"][index % 6], shadowIntensity: [0.5, 0.7, 0.15, 0.35, 0, 0.85][index % 6], buttonRoundness: [16, 22, 6, 10, 3, 16][index % 6], tableRowHeight: [48, 48, 42, 46, 40, 46][index % 6], accentGlow: index % 6 === 5, dividerOpacity: index % 6 === 4 ? 1 : 0.8, headerLayout: index % 6 === 4 ? "Compact" : "Roomy", headingWeight: index % 6 === 1 || index % 6 === 5 ? "800" : "700", cardStyle: TEMPLATE_CARD_STYLES[index % 6] } },
-  { name: TEMPLATE_STYLE_NAMES[index % TEMPLATE_STYLE_NAMES.length] + " · " + spec[0] + " (Dark)", themeName: spec[0] + " — Dark Mode", description: "A complete dark look with " + ["soft cards", "lifted panels", "clear outlines", "ledger rows", "color-block cards", "quiet minimal surfaces"][index % 6] + ".", appearance: { cardRadius: [16, 20, 6, 10, 2, 14][index % 6], density: ["Comfortable", "Spacious", "Compact", "Comfortable", "Compact", "Comfortable"][index % 6], shadowIntensity: [0.75, 0.8, 0.25, 0.5, 0, 1][index % 6], buttonRoundness: [14, 20, 5, 9, 2, 15][index % 6], tableRowHeight: [46, 48, 40, 45, 38, 45][index % 6], accentGlow: index % 6 === 1 || index % 6 === 5, dividerOpacity: 0.75, headerLayout: index % 6 === 4 ? "Compact" : "Roomy", headingWeight: index % 6 === 1 || index % 6 === 5 ? "900" : "700", cardStyle: TEMPLATE_CARD_STYLES[(index + 1) % 6] } },
-]).concat([{ name: "Saved custom colors · Ledger", themeName: CUSTOM_THEME_NAME, description: "Keep your saved custom palette in a structured ledger style.", appearance: { cardRadius: 5, density: "Compact", shadowIntensity: 0, buttonRoundness: 5, tableRowHeight: 42, accentGlow: false, dividerOpacity: 1, headerLayout: "Compact", headingWeight: "800", cardStyle: "ledger" } }]);
+const VISUAL_TEMPLATES = [
+  { name: "Lo-fi Paper Desk", themeName: "Chocolate and Cream — Light Mode", description: "Warm paper panels, ruled details, soft ink, and a calm desk-like workspace.", appearance: { cardStyle: "paper", cardRadius: 10, density: "Comfortable", shadowIntensity: 0.12, buttonRoundness: 8, tableRowHeight: 48, headerLayout: "Roomy", headingWeight: "700", dividerOpacity: 0.7 } },
+  { name: "Cloud Garden", themeName: "Sky and Cloud — Light Mode", description: "Cloud-shaped cards, airy spacing, soft sky tones, and a floating header.", appearance: { cardStyle: "cloud", cardRadius: 30, density: "Spacious", shadowIntensity: 0.42, buttonRoundness: 22, tableRowHeight: 50, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.45 } },
+  { name: "Art Studio", themeName: "Coral and Sand — Light Mode", description: "Gallery labels, expressive accent borders, hand-made details, and warm studio paper.", appearance: { cardStyle: "artsy", cardRadius: 18, density: "Spacious", shadowIntensity: 0.2, buttonRoundness: 18, tableRowHeight: 48, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.8 } },
+  { name: "Botanical Journal", themeName: "Forest and Mint — Light Mode", description: "Leafy green panels, journal-like sections, and quiet botanical colors.", appearance: { cardStyle: "garden", cardRadius: 22, density: "Comfortable", shadowIntensity: 0.22, buttonRoundness: 18, tableRowHeight: 48, headerLayout: "Roomy", headingWeight: "700", dividerOpacity: 0.7 } },
+  { name: "Modern Gallery", themeName: "Stone and Blue — Light Mode", description: "Clean exhibition cards, crisp spacing, bold headings, and restrained framing.", appearance: { cardStyle: "gallery", cardRadius: 5, density: "Spacious", shadowIntensity: 0, buttonRoundness: 5, tableRowHeight: 52, headerLayout: "Compact", headingWeight: "900", dividerOpacity: 1 } },
+  { name: "Bubblegum Pop", themeName: "Pink and White — Light Mode", description: "Puffy rounded panels, playful buttons, and bright boutique pink.", appearance: { cardStyle: "bubble", cardRadius: 28, density: "Spacious", shadowIntensity: 0.3, buttonRoundness: 24, tableRowHeight: 48, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.4 } },
+  { name: "Vintage Ledger", themeName: "Olive and Linen — Light Mode", description: "Ledger strips, sturdy dividers, compact rows, and vintage shopkeeping details.", appearance: { cardStyle: "ledger", cardRadius: 4, density: "Compact", shadowIntensity: 0, buttonRoundness: 5, tableRowHeight: 40, headerLayout: "Compact", headingWeight: "800", dividerOpacity: 1 } },
+  { name: "Floating Glass", themeName: "Aqua and Coral — Light Mode", description: "Layered, lifted cards with translucent-feeling surfaces and soft depth.", appearance: { cardStyle: "floating", cardRadius: 22, density: "Spacious", shadowIntensity: 0.9, buttonRoundness: 20, tableRowHeight: 49, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.35 } },
+  { name: "Minimal Canvas", themeName: "Blue and White — Light Mode", description: "Open canvas, nearly frameless cards, generous white space, and quiet controls.", appearance: { cardStyle: "minimal", cardRadius: 2, density: "Spacious", shadowIntensity: 0, buttonRoundness: 5, tableRowHeight: 52, headerLayout: "Compact", headingWeight: "700", dividerOpacity: 0.55 } },
+  { name: "Color Block Studio", themeName: "Magenta and White — Light Mode", description: "Strong color panels, high-contrast buttons, and an energetic creative workspace.", appearance: { cardStyle: "colorBlock", cardRadius: 4, density: "Comfortable", shadowIntensity: 0.12, buttonRoundness: 6, tableRowHeight: 45, headerLayout: "Compact", headingWeight: "900", dividerOpacity: 1 } },
+  { name: "Cozy Cafe", themeName: "Brown and Blush — Light Mode", description: "Rounded cafe-menu cards, warm blush surfaces, and soft brown accents.", appearance: { cardStyle: "cafe", cardRadius: 20, density: "Comfortable", shadowIntensity: 0.28, buttonRoundness: 17, tableRowHeight: 47, headerLayout: "Roomy", headingWeight: "700", dividerOpacity: 0.55 } },
+  { name: "Craft Scrapbook", themeName: "Violet and Pink — Light Mode", description: "Layered scrapbook panels, taped-corner details, and colorful craft-room energy.", appearance: { cardStyle: "scrapbook", cardRadius: 14, density: "Comfortable", shadowIntensity: 0.5, buttonRoundness: 12, tableRowHeight: 46, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.55 } },
+  { name: "Midnight Arcade", themeName: "Cyan and Midnight — Dark Mode", description: "Deep night surfaces, glowing cyan accents, sharp panels, and compact controls.", appearance: { cardStyle: "arcade", cardRadius: 8, density: "Compact", shadowIntensity: 0.55, buttonRoundness: 7, tableRowHeight: 42, headerLayout: "Compact", headingWeight: "900", dividerOpacity: 0.9, accentGlow: true } },
+  { name: "Sakura Dream", themeName: "Rose and Cream — Light Mode", description: "Soft floral colors, rounded cards, delicate lines, and a gentle boutique feel.", appearance: { cardStyle: "sakura", cardRadius: 24, density: "Spacious", shadowIntensity: 0.2, buttonRoundness: 20, tableRowHeight: 50, headerLayout: "Roomy", headingWeight: "700", dividerOpacity: 0.4 } },
+  { name: "Noir Atelier", themeName: "Black and Gold — Dark Mode", description: "Dark gallery panels, gold accents, editorial headings, and a polished studio look.", appearance: { cardStyle: "gallery", cardRadius: 6, density: "Comfortable", shadowIntensity: 0.35, buttonRoundness: 7, tableRowHeight: 46, headerLayout: "Compact", headingWeight: "900", dividerOpacity: 0.8 } },
+  { name: "Ocean Postcards", themeName: "Seafoam and Navy — Light Mode", description: "Postcard-like ocean panels, wide margins, deep blue labels, and sea-glass colors.", appearance: { cardStyle: "postcard", cardRadius: 13, density: "Spacious", shadowIntensity: 0.35, buttonRoundness: 12, tableRowHeight: 49, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.65 } },
+  { name: "Custom Color Atelier", themeName: CUSTOM_THEME_NAME, description: "Keep your own saved palette and pair it with a distinctive studio layout.", appearance: { cardStyle: "artsy", cardRadius: 17, density: "Comfortable", shadowIntensity: 0.3, buttonRoundness: 14, tableRowHeight: 46, headerLayout: "Roomy", headingWeight: "800", dividerOpacity: 0.75 } },
+];
 const GOAL_METRICS = [
   { key: "grossRevenue", label: "Gross revenue", kind: "money", help: "Item subtotal: quantity × unit price, before fees, refunds, and shipping." },
   { key: "estimatedProfit", label: "Estimated profit", kind: "money", help: "Estimated payouts plus other income, minus shipping, expenses, and product material costs." },
@@ -250,16 +263,16 @@ const GOAL_METRICS = [
 ];
 const BUSINESS_ASSISTANT_GROUPS = [
   { label: "Daily snapshot", choices: [
-    ["today-overview", "Selected day at a glance"], ["sales-day", "Sales and profit for this day"], ["items-day", "Items sold on this day"], ["cash-day", "Income and expenses for this day"],
+    ["today-overview", "Selected period at a glance"], ["sales-day", "Sales and profit for this period"], ["items-day", "Items sold in this period"], ["cash-day", "Income and expenses in this period"],
   ] },
   { label: "Orders and sales", choices: [
-    ["ship-queue", "Orders that need shipping"], ["sales-day-list", "Sales recorded on this day"], ["best-sellers", "Best-selling products"], ["orders-needing-attention", "Orders with unfinished fulfillment"],
+    ["ship-queue", "Orders that need shipping"], ["sales-day-list", "Sales recorded in this period"], ["best-sellers", "Best-selling products"], ["orders-needing-attention", "Orders with unfinished fulfillment"],
   ] },
   { label: "Stock and production", choices: [
     ["low-stock", "Low or out-of-stock components"], ["stock-list", "Full component stock list"], ["restock-priority", "What to restock first"], ["production-ready", "Products ready to make"],
   ] },
   { label: "Schedule and work", choices: [
-    ["tasks-day", "Tasks for this day"], ["overdue-tasks", "Overdue and open tasks"], ["events-day", "Calendar events for this day"], ["workplans-day", "Planned work blocks for this day"],
+    ["tasks-day", "Tasks in this period"], ["overdue-tasks", "Overdue and open tasks"], ["events-day", "Calendar events in this period"], ["workplans-day", "Planned work blocks in this period"],
   ] },
   { label: "Goals and customers", choices: [
     ["goal-progress", "Progress on saved goals"], ["reviews-summary", "Recent customer reviews"], ["listing-status", "Current listing status"], ["inventory-summary", "Finished product inventory"],
@@ -284,6 +297,8 @@ const DASHBOARD_WIDGETS = [
   { id: "snapshot", label: "Business snapshot", description: "Quick counts for products, materials, orders, and tasks" },
   { id: "connections", label: "Product and material connections", description: "See which materials are used by finished products and which products have active listings" },
   { id: "quickAdd", label: "Quick add", description: "Shortcuts for common records" },
+  { id: "goals", label: "Business goals", description: "A small link to your saved date-range goals" },
+  { id: "assistant", label: "Business Assistant shortcut", description: "A home screen link to reports, notes, and planning" },
 ];
 const DEFAULT_DASHBOARD_WIDGET_ORDER = DASHBOARD_WIDGETS.map((widget) => widget.id);
 const DASHBOARD_FULFILLMENT_PHASES = [
@@ -332,6 +347,7 @@ const ANNOUNCEMENTS = [
 const PAGE_ICON_NAMES = {
   Dashboard: "dashboard",
   "Business Assistant": "assistant",
+  "Business Goals": "analytics",
   "Business Overview": "analytics",
   Components: "components",
   Products: "products",
@@ -413,7 +429,7 @@ function AppIcon({ name, size = 18, color = COLORS.muted, strokeWidth = 1.8 }) {
 }
 
 const EMPTY_DB = {
-  version: 11,
+  version: 12,
   currency: "USD",
   defaultLowStock: 3,
   monthlySalesGoal: 0,
@@ -428,7 +444,7 @@ const EMPTY_DB = {
   customTheme: { ...DEFAULT_CUSTOM_THEME },
   sortModes: {},
   dashboardWidgetOrder: DEFAULT_DASHBOARD_WIDGET_ORDER,
-  hiddenDashboardWidgets: [],
+  hiddenDashboardWidgets: ["assistant"],
   dashboardDismissedAttention: [],
   marketplaceFeeRules: {},
   defaultTaskPriority: "Normal",
@@ -519,6 +535,7 @@ const DEFAULT_DROPDOWN_OPTIONS = {
 const NAV_ITEMS = [
   { id: "Dashboard", label: "Dashboard", icon: "DB" },
   { id: "Business Assistant", label: "Business Assistant", icon: "BA" },
+  { id: "Business Goals", label: "Business Goals", icon: "BG" },
   { id: "Components", label: "Components", icon: "CM" },
   { id: "Products", label: "Products", icon: "PD" },
   { id: "Listings", label: "Listings", icon: "LS" },
@@ -529,6 +546,7 @@ const NAV_ITEMS = [
 const MORE_ITEMS = [
   ["Dashboard", "DB", "Daily overview and priorities"],
   ["Business Assistant", "BA", "Guided business reports and daily planning"],
+  ["Business Goals", "BG", "Create, review, and edit goals for any date range"],
   ["Components", "CM", "Materials, stock, and restocks"],
   ["Products", "PD", "Product designs, prices, and inventory"],
   ["Listings", "LS", "Manage marketplace pages"],
@@ -549,7 +567,7 @@ const MORE_ITEMS = [
 ];
 
 const SIDEBAR_GROUPS = [
-  { label: "WORKSPACE", pages: ["Dashboard", "Business Assistant", "Components", "Products", "Notes"] },
+  { label: "WORKSPACE", pages: ["Dashboard", "Business Assistant", "Business Goals", "Components", "Products", "Notes"] },
   { label: "SALES", pages: ["Listings", "Orders", "Reviews"] },
   { label: "INSIGHTS", pages: ["Business Overview", "Listing Analytics", "Finances"] },
   { label: "OPERATIONS", pages: ["Production", "Calendar", "Time", "Ideas", "Audit", "Suppliers"] },
@@ -800,9 +818,7 @@ const normalizeDatabase = (saved) => {
   const validWidgetIds = DEFAULT_DASHBOARD_WIDGET_ORDER;
   const savedWidgetOrder = Array.isArray(source.dashboardWidgetOrder) ? source.dashboardWidgetOrder : validWidgetIds;
   const dashboardWidgetOrder = Array.from(new Set(savedWidgetOrder.filter((id) => validWidgetIds.includes(id)).concat(validWidgetIds)));
-  const hiddenDashboardWidgets = Array.isArray(source.hiddenDashboardWidgets)
-    ? Array.from(new Set(source.hiddenDashboardWidgets.filter((id) => validWidgetIds.includes(id))))
-    : [];
+  const hiddenDashboardWidgets = Array.from(new Set((Array.isArray(source.hiddenDashboardWidgets) ? source.hiddenDashboardWidgets : []).filter((id) => validWidgetIds.includes(id)).concat(savedVersion < 12 ? ["assistant"] : [])));
   const sortModes = source.sortModes && typeof source.sortModes === "object" ? source.sortModes : {};
   const savedAppearance = source.appearanceSettings && typeof source.appearanceSettings === "object" ? source.appearanceSettings : {};
   const matchedTemplate = VISUAL_TEMPLATES.find((template) => template.name === savedAppearance.templateName)
@@ -811,10 +827,11 @@ const normalizeDatabase = (saved) => {
   const appearanceSettings = {
     ...APPEARANCE_DEFAULTS,
     ...matchedTemplate.appearance,
+    ...savedAppearance,
     templateName: matchedTemplate.name,
     fontFamily: FONT_FAMILY_OPTIONS.includes(savedAppearance.fontFamily) ? savedAppearance.fontFamily : APPEARANCE_DEFAULTS.fontFamily,
   };
-  const normalizedThemeName = matchedTemplate.themeName === CUSTOM_THEME_NAME ? CUSTOM_THEME_NAME : matchedTemplate.themeName;
+  const normalizedThemeName = themeName;
   const reportSettings = { ...EMPTY_DB.reportSettings, ...(source.reportSettings && typeof source.reportSettings === "object" ? source.reportSettings : {}) };
   const monthlyGoals = Array.isArray(source.monthlyGoals) ? source.monthlyGoals.map((goal, index) => {
     if (!goal || typeof goal !== "object") return null;
@@ -2871,9 +2888,15 @@ function Card({ children, style }) {
   const spacious = CURRENT_APPEARANCE.density === "Spacious";
   const padding = compact ? 8 : spacious ? 16 : 12;
   const shadow = Math.max(0, Math.min(1.5, Number(CURRENT_APPEARANCE.shadowIntensity) || 0));
-  const variants = { soft: styles.cardSoft, floating: styles.cardFloating, outlined: styles.cardOutlined, ledger: styles.cardLedger, colorBlock: styles.cardColorBlock, minimal: styles.cardMinimal };
-  const variant = variants[CURRENT_APPEARANCE.cardStyle] || styles.cardSoft;
-  return <View style={[styles.card, variant, { borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding, elevation: shadow, shadowOpacity: shadow * 0.08, shadowRadius: 4 + shadow * 4 }, style]}>{children}</View>;
+  const shape = CURRENT_APPEARANCE.cardStyle;
+  const variants = { soft: styles.cardSoft, floating: styles.cardFloating, outlined: styles.cardOutlined, ledger: styles.cardLedger, colorBlock: styles.cardColorBlock, minimal: styles.cardMinimal, paper: styles.cardPaper, cloud: styles.cardCloud, artsy: styles.cardArtsy, garden: styles.cardGarden, gallery: styles.cardGallery, bubble: styles.cardBubble, cafe: styles.cardCafe, scrapbook: styles.cardScrapbook, arcade: styles.cardArcade, sakura: styles.cardSakura, postcard: styles.cardPostcard };
+  const variant = variants[shape] || styles.cardSoft;
+  return <View style={[styles.card, variant, { borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding, elevation: shadow, shadowOpacity: shadow * 0.08, shadowRadius: 4 + shadow * 4 }, style]}>
+    {shape === "cloud" ? <View pointerEvents="none" style={styles.cloudDecoration}><View style={styles.cloudPuffLeft} /><View style={styles.cloudPuffRight} /></View> : null}
+    {shape === "scrapbook" ? <View pointerEvents="none" style={styles.scrapbookTape} /> : null}
+    {shape === "artsy" || shape === "sakura" ? <View pointerEvents="none" style={styles.artsyCardMark} /> : null}
+    <View style={styles.cardContent}>{children}</View>
+  </View>;
 }
 
 function SettingsAccordion({ title, subtitle, expanded, onPress, children }) {
@@ -2945,10 +2968,13 @@ export default function App() {
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [assistantDay, setAssistantDay] = useState(TODAY);
+  const [assistantEndDate, setAssistantEndDate] = useState(TODAY);
+  const [assistantRangeMode, setAssistantRangeMode] = useState("day");
+  const [assistantExpandedGroup, setAssistantExpandedGroup] = useState("Daily snapshot");
+  const mainScrollRef = useRef(null);
   const [assistantAnswer, setAssistantAnswer] = useState(null);
   const [goalEditorOpen, setGoalEditorOpen] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState("");
-  const [goalNameInput, setGoalNameInput] = useState("");
   const [goalStartDateInput, setGoalStartDateInput] = useState("");
   const [goalEndDateInput, setGoalEndDateInput] = useState("");
   const [goalTargetsInput, setGoalTargetsInput] = useState({});
@@ -3041,7 +3067,7 @@ export default function App() {
   const [backupRestoring, setBackupRestoring] = useState(false);
   const [backupRestoreComplete, setBackupRestoreComplete] = useState(false);
   const [customColorPicker, setCustomColorPicker] = useState("");
-  const [customThemeSections, setCustomThemeSections] = useState({ surfaces: true, typography: false, accents: false, borders: false });
+  const [customThemeSections, setCustomThemeSections] = useState({ surfaces: false, typography: false, accents: false, borders: false });
   const [customPresetChoice, setCustomPresetChoice] = useState(DEFAULT_THEME_NAME);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
   const [settingsSections, setSettingsSections] = useState({ profile: true, appearance: true, goals: false, marketplaces: true, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
@@ -4926,14 +4952,12 @@ export default function App() {
   const openGoalEditor = (goal) => {
     if (goal) {
       setEditingGoalId(goal.id);
-      setGoalNameInput(goal.name || "");
       setGoalStartDateInput(goal.startDate || "");
       setGoalEndDateInput(goal.endDate || "");
       setGoalTargetsInput(Object.fromEntries(GOAL_METRICS.map((metric) => [metric.key, Number(goal[metric.key]) > 0 ? String(goal[metric.key]) : ""])));
     } else {
       const range = defaultGoalDateRange();
       setEditingGoalId("");
-      setGoalNameInput("");
       setGoalStartDateInput(range.startDate);
       setGoalEndDateInput(range.endDate);
       setGoalTargetsInput({});
@@ -4980,22 +5004,22 @@ export default function App() {
     }
     if (!GOAL_METRICS.some((metric) => targets[metric.key] > 0)) { Alert.alert("Add at least one target", "Enter a target for one or more measures before saving."); return; }
     const existing = (db.monthlyGoals || []).find((item) => item.id === editingGoalId);
-    const goal = { ...(existing || {}), ...targets, id: editingGoalId || uid("goal"), name: goalNameInput.trim() || "Goal · " + dateLabel(startDate) + " – " + dateLabel(endDate), startDate, endDate, month: startDate.slice(0, 7) };
+    const goal = { ...(existing || {}), ...targets, id: editingGoalId || uid("goal"), name: "", startDate, endDate, month: startDate.slice(0, 7) };
     setData((old) => ({ ...old, monthlyGoals: (old.monthlyGoals || []).filter((item) => item.id !== goal.id).concat([goal]).sort((a, b) => a.startDate.localeCompare(b.startDate)) }));
     setGoalEditorOpen(false);
   };
   const deleteGoal = (goal) => requestRecordConfirmation({
-    title: "Delete this goal?", message: "“" + goal.name + "” and its saved targets will be removed. Sales, orders, and other records will stay as they are.", confirmLabel: "Delete goal", successMessage: "Goal deleted.",
+    title: "Delete this goal?", message: "The goal for " + dateLabel(goal.startDate) + " – " + dateLabel(goal.endDate) + " and its targets will be removed. Sales, orders, and other records will stay as they are.", confirmLabel: "Delete goal", successMessage: "Goal deleted.",
     onConfirm: () => setData((old) => ({ ...old, monthlyGoals: (old.monthlyGoals || []).filter((item) => item.id !== goal.id) })),
   });
   const renderGoalProgressCards = () => {
     const goals = db.monthlyGoals || [];
-    if (!goals.length) return <Text style={styles.fieldHint}>No goals saved yet. Add one to see progress here and return to it from Settings at any time.</Text>;
+    if (!goals.length) return <Text style={styles.fieldHint}>No goals saved yet. Add one and it will appear here with its own progress bars.</Text>;
     return goals.map((goal) => {
       const actuals = goalActualsFor(goal);
       const targets = GOAL_METRICS.filter((metric) => Number(goal[metric.key]) > 0);
       return <Card key={goal.id} style={styles.goalProgressCard}>
-        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{goal.name}</Text><Text style={styles.recordMeta}>{dateLabel(goal.startDate)} – {dateLabel(goal.endDate)}</Text></View><Pill text={TODAY < goal.startDate ? "Upcoming" : TODAY > goal.endDate ? "Ended" : "In progress"} tone={TODAY < goal.startDate ? "neutral" : TODAY > goal.endDate ? "gray" : "green"} /></View>
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>Business goal</Text><Text style={styles.recordMeta}>{dateLabel(goal.startDate)} – {dateLabel(goal.endDate)}</Text></View><Pill text={TODAY < goal.startDate ? "Upcoming" : TODAY > goal.endDate ? "Ended" : "In progress"} tone={TODAY < goal.startDate ? "neutral" : TODAY > goal.endDate ? "gray" : "green"} /></View>
         {targets.map((metric) => {
           const target = Number(goal[metric.key]) || 0;
           const actual = Number(actuals[metric.key]) || 0;
@@ -5439,6 +5463,19 @@ export default function App() {
   const visibleTasks = openTasks.filter((task) => !search || [task.title, task.category, task.priority, task.notes].join(" ").toLowerCase().includes(search.toLowerCase()));
   const visibleExpenses = db.expenses.filter((expense) => !search || [expense.description, expense.category, expense.notes].join(" ").toLowerCase().includes(search.toLowerCase()));
 
+  const renderBusinessGoals = () => {
+    const goals = db.monthlyGoals || [];
+    return <>
+      <ScreenDashboardHeader title="Business goals" description="Choose any start and end dates, set the measures that matter, and check progress whenever you need it." metrics={[
+        { label: "Goals saved", value: String(goals.length) },
+        { label: "In progress", value: String(goals.filter((goal) => TODAY >= goal.startDate && TODAY <= goal.endDate).length) },
+        { label: "Targets available", value: String(GOAL_METRICS.length) },
+      ]} actions={[{ label: "＋ Add a goal", onPress: () => openGoalEditor() }, { label: "Dashboard", onPress: () => navigateToScreen("Dashboard"), quiet: true }]} />
+      <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Your goal dates are flexible</Text><Text style={styles.infoBannerText}>Pick dates from the calendar or enter them in your selected date format. The suggested period starts on the Sunday of the week containing the 1st and ends on that month’s last day. Leave any measure you do not want blank. Every goal shows its progress bar below.</Text></View>
+      {goals.length ? renderGoalProgressCards() : <EmptyState title="Your goals live here" body="Add a goal for sales, profit, orders, items sold, listings, tasks, reviews, or another available measure. Give it any date range and return here to edit it." action="Add a goal" onPress={() => openGoalEditor()} />}
+    </>;
+  };
+
   const renderDashboard = () => {
     const todaySessions = (db.timeSessions || []).filter((session) => session.date === TODAY).sort((a, b) => Number(b.clockIn) - Number(a.clockIn));
     const todayWorkMs = todaySessions.reduce((sum, session) => sum + (Number(session.durationMs) || 0), 0);
@@ -5460,19 +5497,11 @@ export default function App() {
       expenses: db.expenses.filter(inDashboardPeriod),
       incomes: db.incomes.filter(inDashboardPeriod),
     });
-    const periodIsCurrentMonth = dashboardPeriod === "month" && dashboardRange.start.slice(0, 7) === TODAY.slice(0, 7);
     const dashboardResetLabel = ({ day: "Today", week: "This week", month: "This month", year: "This year" })[dashboardPeriod] || "Today";
     const monthSales = periodTotals.gross;
-    const selectedMonthGoal = (db.monthlyGoals || []).find((goal) => goal.startDate <= TODAY && goal.endDate >= TODAY && Number(goal.grossRevenue) > 0);
-    const salesGoal = Math.max(0, Number(selectedMonthGoal && selectedMonthGoal.grossRevenue || db.monthlySalesGoal) || 0);
-    const salesGoalActual = selectedMonthGoal ? goalActualsFor(selectedMonthGoal).grossRevenue : monthSales;
-    const salesProgress = periodIsCurrentMonth && salesGoal > 0 ? Math.min(100, Math.round((salesGoalActual / salesGoal) * 100)) : 0;
     const readyToShip = db.orders.filter((order) => !order.archived && !order.refundedAt && ["Needs Packaging", "Packaging"].includes(order.status)).length;
     const shippedOrders = db.orders.filter((order) => !order.archived && !order.refundedAt && order.status === "Shipped").length;
     const todayTasks = openTasks.filter((task) => task.dueDate === TODAY).length;
-    const todayEvents = db.events.filter((event) => active(event) && !event.done && event.date === TODAY);
-    const todayDueTasks = openTasks.filter((task) => task.dueDate && task.dueDate <= TODAY);
-    const readyToShipOrders = db.orders.filter((order) => active(order) && !order.refundedAt && ["Needs Packaging", "Packaging", "Ready to Ship"].includes(order.status));
     const activeListings = db.listings.filter(active);
     const liveListings = activeListings.filter((listing) => listingReservesProductStock(listing, db.products.find((product) => product.id === listing.productId)));
     const activeProducts = db.products.filter(active);
@@ -5524,6 +5553,18 @@ export default function App() {
     const attentionItems = currentAttentionItems;
     const dismissedAttentionItems = pageDismissedAttentionItems;
     const widgetContent = {
+      goals: (
+        <Pressable accessibilityRole="button" style={styles.dashboardGoalShortcut} onPress={() => navigateToScreen("Business Goals")}>
+          <View style={styles.dashboardGoalIcon}><AppIcon name="analytics" size={18} color={COLORS.wine} /></View>
+          <View style={styles.flex}><Text style={styles.dashboardGoalTitle}>Business goals</Text><Text style={styles.dashboardGoalSubtitle}>{(db.monthlyGoals || []).length ? (db.monthlyGoals || []).length + " saved · view or edit progress" : "Set date-range goals and track progress"}</Text></View><Text style={styles.assistantChoiceArrow}>›</Text>
+        </Pressable>
+      ),
+      assistant: (
+        <Pressable accessibilityRole="button" style={styles.dashboardGoalShortcut} onPress={() => navigateToScreen("Business Assistant")}>
+          <View style={styles.dashboardGoalIcon}><AssistantRobot motion={assistantBotMotion} compact /></View>
+          <View style={styles.flex}><Text style={styles.dashboardGoalTitle}>Business Assistant</Text><Text style={styles.dashboardGoalSubtitle}>Open reports, your schedule, and notes</Text></View><Text style={styles.assistantChoiceArrow}>›</Text>
+        </Pressable>
+      ),
       welcome: (
         <View style={styles.welcomeBox}>
           <View pointerEvents="none" style={styles.heroOrbOne} /><View pointerEvents="none" style={styles.heroOrbTwo} />
@@ -5550,7 +5591,7 @@ export default function App() {
           <View style={styles.planningPeriodNav}><Pressable onPress={() => shiftDashboardPeriod(-1)} style={styles.monthArrow}><Text style={styles.monthArrowText}>‹</Text></Pressable><Text style={styles.planningPeriodText}>{dashboardPeriodLabel}</Text><Pressable onPress={() => shiftDashboardPeriod(1)} style={styles.monthArrow}><Text style={styles.monthArrowText}>›</Text></Pressable><Action label={dashboardResetLabel} quiet onPress={() => setDashboardAnchor(TODAY)} /></View>
           <Card style={styles.salesGoalCard}>
             <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.salesGoalLabel}>SALES FOR THIS PERIOD</Text><Text style={styles.salesGoalValue}>{money(monthSales, db.currency)}</Text></View><View style={styles.salesIcon}><Text style={styles.salesIconText}>↗</Text></View></View>
-            {periodIsCurrentMonth && salesGoal > 0 ? <><View style={styles.salesGoalTrack}><View style={[styles.salesGoalFill, { width: String(salesProgress) + "%" }]} /></View><Text style={styles.recordMeta}>{salesProgress}% · {money(salesGoalActual, db.currency)} / {money(salesGoal, db.currency)} {selectedMonthGoal ? "goal · " + dateLabel(selectedMonthGoal.startDate) + " – " + dateLabel(selectedMonthGoal.endDate) : "legacy monthly goal"}</Text></> : <Text style={styles.recordMeta}>{periodTotals.orders} order{periodTotals.orders === 1 ? "" : "s"} · {dashboardPeriodLabel}</Text>}
+            <Text style={styles.recordMeta}>{periodTotals.orders} order{periodTotals.orders === 1 ? "" : "s"} · {dashboardPeriodLabel}</Text>
           </Card>
           <View style={styles.metricGrid}>
             <Metric label="Gross sales" value={money(periodTotals.gross, db.currency)} />
@@ -5641,25 +5682,11 @@ export default function App() {
     const hiddenWidgets = db.hiddenDashboardWidgets || [];
     const widgetOrder = db.dashboardWidgetOrder || DEFAULT_DASHBOARD_WIDGET_ORDER;
     return <>
-      <Card style={styles.commandCenterCard}>
-        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Today’s command center</Text><Text style={styles.fieldHint}>Your first look at deadlines, shipments, and the next useful step.</Text></View><Pill text={db.activeShift ? "Shift active" : dateLabel(TODAY)} tone={db.activeShift ? "green" : "neutral"} /></View>
-        <View style={styles.metricGrid}>
-          <Metric label="Calendar today" value={String(todayEvents.length)} sub={todayEvents.slice(0, 2).map((event) => event.title).join(" · ") || "No events scheduled"} />
-          <Metric label="Tasks due or overdue" value={String(todayDueTasks.length)} sub={todayDueTasks.slice(0, 2).map((task) => task.title).join(" · ") || "No open deadlines"} />
-          <Metric label="Orders to ship" value={String(readyToShipOrders.length)} sub="Packaging or ready to ship" />
-        </View>
-        <Text style={styles.fieldLabel}>Quick note for today</Text>
-        <TextInput value={(db.dailyScratchNotes || {})[TODAY] || ""} onChangeText={(value) => setData((old) => ({ ...old, dailyScratchNotes: { ...(old.dailyScratchNotes || {}), [TODAY]: value } }))} placeholder="A thought, reminder, or next step…" placeholderTextColor={COLORS.placeholder} style={styles.dailyScratchInput} multiline />
-        <Text style={styles.fieldHint}>Briefing: {todayDueTasks.length ? todayDueTasks.length + " task(s) need attention" : "No tasks are due"}; {readyToShipOrders.length ? readyToShipOrders.length + " order(s) need shipping work" : "shipping queue is clear"}; {todayEvents.length ? "calendar events are scheduled" : "calendar is open"}.</Text>
-      </Card>
-      <Card style={styles.monthlyGoalsCard}>
-        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Business goals</Text><Text style={styles.fieldHint}>Your saved date-range goals stay here and in Settings. Edit or remove one whenever plans change.</Text></View><Action label="Add goal" onPress={() => openGoalEditor()} /></View>
-        <Text style={styles.fieldHint}>Orders count sales. Items sold counts the quantities inside those sales, so one order can include several items.</Text>
-        {renderGoalProgressCards()}
-      </Card>
+      {!hiddenWidgets.includes("goals") ? widgetContent.goals : null}
+
       {!hiddenWidgets.includes("welcome") ? <React.Fragment key="welcome">{widgetContent.welcome}</React.Fragment> : null}
       {widgetContent.fulfillment}
-      {widgetOrder.filter((id) => id !== "welcome" && id !== "fulfillment" && !hiddenWidgets.includes(id)).map((id) => <React.Fragment key={id}>{widgetContent[id]}</React.Fragment>)}
+      {widgetOrder.filter((id) => id !== "welcome" && id !== "fulfillment" && id !== "goals" && !hiddenWidgets.includes(id)).map((id) => <React.Fragment key={id}>{widgetContent[id]}</React.Fragment>)}
       <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Dismissed alerts</Text><View style={styles.actionRow}>{dismissedAttentionItems.length ? <Action label="Restore all" quiet onPress={() => restoreAttentionItems(dismissedAttentionItems)} /> : null}<Action label={showDismissedAttention ? "Hide dismissed" : `See dismissed (${dismissedAttentionItems.length})`} quiet onPress={() => setShowDismissedAttention(!showDismissedAttention)} /></View></View>
         {showDismissedAttention ? dismissedAttentionItems.length ? dismissedAttentionItems.map((item) => <Card key={item.dismissed.id + item.dismissed.date}><View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{item.item ? `${item.item.icon}  ${item.item.title}` : item.dismissed.id}</Text><Text style={styles.recordMeta}>Dismissed {dateLabel(item.dismissed.date)}</Text>{item.item ? <Text style={styles.bodyText}>{item.item.detail}</Text> : null}</View><Action label="Restore alert" onPress={() => restoreAttentionItem(item.dismissed.id)} /></View></Card>) : <Text style={styles.bodyText}>There are no dismissed alerts to restore.</Text> : null}
     </>;
@@ -7552,16 +7579,19 @@ export default function App() {
         </SettingsAccordion>
       </SettingsAccordion>
       </SettingsAccordion>
-      <SettingsAccordion title="App appearance" subtitle="Choose a complete app look, then choose its font" expanded={settingsSections.appearance} onPress={() => toggleSection("appearance")}>
-        <Text style={styles.bodyText}>Templates change the app’s colors, cards, buttons, spacing, headings, and overall feel together. Pick one template and a font family; there are no separate radius or spacing controls.</Text>
-        <Text style={styles.fieldLabel}>App templates · {VISUAL_TEMPLATES.length} choices</Text>
+      <SettingsAccordion title="App appearance" subtitle="Choose a whole-app look, then adjust the palette and font" expanded={settingsSections.appearance} onPress={() => toggleSection("appearance")}>
+        <Text style={styles.bodyText}>Choose a complete look first. You can then change the color palette and font independently. Each look changes card shapes, page framing, buttons, spacing, and headings.</Text>
+        <Field field={{ key: "appearancePalette", label: "Color palette", searchable: true, searchPlaceholder: "Find colors", options: THEMES.map((theme) => ({ label: theme.name, value: theme.name })) }} value={db.themeName} onChange={chooseTheme} />
+        <View style={styles.paletteSampleRow}>{[selectedTheme.colors.paper, selectedTheme.colors.card, selectedTheme.colors.soft, selectedTheme.colors.wine, selectedTheme.colors.ink].map((color, index) => <View key={index} style={[styles.paletteSample, { backgroundColor: color, borderColor: selectedTheme.colors.line }]} />)}</View>
+        <View style={styles.actionRow}><Action label="Choose from all colors" quiet onPress={() => setThemePickerOpen(true)} /></View>
+        <Text style={styles.fieldLabel}>Whole-app looks · {VISUAL_TEMPLATES.length} choices</Text>
         <View style={styles.templateGrid}>{VISUAL_TEMPLATES.map((template) => {
           const theme = template.themeName === CUSTOM_THEME_NAME
             ? { colors: makeCustomThemeColors(db.customTheme) }
             : THEMES.find((item) => item.name === template.themeName) || DEFAULT_THEME;
           const selected = appearance.templateName === template.name;
           return <Pressable key={template.name} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => applyVisualTemplate(template.name)} style={[styles.templateTile, selected && styles.templateTileSelected]}>
-            <View style={[styles.templateMiniCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.line, borderRadius: template.appearance.cardRadius }]}>
+            <View style={[styles.templateMiniCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.line, borderRadius: template.appearance.cardRadius, borderWidth: ["gallery", "postcard"].includes(template.appearance.cardStyle) ? 2 : 1, borderStyle: ["paper", "scrapbook"].includes(template.appearance.cardStyle) ? "dashed" : "solid", borderLeftWidth: ["paper", "artsy"].includes(template.appearance.cardStyle) ? 4 : 1, borderBottomWidth: ["garden", "cafe", "sakura"].includes(template.appearance.cardStyle) ? 3 : 1 }]}>
               <View style={[styles.templateMiniAccent, { backgroundColor: theme.colors.wine }]} />
               <View style={[styles.templateMiniLine, { backgroundColor: theme.colors.soft }]} />
               <View style={[styles.templateMiniLineShort, { backgroundColor: theme.colors.line }]} />
@@ -7571,7 +7601,11 @@ export default function App() {
             {selected ? <Pill text="Selected" tone="green" /> : null}
           </Pressable>;
         })}</View>
-        <Field field={{ key: "appearanceFont", label: "Font family", searchable: true, searchPlaceholder: "Find a font", options: FONT_FAMILY_OPTIONS.map((font) => ({ label: font, value: font })), hint: "The font applies throughout the tracker." }} value={appearance.fontFamily} onChange={saveFontFamily} />
+        <Field field={{ key: "appearanceFont", label: "Font family", searchable: true, searchPlaceholder: "Find a font", options: FONT_FAMILY_OPTIONS.map((font) => ({ label: font, value: font })), hint: "This typeface applies throughout the tracker. Font choices use browser-safe fallback families." }} value={appearance.fontFamily} onChange={saveFontFamily} />
+        <SettingsAccordion title="Customize individual colors" subtitle="Optional fine-tuning for your saved custom palette" expanded={customThemeSections.open} onPress={() => setCustomThemeSections((old) => ({ ...old, open: !old.open }))}>
+          <ChoiceChips label="Custom palette mode" options={[{ label: "Light", value: "light" }, { label: "Dark", value: "dark" }]} value={(db.customTheme || DEFAULT_CUSTOM_THEME).mode || "dark"} onChange={(value) => saveCustomThemeColor("mode", value)} />
+          {CUSTOM_THEME_COLOR_GROUPS.map((group) => <SettingsAccordion key={group.key} title={group.title} subtitle={group.subtitle} expanded={!!customThemeSections[group.key]} onPress={() => toggleCustomThemeSection(group.key)}>{group.colors.map(([key, label]) => <CustomColorSetting key={key} label={label} value={(db.customTheme || DEFAULT_CUSTOM_THEME)[key]} isOpen={!!customThemeSections[key]} onToggle={() => setCustomThemeSections((old) => ({ ...old, [key]: !old[key] }))} onChange={(value) => saveCustomThemeColor(key, value)} onPick={(value) => saveCustomThemeColor(key, value)} />)}</SettingsAccordion>)}
+        </SettingsAccordion>
         <View style={styles.aestheticPreview}><Text style={styles.cardTitle}>Preview · {appearance.templateName}</Text><Text style={styles.bodyText}>This sample updates when you choose a template or font.</Text><View style={styles.aestheticPreviewRow}><Text style={styles.detailLabel}>Sample product · PROD-014</Text><Text style={styles.detailValue}>$28.00</Text></View><Action label="Sample action" onPress={() => {}} /></View>
       </SettingsAccordion>
       <SettingsAccordion title="Business goals" subtitle="View, edit, and manage saved date-range goals" expanded={settingsSections.goals} onPress={() => toggleSection("goals")}>
@@ -7667,6 +7701,7 @@ export default function App() {
     switch (screen) {
       case "Dashboard": return renderDashboard();
       case "Business Assistant": return renderBusinessAssistant();
+      case "Business Goals": return renderBusinessGoals();
       case "Components": return renderComponents();
       case "Products": return renderProducts();
       case "Production": return renderProduction();
@@ -7710,48 +7745,52 @@ export default function App() {
   };
   const answerBusinessAssistantChoice = (choiceId) => {
     const day = parseDateInput(assistantDay) || TODAY;
+    const endDay = assistantRangeMode === "range" ? (parseDateInput(assistantEndDate) || day) : day;
+    if (endDay < day) { Alert.alert("Check the date range", "The end date must be the same as or later than the start date."); return; }
+    const periodLabel = day === endDay ? periodLabel : periodLabel + " – " + dateLabel(endDay);
     const dateOf = (value) => parseDateInput(value) || timestampDateKey(value) || String(value || "").slice(0, 10);
-    const ordersOnDay = db.orders.filter((order) => active(order) && dateOf(order.date || order.createdAt) === day);
-    const tasksOnDay = db.tasks.filter((task) => active(task) && ((task.dueDate === day && !task.done) || (task.done && task.completedAt === day)));
+    const inRange = (value) => { const date = dateOf(value); return !!date && date >= day && date <= endDay; };
+    const ordersOnDay = db.orders.filter((order) => active(order) && inRange(order.date || order.createdAt));
+    const tasksOnDay = db.tasks.filter((task) => active(task) && ((inRange(task.dueDate) && !task.done) || (task.done && inRange(task.completedAt))));
     const openTasks = db.tasks.filter((task) => active(task) && !task.done);
-    const eventsOnDay = db.events.filter((event) => active(event) && event.date === day);
-    const plansOnDay = (db.workPlans || []).filter((plan) => plan.date === day);
+    const eventsOnDay = db.events.filter((event) => active(event) && inRange(event.date));
+    const plansOnDay = (db.workPlans || []).filter((plan) => inRange(plan.date));
     const lowStock = db.components.filter((item) => active(item) && Number(item.quantity || 0) <= Number(item.lowStock == null || item.lowStock === "" ? db.defaultLowStock : item.lowStock));
     const detail = (title, text) => ({ title: String(title || "Untitled record"), detail: String(text || "") });
     const countItems = (order) => (order.items || []).reduce((sum, line, index) => sum + Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0)), 0);
     const dayTotals = calculateTotals({
       ...db,
       orders: ordersOnDay,
-      expenses: db.expenses.filter((item) => dateOf(item.date) === day),
-      incomes: db.incomes.filter((item) => dateOf(item.date) === day),
+      expenses: db.expenses.filter((item) => inRange(item.date)),
+      incomes: db.incomes.filter((item) => inRange(item.date)),
     });
     let title = "Business Assistant report";
-    let summary = "This report uses records saved in your tracker for " + dateLabel(day) + ".";
+    let summary = "This report uses records saved in your tracker for " + periodLabel + ".";
     let rows = [];
     let note = "Amounts and stock reflect what has been entered in the tracker.";
     if (choiceId === "today-overview") {
-      title = "Daily overview · " + dateLabel(day);
-      const dueTasks = openTasks.filter((task) => task.dueDate && task.dueDate <= day);
+      title = "Daily overview · " + periodLabel;
+      const dueTasks = openTasks.filter((task) => task.dueDate && task.dueDate <= endDay);
       const dayLowStock = lowStock;
       summary = ordersOnDay.length + " sale(s), " + dueTasks.length + " task(s) due or overdue, " + eventsOnDay.filter((event) => !event.done).length + " open event(s), and " + dayLowStock.length + " low-stock component(s).";
       rows = [detail("Gross revenue", money(dayTotals.gross, db.currency) + " · item totals before fees and refunds"), detail("Estimated profit", money(dayTotals.estimatedProfit, db.currency) + " · uses saved payout, expense, income, shipping, and recipe-cost records"), detail("Tasks due or overdue", String(dueTasks.length) + (dueTasks.length ? " · " + dueTasks.map((task) => task.title + " (due " + dateLabel(task.dueDate) + ")").join("; ") : " · none")), detail("Events", String(eventsOnDay.filter((event) => !event.done).length) + (eventsOnDay.length ? " · " + eventsOnDay.map((event) => event.title + (event.done ? " (done)" : "")).join("; ") : " · none")), detail("Low stock", String(dayLowStock.length) + " component(s) · choose the stock report for every item and its threshold")];
       if (plansOnDay.length) rows.push(detail("Planned work", plansOnDay.length + " block(s) · " + plansOnDay.map((plan) => plan.title || plan.name || "Work block").join("; ")));
     } else if (choiceId === "sales-day") {
-      title = "Sales and profit · " + dateLabel(day);
+      title = "Sales and profit · " + periodLabel;
       summary = "There are " + ordersOnDay.length + " active sale record(s). Gross revenue is the item subtotal; estimated profit follows the tracker’s payout and cost calculation.";
       rows = [detail("Gross revenue", money(dayTotals.gross, db.currency)), detail("Estimated payouts after recorded fees and refunds", money(dayTotals.payouts, db.currency)), detail("Other income", money(dayTotals.income, db.currency)), detail("Shipping cost", money(dayTotals.shipping, db.currency)), detail("Recorded expenses", money(dayTotals.expenses, db.currency)), detail("Estimated material cost", money(dayTotals.materialCosts, db.currency)), detail("Estimated profit", money(dayTotals.estimatedProfit, db.currency))];
     } else if (choiceId === "items-day") {
       const sold = ordersOnDay.reduce((sum, order) => sum + countItems(order), 0);
-      title = "Items sold · " + dateLabel(day);
+      title = "Items sold · " + periodLabel;
       summary = sold + " net item unit(s) across " + ordersOnDay.length + " sale record(s). Orders and items are different measures: one order may contain multiple units.";
       rows = ordersOnDay.flatMap((order) => (order.items || []).map((line, index) => detail((line.productName || line.name || line.productSku || "Unlabeled product") + " · " + (order.orderSku || "Sale"), Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0)) + " unit(s) · " + money(Math.max(0, Number(line.quantity) || 0) * Math.max(0, Number(line.unitPrice) || 0), db.currency) + " line subtotal")));
     } else if (choiceId === "cash-day") {
-      const incomes = db.incomes.filter((item) => dateOf(item.date) === day);
-      const expenses = db.expenses.filter((item) => dateOf(item.date) === day);
-      title = "Income and expenses · " + dateLabel(day);
+      const incomes = db.incomes.filter((item) => inRange(item.date));
+      const expenses = db.expenses.filter((item) => inRange(item.date));
+      title = "Income and expenses · " + periodLabel;
       summary = "Other income and recorded expenses are listed separately from order payouts.";
       rows = incomes.map((item) => detail(item.description || item.name || "Other income", (item.category || "Income") + " · " + money(item.amount, db.currency))).concat(expenses.map((item) => detail(item.description || item.name || "Expense", (item.category || "Expense") + " · " + money(item.amount, db.currency))));
-      if (!rows.length) rows = [detail("No entries", "No other income or expenses are recorded for this day.")];
+      if (!rows.length) rows = [detail("No entries", "No other income or expenses are recorded in this period.")];
       rows.push(detail("Income total", money(dayTotals.income, db.currency)), detail("Expense total", money(dayTotals.expenses, db.currency)));
     } else if (choiceId === "ship-queue" || choiceId === "orders-needing-attention") {
       const needsWork = db.orders.filter((order) => active(order) && !order.refundedAt && (choiceId === "ship-queue"
@@ -7761,12 +7800,12 @@ export default function App() {
       summary = needsWork.length ? needsWork.length + " saved sale record(s) need attention. Each bullet is one order, with its customer, item count, amount, and current status." : "No active orders match this status group.";
       rows = needsWork.map((order) => detail(order.orderSku || "Sale", [order.status || "No status", countItems(order) + " item(s)", money(totalOrder(order), db.currency), order.marketplace || "Channel not recorded", order.customer || "Customer not recorded", order.trackingNumber ? "Tracking " + order.trackingNumber : "No tracking entered"].join(" · ")));
     } else if (choiceId === "sales-day-list") {
-      title = "Sales recorded · " + dateLabel(day);
-      summary = ordersOnDay.length ? "Every active sale record entered for this day is shown separately below." : "No active sales are dated for this day.";
+      title = "Sales recorded · " + periodLabel;
+      summary = ordersOnDay.length ? "Every active sale record entered in this period is shown separately below." : "No active sales are dated in this period.";
       rows = ordersOnDay.map((order) => detail(order.orderSku || "Sale", [order.status || "No status", order.marketplace || "Channel not recorded", countItems(order) + " item(s)", money(totalOrder(order), db.currency), order.customer || "Customer not recorded"].join(" · ")));
     } else if (choiceId === "best-sellers") {
       const totals = new Map();
-      db.orders.filter(active).forEach((order) => (order.items || []).forEach((line, index) => {
+      db.orders.filter((order) => active(order) && inRange(order.date || order.createdAt)).forEach((order) => (order.items || []).forEach((line, index) => {
         const label = line.productName || line.name || line.productSku || "Unlabeled product";
         const value = totals.get(label) || { units: 0, sales: 0 };
         value.units += Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0));
@@ -7774,8 +7813,8 @@ export default function App() {
         totals.set(label, value);
       }));
       const ranking = Array.from(totals.entries()).sort((a, b) => b[1].units - a[1].units || b[1].sales - a[1].sales);
-      title = "Best-selling products · all recorded dates";
-      summary = ranking.length ? "Ranked by net item units sold, then gross line sales. Returned and restocked units are subtracted from the unit count." : "No order items are recorded yet.";
+      title = "Best-selling products · " + periodLabel;
+      summary = ranking.length ? "Ranked by net item units sold during this period, then gross line sales. Returned and restocked units are subtracted from the unit count." : "No order items were recorded in this period.";
       rows = ranking.map(([name, value], index) => detail((index + 1) + ". " + name, value.units + " unit(s) · " + money(value.sales, db.currency) + " gross line sales"));
     } else if (choiceId === "low-stock" || choiceId === "restock-priority" || choiceId === "stock-list") {
       const stock = (choiceId === "stock-list" ? db.components.filter(active) : lowStock).slice();
@@ -7807,15 +7846,15 @@ export default function App() {
       });
       if (!rows.length) rows = [detail("No products saved", "Add products and optional component recipes to see build capacity.")];
     } else if (choiceId === "tasks-day" || choiceId === "overdue-tasks") {
-      const tasks = choiceId === "tasks-day" ? tasksOnDay : openTasks.filter((task) => task.dueDate && task.dueDate < day).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
-      title = choiceId === "tasks-day" ? "Tasks · " + dateLabel(day) : "Overdue and open tasks";
-      summary = choiceId === "tasks-day" ? tasks.length + " task(s) due or completed on this date." : tasks.length + " unfinished task(s) have a due date before " + dateLabel(day) + ". Tasks without a due date are not included in the overdue count.";
+      const tasks = choiceId === "tasks-day" ? tasksOnDay : openTasks.filter((task) => task.dueDate && task.dueDate < endDay).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+      title = choiceId === "tasks-day" ? "Tasks · " + periodLabel : "Overdue and open tasks";
+      summary = choiceId === "tasks-day" ? tasks.length + " task(s) due or completed during this period." : tasks.length + " unfinished task(s) have a due date before " + dateLabel(endDay) + ". Tasks without a due date are not included in the overdue count.";
       rows = tasks.map((task) => detail(task.title || "Untitled task", [(task.done ? "Completed" : "Open"), task.priority || "Normal priority", task.category || "Other", task.dueDate ? "Due " + dateLabel(task.dueDate) : "No due date", task.description || ""].filter(Boolean).join(" · ")));
     } else if (choiceId === "events-day" || choiceId === "workplans-day") {
       const isEvent = choiceId === "events-day";
       const entries = isEvent ? eventsOnDay : plansOnDay;
-      title = (isEvent ? "Calendar events · " : "Planned work blocks · ") + dateLabel(day);
-      summary = entries.length ? entries.length + (isEvent ? " event(s)" : " work block(s)") + " saved for this date." : "Nothing is scheduled for this date.";
+      title = (isEvent ? "Calendar events · " : "Planned work blocks · ") + periodLabel;
+      summary = entries.length ? entries.length + (isEvent ? " event(s)" : " work block(s)") + " saved for this selected period." : "Nothing is scheduled for this selected period.";
       rows = entries.map((item) => detail(item.title || item.name || (isEvent ? "Untitled event" : "Work block"), [item.done ? "Completed" : "Open", item.kind || item.category || "", item.startTime && item.endTime ? item.startTime + "–" + item.endTime : "", item.description || item.notes || ""].filter(Boolean).join(" · ")));
     } else if (choiceId === "goal-progress") {
       const goals = db.monthlyGoals || [];
@@ -7823,13 +7862,13 @@ export default function App() {
       summary = goals.length ? "Each saved goal is measured only across its own start and end dates. Dollar amounts and count measures use their own units." : "No goals have been saved yet. Add one from the dashboard or Settings.";
       rows = goals.flatMap((goal) => {
         const actuals = goalActualsFor(goal);
-        return [detail(goal.name || "Business goal", dateLabel(goal.startDate) + " – " + dateLabel(goal.endDate))].concat(GOAL_METRICS.filter((metric) => Number(goal[metric.key]) > 0).map((metric) => detail("  " + metric.label, (metric.kind === "money" ? money(actuals[metric.key], db.currency) : String(Math.floor(actuals[metric.key] || 0)) + " / " + Math.floor(goal[metric.key])) + (metric.kind === "money" ? " / " + money(goal[metric.key], db.currency) : ""))));
+        return [detail("Business goal", dateLabel(goal.startDate) + " – " + dateLabel(goal.endDate))].concat(GOAL_METRICS.filter((metric) => Number(goal[metric.key]) > 0).map((metric) => detail("  " + metric.label, (metric.kind === "money" ? money(actuals[metric.key], db.currency) : String(Math.floor(actuals[metric.key] || 0)) + " / " + Math.floor(goal[metric.key])) + (metric.kind === "money" ? " / " + money(goal[metric.key], db.currency) : ""))));
       });
     } else if (choiceId === "reviews-summary") {
-      const reviews = db.reviews.filter(active).slice().sort((a, b) => String(dateOf(b.date || b.createdAt)).localeCompare(String(dateOf(a.date || a.createdAt))));
+      const reviews = db.reviews.filter((review) => active(review) && inRange(review.date || review.createdAt)).slice().sort((a, b) => String(dateOf(b.date || b.createdAt)).localeCompare(String(dateOf(a.date || a.createdAt))));
       const ratings = reviews.map((review) => Number(review.rating)).filter((rating) => Number.isFinite(rating) && rating > 0);
       const average = ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : null;
-      title = "Customer reviews";
+      title = "Customer reviews · " + periodLabel;
       summary = reviews.length + " active review(s) saved" + (average == null ? "; no numeric ratings are available." : "; average saved rating " + average.toFixed(1) + " from " + ratings.length + " rated review(s)." );
       rows = reviews.map((review) => detail(review.customer || review.author || review.productName || "Customer review", [review.rating ? String(review.rating) + " / 5 stars" : "No rating entered", dateOf(review.date || review.createdAt) ? dateLabel(dateOf(review.date || review.createdAt)) : "No date", review.text || review.comment || review.notes || "No written comment saved"].join(" · ")));
     } else if (choiceId === "listing-status") {
@@ -7847,52 +7886,63 @@ export default function App() {
       rows = products.map((product) => detail(product.name || "Unnamed product", (Number(product.inventory) || 0) + " on hand" + (product.sku ? " · " + product.sku : "") + (productAvailableUnits(product, db.listings) === 0 && Number(product.inventory) > 0 ? " · reserved by a live listing" : "")));
     }
     if (!rows.length) rows = [detail("No matching records", "There is no matching saved data for this report. Add or update the relevant tracker records, then choose this report again.")];
-    setAssistantAnswer({ id: choiceId, title, summary, rows, note, day });
+    setAssistantAnswer({ id: choiceId, title, summary, rows, note, day, periodLabel });
+    setTimeout(() => mainScrollRef.current?.scrollTo({ y: 0, animated: true }), 30);
   };
   const renderBusinessAssistant = () => {
     const day = parseDateInput(assistantDay) || TODAY;
-    const tasks = db.tasks.filter((task) => active(task) && ((task.dueDate === day && !task.done) || (task.done && task.completedAt === day)));
-    const events = db.events.filter((event) => active(event) && event.date === day);
-    const plans = (db.workPlans || []).filter((plan) => plan.date === day);
-    const notes = db.notes.filter((item) => active(item) && (parseDateInput(item.date) || timestampDateKey(item.date)) === day);
+    const endDay = assistantRangeMode === "range" ? (parseDateInput(assistantEndDate) || day) : day;
+    const rangeLabel = day === endDay ? dateLabel(day) : dateLabel(day) + " – " + dateLabel(endDay);
+    const inRange = (value) => { const date = parseDateInput(value) || timestampDateKey(value); return !!date && date >= day && date <= endDay; };
+    const tasks = db.tasks.filter((task) => active(task) && ((task.dueDate && inRange(task.dueDate) && !task.done) || (task.done && inRange(task.completedAt))));
+    const events = db.events.filter((event) => active(event) && inRange(event.date));
+    const plans = (db.workPlans || []).filter((plan) => inRange(plan.date));
+    const notes = db.notes.filter((item) => active(item) && inRange(item.date));
     const openTaskCount = tasks.filter((item) => !item.done).length;
     const renderScheduleRow = (type, item, done, onDone) => <View key={type + item.id} style={styles.assistantAgendaRow}>
       <View style={styles.flex}><Text style={styles.recordTitle}>{item.title || item.name || "Untitled " + type}</Text><Text style={styles.recordMeta}>{type}{item.dueDate || item.date ? " · " + dateLabel(item.dueDate || item.date) : ""}{item.startTime && item.endTime ? " · " + item.startTime + "–" + item.endTime : ""}{item.priority ? " · " + item.priority + " priority" : ""}{item.done ? " · Done" : " · Open"}{item.description || item.notes ? " · " + (item.description || item.notes) : ""}</Text></View>
       <View style={styles.actionRow}><Action label={done ? "Undo" : "Done"} quiet onPress={onDone} /><Action label="Edit" quiet onPress={() => beginEdit(type === "work block" ? "workPlan" : type, item)} /></View>
     </View>;
     const motionStyle = { opacity: assistantAnswerMotion, transform: [{ translateY: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [15, 0] }) }, { scale: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }) }] };
+    const userChoice = assistantAnswer && BUSINESS_ASSISTANT_GROUPS.flatMap((group) => group.choices).find(([id]) => id === assistantAnswer.id);
+    const updateRangeMode = (mode) => { setAssistantRangeMode(mode); if (mode === "range") setAssistantEndDate(day); };
     return <>
-      <Card style={styles.assistantHeroCard}>
-        <View style={styles.assistantHeroRow}><AssistantRobot motion={assistantBotMotion} /><View style={styles.flex}><Text style={styles.assistantEyebrow}>YOUR BUSINESS WORKSPACE</Text><Text style={styles.assistantHeroTitle}>Business Assistant</Text><Text style={styles.bodyText}>Pick a report to get a specific answer from your saved records. Choose a date to plan the day, add work, and keep notes in one place.</Text></View></View>
-        <Field field={{ key: "assistantDay", label: "Selected day", date: true, hint: "Choose a date or type it in your selected date format." }} value={assistantDay} onChange={(value) => setAssistantDay(parseDateInput(value) || value)} />
-        <View style={styles.actionRow}><Action label="＋ Add task" onPress={() => beginAdd("task", { dueDate: day })} /><Action label="＋ Add event" onPress={() => beginAdd("event", { date: day })} /><Action label="＋ Work block" onPress={() => beginAdd("workPlan", { date: day })} /><Action label="＋ Note" onPress={() => beginAdd("note", { date: day })} /><Action label="Open Calendar" quiet onPress={() => navigateRoot("Calendar")} /></View>
-      </Card>
-      <Card style={styles.assistantChoicesCard}>
-        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Choose a report</Text><Text style={styles.fieldHint}>Reports are grouped by topic; tap any option to see the details as separate lines.</Text></View></View>
-        {BUSINESS_ASSISTANT_GROUPS.map((group) => <View key={group.label} style={styles.assistantChoiceGroup}>
-          <Text style={styles.assistantGroupTitle}>{group.label}</Text>
-          <View style={styles.assistantChoiceGrid}>{group.choices.map(([id, label]) => <Pressable key={id} accessibilityRole="button" style={({ pressed }) => [styles.assistantChoice, pressed && styles.pressedState]} onPress={() => answerBusinessAssistantChoice(id)}><Text style={styles.assistantChoiceText}>{label}</Text><Text style={styles.assistantChoiceArrow}>›</Text></Pressable>)}</View>
-        </View>)}
+      <Card style={styles.assistantCompactHeader}>
+        <View style={styles.assistantChatHeader}><AssistantRobot motion={assistantBotMotion} /><View style={styles.flex}><Text style={styles.assistantEyebrow}>YOUR BUSINESS ASSISTANT</Text><Text style={styles.assistantHeroTitle}>Hi! What should we look at?</Text><Text style={styles.fieldHint}>Pick a ready-made choice. You can type only when adding a task or note.</Text></View></View>
+        <View style={styles.actionRow}><Action label="‹ Back" quiet onPress={() => navigationStack.length > 1 ? navigateBack() : navigateRoot("Dashboard")} /><Action label="＋ Task" quiet onPress={() => beginAdd("task", { dueDate: day })} /><Action label="＋ Event" quiet onPress={() => beginAdd("event", { date: day })} /><Action label="＋ Note" quiet onPress={() => beginAdd("note", { date: day })} /></View>
+        <ChoiceChips label="Look at" options={[{ label: "One day", value: "day" }, { label: "Date range", value: "range" }]} value={assistantRangeMode} onChange={updateRangeMode} />
+        <View style={styles.assistantDateRow}><View style={styles.flex}><Field field={{ key: "assistantStartDate", label: assistantRangeMode === "range" ? "Start date" : "Date", date: true }} value={assistantDay} onChange={(value) => setAssistantDay(parseDateInput(value) || value)} /></View>{assistantRangeMode === "range" ? <View style={styles.flex}><Field field={{ key: "assistantEndDate", label: "End date", date: true }} value={assistantEndDate} onChange={(value) => setAssistantEndDate(parseDateInput(value) || value)} /></View> : null}</View>
+        {assistantRangeMode === "range" && endDay < day ? <Text style={styles.assistantRangeError}>Choose an end date on or after the start date.</Text> : null}
       </Card>
       {assistantAnswer ? <Animated.View style={motionStyle}>
-        <Card style={styles.assistantAnswerCard}>
-          <View style={styles.assistantAnswerHeader}><View style={styles.flex}><Text style={styles.assistantEyebrow}>TRACKER REPORT · {dateLabel(assistantAnswer.day)}</Text><Text style={styles.assistantAnswerTitle}>{assistantAnswer.title}</Text></View><AssistantRobot motion={assistantBotMotion} compact /></View>
-          <Text style={styles.assistantAnswerSummary}>{assistantAnswer.summary}</Text>
-          <View style={styles.assistantAnswerList}>{assistantAnswer.rows.map((row, index) => <View key={assistantAnswer.id + "-" + index} style={styles.assistantAnswerRow}><Text style={styles.assistantBullet}>•</Text><View style={styles.flex}><Text style={styles.assistantAnswerRowTitle}>{row.title}</Text>{row.detail ? <Text style={styles.assistantAnswerRowText}>{row.detail}</Text> : null}</View></View>)}</View>
-          <Text style={styles.fieldHint}>{assistantAnswer.note}</Text>
-        </Card>
-      </Animated.View> : <Card style={styles.assistantEmptyAnswer}><Text style={styles.cardTitle}>Your report will appear here</Text><Text style={styles.bodyText}>For example, Low or out-of-stock components lists every affected supply on its own line, with its count, threshold, and supplier when recorded.</Text></Card>}
-      <Card style={styles.assistantDayCard}>
-        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Plan the day · {dateLabel(day)}</Text><Text style={styles.fieldHint}>{openTaskCount} open task(s) scheduled for this date · {events.filter((item) => !item.done).length} open event(s) · {plans.filter((item) => !item.done).length} open work block(s)</Text></View></View>
-        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Tasks</Text>{tasks.length ? tasks.map((task) => renderScheduleRow("task", task, task.done, () => completeTask(task))) : <Text style={styles.fieldHint}>No task is scheduled for this day.</Text>}</View>
-        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Calendar events</Text>{events.length ? events.map((event) => renderScheduleRow("event", event, event.done, () => completeEvent(event))) : <Text style={styles.fieldHint}>No event is scheduled for this day.</Text>}</View>
-        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Work blocks</Text>{plans.length ? plans.map((plan) => renderScheduleRow("work block", plan, plan.done, () => completeWorkPlan(plan))) : <Text style={styles.fieldHint}>No work block is planned for this day.</Text>}</View>
-        <View style={styles.assistantAgendaSection}><View style={styles.cardTop}><Text style={styles.fieldLabel}>Notes for this day</Text><Action label="Add dated note" quiet onPress={() => beginAdd("note", { date: day })} /></View>{notes.length ? notes.map((item) => <Pressable key={item.id} style={styles.assistantNoteRow} onPress={() => beginEdit("note", item)}><Text style={styles.recordTitle}>{item.title || "Untitled note"}</Text><Text style={styles.recordMeta}>{item.category || "Business note"}{item.tags ? " · " + item.tags : ""}</Text><Text style={styles.bodyText}>{item.content || item.body || item.text || "Open to edit this note."}</Text></Pressable>) : <Text style={styles.fieldHint}>No dated notes saved for this day yet.</Text>}</View>
-        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Quick note</Text><TextInput value={(db.dailyScratchNotes || {})[day] || ""} onChangeText={(value) => setData((old) => ({ ...old, dailyScratchNotes: { ...(old.dailyScratchNotes || {}), [day]: value } }))} placeholder="Save a thought or reminder for this day…" placeholderTextColor={COLORS.placeholder} style={styles.dailyScratchInput} multiline /></View>
+        <View style={styles.assistantConversation}>
+          {userChoice ? <View style={styles.assistantUserBubble}><Text style={styles.assistantUserText}>{userChoice[1]}</Text></View> : null}
+          <View style={styles.assistantReplyRow}><AssistantRobot motion={assistantBotMotion} compact /><Card style={styles.assistantAnswerCard}>
+            <Text style={styles.assistantEyebrow}>GRIMMS · {assistantAnswer.periodLabel || dateLabel(assistantAnswer.day)}</Text><Text style={styles.assistantAnswerTitle}>{assistantAnswer.title}</Text>
+            <Text style={styles.assistantAnswerSummary}>{assistantAnswer.summary}</Text>
+            <View style={styles.assistantAnswerList}>{assistantAnswer.rows.map((row, index) => <View key={assistantAnswer.id + "-" + index} style={styles.assistantAnswerRow}><Text style={styles.assistantBullet}>•</Text><View style={styles.flex}><Text style={styles.assistantAnswerRowTitle}>{row.title}</Text>{row.detail ? <Text style={styles.assistantAnswerRowText}>{row.detail}</Text> : null}</View></View>)}</View>
+            <Text style={styles.fieldHint}>{assistantAnswer.note}</Text>
+          </Card></View>
+        </View>
+      </Animated.View> : <View style={styles.assistantReplyRow}><AssistantRobot motion={assistantBotMotion} compact /><Card style={styles.assistantWelcomeBubble}><Text style={styles.assistantAnswerSummary}>Choose a report below and I’ll list the matching details here. Your saved records stay in the tracker.</Text><Text style={styles.fieldHint}>Try “Low or out-of-stock components” to see each material on its own line.</Text></Card></View>}
+      <Card style={styles.assistantChoicesCard}>
+        <Text style={styles.cardTitle}>Choose a report</Text>
+        <Text style={styles.fieldHint}>Every report is a button; no question typing needed.</Text>
+        {BUSINESS_ASSISTANT_GROUPS.map((group) => <SettingsAccordion key={group.label} title={group.label} subtitle={group.choices.length + " choices"} expanded={assistantExpandedGroup === group.label} onPress={() => setAssistantExpandedGroup((old) => old === group.label ? "" : group.label)}>
+          <View style={styles.assistantChoiceGrid}>{group.choices.map(([id, label]) => <Pressable key={id} accessibilityRole="button" style={({ pressed }) => [styles.assistantChoice, pressed && styles.pressedState]} onPress={() => answerBusinessAssistantChoice(id)}><Text style={styles.assistantChoiceText}>{label}</Text><Text style={styles.assistantChoiceArrow}>›</Text></Pressable>)}</View>
+        </SettingsAccordion>)}
       </Card>
+      <SettingsAccordion title={"Schedule and notes · " + rangeLabel} subtitle={openTaskCount + " open task(s) · " + events.filter((item) => !item.done).length + " event(s) · " + plans.filter((item) => !item.done).length + " work block(s)"} expanded={assistantExpandedGroup === "planner"} onPress={() => setAssistantExpandedGroup((old) => old === "planner" ? "" : "planner")}>
+        <View style={styles.actionRow}><Action label="＋ Add task" onPress={() => beginAdd("task", { dueDate: day })} /><Action label="＋ Add event" onPress={() => beginAdd("event", { date: day })} /><Action label="＋ Work block" onPress={() => beginAdd("workPlan", { date: day })} /><Action label="＋ Dated note" onPress={() => beginAdd("note", { date: day })} /><Action label="Calendar" quiet onPress={() => navigateToScreen("Calendar")} /></View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Tasks</Text>{tasks.length ? tasks.map((task) => renderScheduleRow("task", task, task.done, () => completeTask(task))) : <Text style={styles.fieldHint}>No task is scheduled in this period.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Calendar events</Text>{events.length ? events.map((event) => renderScheduleRow("event", event, event.done, () => completeEvent(event))) : <Text style={styles.fieldHint}>No event is scheduled in this period.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Work blocks</Text>{plans.length ? plans.map((plan) => renderScheduleRow("work block", plan, plan.done, () => completeWorkPlan(plan))) : <Text style={styles.fieldHint}>No work block is planned in this period.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Dated notes</Text>{notes.length ? notes.map((item) => <Pressable key={item.id} style={styles.assistantNoteRow} onPress={() => beginEdit("note", item)}><Text style={styles.recordTitle}>{item.title || "Untitled note"}</Text><Text style={styles.recordMeta}>{dateLabel(item.date)} · {item.category || "Business note"}{item.tags ? " · " + item.tags : ""}</Text><Text style={styles.bodyText}>{item.content || item.body || item.text || "Open to edit this note."}</Text></Pressable>) : <Text style={styles.fieldHint}>No dated notes saved in this period.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Quick note · {dateLabel(day)}</Text><TextInput value={(db.dailyScratchNotes || {})[day] || ""} onChangeText={(value) => setData((old) => ({ ...old, dailyScratchNotes: { ...(old.dailyScratchNotes || {}), [day]: value } }))} placeholder="Save a thought or reminder for this day…" placeholderTextColor={COLORS.placeholder} style={styles.dailyScratchInput} multiline /></View>
+      </SettingsAccordion>
     </>;
   };
-  const renderSettingsShortcut = () => {
+    const renderSettingsShortcut = () => {
     const selected = screen === "Settings";
     return <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => { navigateRoot("Settings"); setSearch(""); setMobileNavOpen(false); }} style={[styles.sidebarLink, styles.sidebarSettingsLink, selected && styles.sidebarLinkSelected]}>
       <View style={[styles.sidebarIcon, selected && styles.sidebarIconSelected]}><AppIcon name="settings" size={17} color={selected ? COLORS.onAccent : COLORS.muted} /></View>
@@ -7940,7 +7990,7 @@ export default function App() {
       <View style={styles.topBar}>
         <View style={styles.topBarStart}>
           {!wideLayout ? <Pressable accessibilityRole="button" accessibilityLabel="Open all pages" style={styles.menuButton} onPress={() => setMobileNavOpen(true)}><AppIcon name="menu" size={19} color={COLORS.ink} /></Pressable> : null}
-          <Pressable style={styles.brand} onPress={() => navigateRoot("Dashboard")}><View style={styles.brandMark}><Text style={styles.brandMarkText}>G</Text></View><View><Text style={styles.brandName}>GRIMMS</Text><Text style={styles.brandSub}>BUSINESS TRACKER</Text></View></Pressable>
+          <Pressable style={styles.brand} onPress={() => navigateRoot("Dashboard")}><View style={styles.brandMark}><View style={{ transform: [{ scale: 0.7 }] }}><AssistantRobot motion={assistantBotMotion} compact /></View></View><View><Text style={styles.brandName}>GRIMMS</Text><Text style={styles.brandSub}>BUSINESS TRACKER</Text></View></Pressable>
         </View>
         <View style={styles.topActions}>
           <Pressable accessibilityRole="button" accessibilityLabel="Search SKU, order number, product, or barcode" style={styles.globalSearchButton} onPress={() => setGlobalSearchOpen(true)}><AppIcon name="search" size={17} color={COLORS.ink} />{wideLayout ? <Text style={styles.globalSearchButtonText}>SKU / order search</Text> : null}</Pressable>
@@ -7955,7 +8005,7 @@ export default function App() {
       <View style={[styles.appBody, wideLayout && styles.appBodyWide]}>
       {wideLayout ? <View style={styles.sidebar}><ScrollView style={styles.sidebarScroll} contentContainerStyle={styles.sidebarContent} showsVerticalScrollIndicator={false}>{renderNavigationLinks()}</ScrollView><View style={styles.sidebarFooter}>{renderSettingsShortcut()}</View></View> : null}
       <View style={styles.contentPane}>
-      {screen !== "More" && screen !== "Dashboard" && screen !== "Settings" && screen !== "Help & FAQ" && screen !== "Business Overview" && (
+      {screen !== "More" && screen !== "Dashboard" && screen !== "Settings" && screen !== "Help & FAQ" && screen !== "Business Overview" && screen !== "Business Assistant" && screen !== "Business Goals" && (
         <View style={styles.searchWrap}><AppIcon name="search" size={17} color={COLORS.muted} /><TextInput value={search} onChangeText={setSearch} placeholder={screen === "Notes" ? "Search notes, plans, diary entries, tags…" : "Search " + (isFulfillmentPage ? "products" : screen.toLowerCase())} placeholderTextColor={COLORS.placeholder} style={styles.searchInput} returnKeyType="search" /><Pressable onPress={() => setSearch("")}><Text style={styles.searchClear}>×</Text></Pressable></View>
       )}
       <View style={styles.screenHeading}><View style={styles.flex}><Text style={styles.screenTitle}>{screenTitle}</Text>{screen !== "Dashboard" ? <Text style={styles.screenSubtitle}>{isFulfillmentPage ? "Products in this fulfillment status" : screen === "Production" ? "Turn materials into finished inventory" : screen === "Time" ? "Clock shifts, connect tasks and projects, and review your hours" : screen === "Ideas" ? "Save and move product ideas through your work" : screen === "Notes" ? "Research, plans, diary entries, and business notes" : screen === "Business Overview" ? "Explore a detailed record of your business for any chosen date range" : screen === "Listing Analytics" ? "Record marketplace stats and review performance" : screen === "Help & FAQ" ? "Instructions and answers for your business tools" : "A clear view of your handmade business"}</Text> : <Text style={styles.screenSubtitle}>Your handmade business, in one place</Text>}</View>
@@ -7969,7 +8019,7 @@ export default function App() {
         </View>
       </View>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView style={styles.mainScroll} contentContainerStyle={[styles.pageContent, wideLayout && styles.pageContentWide]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
+        <ScrollView ref={mainScrollRef} style={styles.mainScroll} contentContainerStyle={[styles.pageContent, wideLayout && styles.pageContentWide]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
           {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
           {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
           {contentForScreen()}
@@ -8185,7 +8235,7 @@ export default function App() {
           </View>
         </View>
       </Modal>
-      {screen !== "Business Assistant" ? <Pressable accessibilityRole="button" accessibilityLabel="Open Business Assistant" style={styles.assistantFab} onPress={() => navigateRoot("Business Assistant")}>
+      {screen !== "Business Assistant" ? <Pressable accessibilityRole="button" accessibilityLabel="Open Business Assistant" style={styles.assistantFab} onPress={() => navigateToScreen("Business Assistant")}>
         <Animated.View style={{ transform: [{ translateY: assistantBotMotion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}><AssistantRobot motion={assistantBotMotion} compact /></Animated.View>
       </Pressable> : null}
       <Modal visible={goalEditorOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setGoalEditorOpen(false)}>
@@ -8193,13 +8243,12 @@ export default function App() {
           <View style={styles.modalHeader}><Pressable onPress={() => setGoalEditorOpen(false)}><Text style={styles.modalCancel}>Cancel</Text></Pressable><Text style={styles.modalTitle}>{editingGoalId ? "Edit business goal" : "Create business goal"}</Text><View style={styles.modalHeaderSpacer} /></View>
           <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
-              <Card><Text style={styles.cardTitle}>Name and dates</Text><Text style={styles.bodyText}>Choose any start and end dates. By default, the start is the Sunday of the week that contains the 1st of this month, and the end is the last day of the month.</Text>
-                <Field field={{ label: "Goal name", placeholder: "For example, Holiday launch" }} value={goalNameInput} onChange={setGoalNameInput} />
+              <Card><Text style={styles.cardTitle}>Goal dates</Text><Text style={styles.bodyText}>Choose any start and end dates. By default, the start is the Sunday of the week that contains the 1st of this month, and the end is the last day of the month. The goal is named automatically.</Text>
                 <Field field={{ key: "goalStartDate", label: "Start date", date: true, hint: "Use your selected date format or choose a date from the calendar." }} value={goalStartDateInput} onChange={setGoalStartDateInput} />
                 <Field field={{ key: "goalEndDate", label: "End date", date: true, hint: "The end date is included in the goal period." }} value={goalEndDateInput} onChange={setGoalEndDateInput} />
               </Card>
               <Card><Text style={styles.cardTitle}>Targets · leave any unused target blank</Text><Text style={styles.bodyText}>Orders count sale records. Items sold adds the quantities on the individual order lines, less returned units that were restocked. One order with three products is one order and three items sold.</Text>
-                {GOAL_METRICS.map((metric) => <Field key={metric.key} field={{ key: "goal-" + metric.key, label: metric.label + (metric.kind === "money" ? " (" + db.currency + ")" : ""), number: true, placeholder: "Skip this target", hint: metric.help }} value={goalTargetsInput[metric.key] || ""} onChange={(value) => setGoalTargetsInput((old) => ({ ...old, [metric.key]: value }))} />)}
+                {GOAL_METRICS.map((metric) => <Field key={metric.key} field={{ key: "goal-" + metric.key, label: metric.label + (metric.kind === "money" ? " (" + db.currency + ")" : ""), number: true, placeholder: "Optional", hint: metric.help }} value={goalTargetsInput[metric.key] || ""} onChange={(value) => setGoalTargetsInput((old) => ({ ...old, [metric.key]: value }))} />)}
               </Card>
               <View style={styles.actionRow}><Action label={editingGoalId ? "Save changes" : "Save goal"} onPress={saveGoal} /><Action label="Cancel" quiet onPress={() => setGoalEditorOpen(false)} /></View>
             </ScrollView>
@@ -8231,12 +8280,12 @@ function makeStyles() { return StyleSheet.create({
   appBody: { flex: 1, minHeight: 0 },
   appBodyWide: { flexDirection: "row" },
   contentPane: { flex: 1, minWidth: 0 },
-  sidebar: { width: 218, backgroundColor: COLORS.card, borderRightWidth: 1, borderRightColor: COLORS.line },
+  sidebar: { width: 218, backgroundColor: CURRENT_APPEARANCE.cardStyle === "paper" || CURRENT_APPEARANCE.cardStyle === "ledger" ? COLORS.soft : COLORS.card, borderRightWidth: CURRENT_APPEARANCE.cardStyle === "minimal" ? 0 : 1, borderRightColor: COLORS.line },
   sidebarScroll: { flex: 1 },
   sidebarContent: { paddingHorizontal: 10, paddingTop: 12, paddingBottom: 8 },
   sidebarGroup: { marginBottom: 8 },
   sidebarGroupTitle: { color: COLORS.muted, fontSize: 9, letterSpacing: 1.05, fontWeight: "800", paddingHorizontal: 8, paddingBottom: 4 },
-  sidebarLink: { minHeight: 35, borderRadius: 8, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 8, marginBottom: 1 },
+  sidebarLink: { minHeight: 35, borderRadius: CURRENT_APPEARANCE.cardStyle === "cloud" || CURRENT_APPEARANCE.cardStyle === "bubble" ? 18 : CURRENT_APPEARANCE.cardStyle === "gallery" || CURRENT_APPEARANCE.cardStyle === "arcade" ? 4 : 8, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 8, marginBottom: 1 },
   sidebarSettingsLink: { minHeight: 40 },
   sidebarLinkSelected: { backgroundColor: COLORS.soft },
   sidebarIcon: { width: 25, height: 25, borderRadius: 7, backgroundColor: COLORS.softAlt, alignItems: "center", justifyContent: "center" },
@@ -8258,7 +8307,7 @@ function makeStyles() { return StyleSheet.create({
   loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.paper },
   loadingText: { color: COLORS.muted, marginTop: 12, fontSize: 14 },
   logoMark: { color: COLORS.wine, fontSize: 36, fontWeight: "800" },
-  topBar: { height: CURRENT_APPEARANCE.headerLayout === "Compact" ? 46 : 54, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomColor: mixHex(COLORS.line, COLORS.card, 1 - Math.max(0.15, Math.min(1, Number(CURRENT_APPEARANCE.dividerOpacity) || 1))), borderBottomWidth: StyleSheet.hairlineWidth, backgroundColor: COLORS.card },
+  topBar: { height: CURRENT_APPEARANCE.headerLayout === "Compact" ? 46 : 54, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomColor: mixHex(COLORS.line, COLORS.card, 1 - Math.max(0.15, Math.min(1, Number(CURRENT_APPEARANCE.dividerOpacity) || 1))), borderBottomWidth: StyleSheet.hairlineWidth, backgroundColor: CURRENT_APPEARANCE.cardStyle === "paper" || CURRENT_APPEARANCE.cardStyle === "ledger" ? COLORS.soft : COLORS.card },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
   brandMark: { width: 36, height: 36, borderRadius: 12, backgroundColor: COLORS.wine, alignItems: "center", justifyContent: "center" },
   brandMarkText: { color: COLORS.onAccent, fontSize: 21, fontWeight: "800", fontFamily: Platform.OS === "ios" ? "Georgia" : "serif" },
@@ -8355,12 +8404,35 @@ function makeStyles() { return StyleSheet.create({
   cardLedger: { backgroundColor: COLORS.paper, borderRadius: 4, borderLeftWidth: 4, borderLeftColor: COLORS.wine, borderColor: COLORS.line },
   cardColorBlock: { backgroundColor: COLORS.soft, borderColor: COLORS.softLine },
   cardMinimal: { backgroundColor: COLORS.card, borderWidth: 0, borderBottomWidth: 1, borderBottomColor: COLORS.line, borderRadius: 0, elevation: 0, shadowOpacity: 0 },
+  cardPaper: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderStyle: "dashed", borderLeftWidth: 4, borderLeftColor: COLORS.wine },
+  cardCloud: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, overflow: "visible" },
+  cardArtsy: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderLeftWidth: 5, borderLeftColor: COLORS.wine },
+  cardGarden: { backgroundColor: COLORS.card, borderColor: COLORS.softLine, borderBottomWidth: 3, borderBottomColor: COLORS.green },
+  cardGallery: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 2 },
+  cardBubble: { backgroundColor: COLORS.card, borderColor: COLORS.softLine },
+  cardCafe: { backgroundColor: COLORS.card, borderColor: COLORS.wine, borderBottomWidth: 3 },
+  cardScrapbook: { backgroundColor: COLORS.card, borderColor: COLORS.wine, borderStyle: "dashed", borderWidth: 1.5 },
+  cardArcade: { backgroundColor: COLORS.card, borderColor: COLORS.wine, borderWidth: 1.5 },
+  cardSakura: { backgroundColor: COLORS.card, borderColor: COLORS.softLine, borderBottomWidth: 2, borderBottomColor: COLORS.wine },
+  cardPostcard: { backgroundColor: COLORS.card, borderColor: COLORS.wine, borderWidth: 2 },
+  cardContent: { position: "relative", zIndex: 1 },
+  cloudDecoration: { ...StyleSheet.absoluteFillObject, overflow: "visible", borderRadius: 30 },
+  cloudPuffLeft: { position: "absolute", top: -10, left: 20, width: 48, height: 34, borderRadius: 25, backgroundColor: COLORS.card },
+  cloudPuffRight: { position: "absolute", top: -12, right: 28, width: 54, height: 38, borderRadius: 28, backgroundColor: COLORS.card },
+  scrapbookTape: { position: "absolute", width: 42, height: 12, top: -3, right: 16, backgroundColor: COLORS.rose, borderRadius: 3, transform: [{ rotate: "-4deg" }] },
+  artsyCardMark: { position: "absolute", width: 34, height: 8, top: 7, right: 18, backgroundColor: COLORS.rose, borderRadius: 5, transform: [{ rotate: "-22deg" }] },
   settingsAccordion: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, marginBottom: 7, overflow: "hidden" },
   settingsAccordionHeader: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: COLORS.card },
   settingsAccordionTitle: { color: COLORS.ink, fontSize: 13, fontWeight: "800" },
   settingsAccordionSubtitle: { color: COLORS.muted, fontSize: 10, lineHeight: 14, marginTop: 2 },
   settingsAccordionChevron: { width: 25, height: 25, borderRadius: 8, borderWidth: 1, borderColor: COLORS.softLine, backgroundColor: COLORS.softAlt, color: COLORS.ink, fontSize: 18, lineHeight: 22, fontWeight: "500", textAlign: "center", overflow: "hidden" },
   settingsAccordionContent: { paddingHorizontal: 11, paddingBottom: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line },
+  dashboardGoalShortcut: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardStyle === "cloud" ? 28 : Number(CURRENT_APPEARANCE.cardRadius) || 12, marginBottom: 8 },
+  dashboardGoalIcon: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.soft },
+  dashboardGoalTitle: { color: COLORS.ink, fontSize: 12, fontWeight: "800" },
+  dashboardGoalSubtitle: { color: COLORS.muted, fontSize: 10, marginTop: 2 },
+  paletteSampleRow: { flexDirection: "row", gap: 6, marginBottom: 5 },
+  paletteSample: { width: 26, height: 18, borderWidth: 1, borderRadius: 7 },
   cardTitle: { color: COLORS.ink, fontSize: 14, fontWeight: "700", marginBottom: 6 },
   cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
   noteTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -8382,7 +8454,7 @@ function makeStyles() { return StyleSheet.create({
   detailText: { color: COLORS.ink, fontSize: 12, fontWeight: "600" },
   bodyText: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginTop: 5 },
   actionRow: { flexDirection: "row", flexWrap: "wrap", gap: 5, marginTop: 6 },
-  actionButton: { paddingVertical: 9, paddingHorizontal: 13, backgroundColor: COLORS.card, borderRadius: 11, borderWidth: 1, borderColor: COLORS.softLine },
+  actionButton: { paddingVertical: 9, paddingHorizontal: 13, backgroundColor: COLORS.card, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 11, borderWidth: 1, borderColor: COLORS.softLine },
   actionQuiet: { backgroundColor: COLORS.card, borderColor: COLORS.softLine },
   actionText: { color: COLORS.wine, fontSize: 11, fontWeight: "700" },
   actionButtonText: { color: COLORS.ink, fontSize: 11, fontWeight: "700" },
@@ -8744,6 +8816,15 @@ function makeStyles() { return StyleSheet.create({
   robotCheek: { width: 5, height: 3, borderRadius: 3, backgroundColor: COLORS.rose },
   robotBody: { width: 48, height: 28, borderRadius: 12, backgroundColor: COLORS.soft, borderWidth: 2, borderColor: COLORS.wine, marginTop: 4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 },
   robotBodyDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.wine },
+  assistantCompactHeader: { padding: 12, marginBottom: 4 },
+  assistantChatHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 3 },
+  assistantDateRow: { flexDirection: "row", gap: 8 },
+  assistantRangeError: { color: COLORS.red, fontSize: 11, marginBottom: 7 },
+  assistantConversation: { gap: 7 },
+  assistantUserBubble: { alignSelf: "flex-end", maxWidth: "86%", paddingHorizontal: 13, paddingVertical: 9, borderRadius: 18, borderBottomRightRadius: 5, backgroundColor: COLORS.wine, marginTop: 4 },
+  assistantUserText: { color: COLORS.onAccent, fontSize: 12, fontWeight: "700" },
+  assistantReplyRow: { flexDirection: "row", alignItems: "flex-start", gap: 7, marginBottom: 6 },
+  assistantWelcomeBubble: { flex: 1, backgroundColor: COLORS.soft, marginBottom: 0 },
   assistantHeroCard: { borderColor: COLORS.softLine, padding: 15 },
   assistantHeroRow: { flexDirection: "row", alignItems: "center", gap: 13, marginBottom: 10 },
   assistantEyebrow: { color: COLORS.wine, fontSize: 9, letterSpacing: 1.3, fontWeight: "800", marginBottom: 3 },
@@ -8755,7 +8836,7 @@ function makeStyles() { return StyleSheet.create({
   assistantChoice: { width: "48%", flexGrow: 1, minHeight: 47, paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 7 },
   assistantChoiceText: { flex: 1, color: COLORS.ink, fontSize: 11, lineHeight: 15, fontWeight: "700" },
   assistantChoiceArrow: { color: COLORS.wine, fontSize: 21, lineHeight: 23 },
-  assistantAnswerCard: { marginTop: 6, borderColor: COLORS.wine, borderWidth: 1.5, padding: 15 },
+  assistantAnswerCard: { flex: 1, marginTop: 0, marginBottom: 0, borderColor: COLORS.wine, borderWidth: 1.5, padding: 12 },
   assistantEmptyAnswer: { marginTop: 6, backgroundColor: COLORS.soft },
   assistantAnswerHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   assistantAnswerTitle: { color: COLORS.ink, fontSize: 17, lineHeight: 22, fontWeight: "800" },
