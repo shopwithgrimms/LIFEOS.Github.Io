@@ -60,20 +60,36 @@ const Alert = {
 };
 
 const ButtonSoundContext = createContext(null);
+const FONT_FAMILY_OPTIONS = ["System", "Arial", "Aptos", "Trebuchet MS", "Verdana", "Georgia", "Palatino Linotype", "Times New Roman", "Courier New", "Consolas", "Comic Sans MS", "Impact", "Tahoma", "Garamond", "Franklin Gothic Medium"];
 const APPEARANCE_DEFAULTS = {
-  fontFamily: "System", baseFontSize: 1, headingWeight: "800", cardRadius: 12,
-  density: "Comfortable", headerLayout: "Roomy", shadowIntensity: 1,
-  buttonRoundness: 12, tableRowHeight: 44, accentGlow: false,
-  dividerOpacity: 1, scrollbarStyle: "Auto",
+  templateName: "Quiet Atelier · Stone and Blue (Light)", fontFamily: "System", baseFontSize: 1,
+  headingWeight: "800", cardRadius: 16, density: "Comfortable", headerLayout: "Roomy",
+  shadowIntensity: 0.55, buttonRoundness: 14, tableRowHeight: 46, accentGlow: false,
+  dividerOpacity: 0.85, scrollbarStyle: "Auto", cardStyle: "soft",
 };
 let CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS };
 const setAppearanceSettings = (settings) => {
-  CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS, ...(settings || {}) };
+  const saved = settings || {};
+  const template = VISUAL_TEMPLATES.find((item) => item.name === saved.templateName);
+  CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS, ...(template ? template.appearance : {}), ...saved };
+};
+const fontFamilyFor = (name) => {
+  const stacks = {
+    System: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    Arial: 'Arial, Helvetica, sans-serif', Aptos: 'Aptos, "Segoe UI", sans-serif',
+    "Trebuchet MS": '"Trebuchet MS", sans-serif', Verdana: 'Verdana, Geneva, sans-serif',
+    Georgia: 'Georgia, serif', "Palatino Linotype": '"Palatino Linotype", "Book Antiqua", Palatino, serif',
+    "Times New Roman": '"Times New Roman", Times, serif', "Courier New": '"Courier New", Courier, monospace',
+    Consolas: 'Consolas, "Courier New", monospace', "Comic Sans MS": '"Comic Sans MS", "Comic Sans", cursive',
+    Impact: 'Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif', Tahoma: 'Tahoma, Geneva, sans-serif',
+    Garamond: 'Garamond, "Times New Roman", serif', "Franklin Gothic Medium": '"Franklin Gothic Medium", "Arial Narrow", sans-serif',
+  };
+  if (Platform.OS === "web") return stacks[name] || stacks.System;
+  return name === "System" ? undefined : name;
 };
 function Text({ style, ...props }) {
   const flattened = StyleSheet.flatten(style) || {};
-  const family = CURRENT_APPEARANCE.fontFamily === "Serif" ? (Platform.OS === "ios" ? "Georgia" : "serif")
-    : CURRENT_APPEARANCE.fontFamily === "Monospace" ? (Platform.OS === "ios" ? "Menlo" : "monospace") : undefined;
+  const family = fontFamilyFor(CURRENT_APPEARANCE.fontFamily);
   const weight = String(flattened.fontWeight || "");
   const scaledStyle = {
     ...(family ? { fontFamily: family } : {}),
@@ -84,8 +100,7 @@ function Text({ style, ...props }) {
 }
 function TextInput({ style, ...props }) {
   const flattened = StyleSheet.flatten(style) || {};
-  const family = CURRENT_APPEARANCE.fontFamily === "Serif" ? (Platform.OS === "ios" ? "Georgia" : "serif")
-    : CURRENT_APPEARANCE.fontFamily === "Monospace" ? (Platform.OS === "ios" ? "Menlo" : "monospace") : undefined;
+  const family = fontFamilyFor(CURRENT_APPEARANCE.fontFamily);
   return <NativeTextInput {...props} style={[family ? { fontFamily: family } : null, flattened.fontSize ? { fontSize: Math.round(flattened.fontSize * Number(CURRENT_APPEARANCE.baseFontSize || 1)) } : null, style]} />;
 }
 
@@ -217,6 +232,39 @@ const THEMES = THEME_SPECS.flatMap((spec) => [
   { name: spec[0] + " — Light Mode", mode: "light", colors: makeThemeColors(spec) },
   { name: spec[0] + " — Dark Mode", mode: "dark", colors: makeThemeColors(spec, true) },
 ]).concat([{ name: CUSTOM_THEME_NAME, mode: "dark", colors: makeCustomThemeColors(DEFAULT_CUSTOM_THEME) }]);
+const TEMPLATE_STYLE_NAMES = ["Quiet Atelier", "Rose Boutique", "Cherry Studio", "Forest Workroom", "Golden Ledger", "Midnight Circuit", "Lavender Archive", "Tidal Glass", "Coral Market", "Noir Rose", "Playful Pop", "Modern Minimal"];
+const TEMPLATE_CARD_STYLES = ["soft", "floating", "outlined", "ledger", "colorBlock", "minimal"];
+const VISUAL_TEMPLATES = THEME_SPECS.flatMap((spec, index) => [
+  { name: TEMPLATE_STYLE_NAMES[index % TEMPLATE_STYLE_NAMES.length] + " · " + spec[0] + " (Light)", themeName: spec[0] + " — Light Mode", description: "A complete light look with " + ["soft cards", "lifted panels", "clear outlines", "ledger rows", "color-block cards", "quiet minimal surfaces"][index % 6] + ".", appearance: { cardRadius: [18, 22, 8, 12, 3, 16][index % 6], density: ["Spacious", "Spacious", "Comfortable", "Comfortable", "Compact", "Comfortable"][index % 6], shadowIntensity: [0.5, 0.7, 0.15, 0.35, 0, 0.85][index % 6], buttonRoundness: [16, 22, 6, 10, 3, 16][index % 6], tableRowHeight: [48, 48, 42, 46, 40, 46][index % 6], accentGlow: index % 6 === 5, dividerOpacity: index % 6 === 4 ? 1 : 0.8, headerLayout: index % 6 === 4 ? "Compact" : "Roomy", headingWeight: index % 6 === 1 || index % 6 === 5 ? "800" : "700", cardStyle: TEMPLATE_CARD_STYLES[index % 6] } },
+  { name: TEMPLATE_STYLE_NAMES[index % TEMPLATE_STYLE_NAMES.length] + " · " + spec[0] + " (Dark)", themeName: spec[0] + " — Dark Mode", description: "A complete dark look with " + ["soft cards", "lifted panels", "clear outlines", "ledger rows", "color-block cards", "quiet minimal surfaces"][index % 6] + ".", appearance: { cardRadius: [16, 20, 6, 10, 2, 14][index % 6], density: ["Comfortable", "Spacious", "Compact", "Comfortable", "Compact", "Comfortable"][index % 6], shadowIntensity: [0.75, 0.8, 0.25, 0.5, 0, 1][index % 6], buttonRoundness: [14, 20, 5, 9, 2, 15][index % 6], tableRowHeight: [46, 48, 40, 45, 38, 45][index % 6], accentGlow: index % 6 === 1 || index % 6 === 5, dividerOpacity: 0.75, headerLayout: index % 6 === 4 ? "Compact" : "Roomy", headingWeight: index % 6 === 1 || index % 6 === 5 ? "900" : "700", cardStyle: TEMPLATE_CARD_STYLES[(index + 1) % 6] } },
+]).concat([{ name: "Saved custom colors · Ledger", themeName: CUSTOM_THEME_NAME, description: "Keep your saved custom palette in a structured ledger style.", appearance: { cardRadius: 5, density: "Compact", shadowIntensity: 0, buttonRoundness: 5, tableRowHeight: 42, accentGlow: false, dividerOpacity: 1, headerLayout: "Compact", headingWeight: "800", cardStyle: "ledger" } }]);
+const GOAL_METRICS = [
+  { key: "grossRevenue", label: "Gross revenue", kind: "money", help: "Item subtotal: quantity × unit price, before fees, refunds, and shipping." },
+  { key: "estimatedProfit", label: "Estimated profit", kind: "money", help: "Estimated payouts plus other income, minus shipping, expenses, and product material costs." },
+  { key: "ordersCount", label: "Orders", kind: "count", help: "Number of sale records. One order can contain several items." },
+  { key: "itemsSold", label: "Items sold", kind: "count", help: "Sum of item quantities, minus units recorded as restocked returns." },
+  { key: "averageOrderValue", label: "Average order value", kind: "money", help: "Gross revenue divided by the number of active orders in the date range." },
+  { key: "listingsAdded", label: "Listings added", kind: "count", help: "Listings first added during the date range, using their created or start date." },
+  { key: "completedTasks", label: "Tasks completed", kind: "count", help: "Tasks marked done during the date range." },
+  { key: "reviewsReceived", label: "Reviews received", kind: "count", help: "Customer reviews dated within the goal period." },
+];
+const BUSINESS_ASSISTANT_GROUPS = [
+  { label: "Daily snapshot", choices: [
+    ["today-overview", "Selected day at a glance"], ["sales-day", "Sales and profit for this day"], ["items-day", "Items sold on this day"], ["cash-day", "Income and expenses for this day"],
+  ] },
+  { label: "Orders and sales", choices: [
+    ["ship-queue", "Orders that need shipping"], ["sales-day-list", "Sales recorded on this day"], ["best-sellers", "Best-selling products"], ["orders-needing-attention", "Orders with unfinished fulfillment"],
+  ] },
+  { label: "Stock and production", choices: [
+    ["low-stock", "Low or out-of-stock components"], ["stock-list", "Full component stock list"], ["restock-priority", "What to restock first"], ["production-ready", "Products ready to make"],
+  ] },
+  { label: "Schedule and work", choices: [
+    ["tasks-day", "Tasks for this day"], ["overdue-tasks", "Overdue and open tasks"], ["events-day", "Calendar events for this day"], ["workplans-day", "Planned work blocks for this day"],
+  ] },
+  { label: "Goals and customers", choices: [
+    ["goal-progress", "Progress on saved goals"], ["reviews-summary", "Recent customer reviews"], ["listing-status", "Current listing status"], ["inventory-summary", "Finished product inventory"],
+  ] },
+];
 const DEFAULT_THEME_SPEC = THEME_SPECS.find((spec) => spec[0] === "Stone and Blue") || THEME_SPECS[0];
 const DEFAULT_THEME_NAME = DEFAULT_THEME_SPEC[0] + " — Light Mode";
 const DEFAULT_THEME = THEMES.find((theme) => theme.name === DEFAULT_THEME_NAME) || THEMES[0];
@@ -283,6 +331,7 @@ const ANNOUNCEMENTS = [
 ];
 const PAGE_ICON_NAMES = {
   Dashboard: "dashboard",
+  "Business Assistant": "assistant",
   "Business Overview": "analytics",
   Components: "components",
   Products: "products",
@@ -317,6 +366,7 @@ const RECORD_ICON_NAMES = {
   note: "notes",
 };
 const ICON_PATHS = {
+  assistant: ["M12 3a8 8 0 0 0-8 8v5a2 2 0 0 0 2 2h2v-6H6a6 6 0 0 1 12 0h-2v6h2a2 2 0 0 0 2-2v-5a8 8 0 0 0-8-8Z", "M9 20h6"],
   dashboard: ["M3 3h8v8H3z", "M13 3h8v5h-8z", "M13 10h8v11h-8z", "M3 13h8v8H3z"],
   components: ["M12 3 3.5 7.5 12 12l8.5-4.5L12 3Z", "M3.5 7.5V17L12 21V12", "M20.5 7.5V17L12 21"],
   products: ["M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z", "M4.5 7.8 12 12l7.5-4.2", "M12 12v9", "M8 5.2l8 4.5"],
@@ -341,7 +391,7 @@ const ICON_PATHS = {
   search: ["M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z", "m16 16 5 5"],
 };
 const ICON_FALLBACKS = {
-  dashboard: "▦", components: "⬡", products: "□", listings: "▤", analytics: "⌁", orders: "▣",
+  dashboard: "▦", assistant: "☺", components: "⬡", products: "□", listings: "▤", analytics: "⌁", orders: "▣",
   production: "⚒", reviews: "☆", finances: "$", calendar: "▦", time: "◷", ideas: "✧", notes: "▤", pin: "📌", audit: "✓",
   suppliers: "↗", help: "?", settings: "⚙", mail: "✉", menu: "☰", plus: "+", search: "⌕",
 };
@@ -468,6 +518,7 @@ const DEFAULT_DROPDOWN_OPTIONS = {
 
 const NAV_ITEMS = [
   { id: "Dashboard", label: "Dashboard", icon: "DB" },
+  { id: "Business Assistant", label: "Business Assistant", icon: "BA" },
   { id: "Components", label: "Components", icon: "CM" },
   { id: "Products", label: "Products", icon: "PD" },
   { id: "Listings", label: "Listings", icon: "LS" },
@@ -477,6 +528,7 @@ const NAV_ITEMS = [
 
 const MORE_ITEMS = [
   ["Dashboard", "DB", "Daily overview and priorities"],
+  ["Business Assistant", "BA", "Guided business reports and daily planning"],
   ["Components", "CM", "Materials, stock, and restocks"],
   ["Products", "PD", "Product designs, prices, and inventory"],
   ["Listings", "LS", "Manage marketplace pages"],
@@ -497,7 +549,7 @@ const MORE_ITEMS = [
 ];
 
 const SIDEBAR_GROUPS = [
-  { label: "WORKSPACE", pages: ["Dashboard", "Components", "Products", "Notes"] },
+  { label: "WORKSPACE", pages: ["Dashboard", "Business Assistant", "Components", "Products", "Notes"] },
   { label: "SALES", pages: ["Listings", "Orders", "Reviews"] },
   { label: "INSIGHTS", pages: ["Business Overview", "Listing Analytics", "Finances"] },
   { label: "OPERATIONS", pages: ["Production", "Calendar", "Time", "Ideas", "Audit", "Suppliers"] },
@@ -507,6 +559,12 @@ const SIDEBAR_GROUPS = [
 const localDateKey = (date) => {
   const d = date instanceof Date ? date : new Date(date || Date.now());
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+};
+const defaultGoalDateRange = (sourceDate = new Date()) => {
+  const firstDay = new Date(sourceDate.getFullYear(), sourceDate.getMonth(), 1);
+  const start = new Date(firstDay.getFullYear(), firstDay.getMonth(), 1 - firstDay.getDay());
+  const end = new Date(sourceDate.getFullYear(), sourceDate.getMonth() + 1, 0);
+  return { startDate: localDateKey(start), endDate: localDateKey(end) };
 };
 const timestampDateKey = (value) => {
   if (!value) return "";
@@ -746,21 +804,36 @@ const normalizeDatabase = (saved) => {
     ? Array.from(new Set(source.hiddenDashboardWidgets.filter((id) => validWidgetIds.includes(id))))
     : [];
   const sortModes = source.sortModes && typeof source.sortModes === "object" ? source.sortModes : {};
-  const appearanceSettings = { ...APPEARANCE_DEFAULTS, ...(source.appearanceSettings && typeof source.appearanceSettings === "object" ? source.appearanceSettings : {}) };
-  if (!['System', 'Serif', 'Monospace'].includes(appearanceSettings.fontFamily)) appearanceSettings.fontFamily = APPEARANCE_DEFAULTS.fontFamily;
-  appearanceSettings.baseFontSize = Math.max(0.85, Math.min(1.2, Number(appearanceSettings.baseFontSize) || 1));
-  appearanceSettings.cardRadius = Math.max(4, Math.min(28, Number(appearanceSettings.cardRadius) || APPEARANCE_DEFAULTS.cardRadius));
-  appearanceSettings.buttonRoundness = Math.max(0, Math.min(24, Number(appearanceSettings.buttonRoundness) || 0));
-  appearanceSettings.tableRowHeight = Math.max(36, Math.min(64, Number(appearanceSettings.tableRowHeight) || APPEARANCE_DEFAULTS.tableRowHeight));
+  const savedAppearance = source.appearanceSettings && typeof source.appearanceSettings === "object" ? source.appearanceSettings : {};
+  const matchedTemplate = VISUAL_TEMPLATES.find((template) => template.name === savedAppearance.templateName)
+    || VISUAL_TEMPLATES.find((template) => template.themeName === themeName)
+    || VISUAL_TEMPLATES[0];
+  const appearanceSettings = {
+    ...APPEARANCE_DEFAULTS,
+    ...matchedTemplate.appearance,
+    templateName: matchedTemplate.name,
+    fontFamily: FONT_FAMILY_OPTIONS.includes(savedAppearance.fontFamily) ? savedAppearance.fontFamily : APPEARANCE_DEFAULTS.fontFamily,
+  };
+  const normalizedThemeName = matchedTemplate.themeName === CUSTOM_THEME_NAME ? CUSTOM_THEME_NAME : matchedTemplate.themeName;
   const reportSettings = { ...EMPTY_DB.reportSettings, ...(source.reportSettings && typeof source.reportSettings === "object" ? source.reportSettings : {}) };
-  const monthlyGoals = Array.isArray(source.monthlyGoals) ? source.monthlyGoals.filter((goal) => goal && /^\d{4}-\d{2}$/.test(goal.month || "")).map((goal) => ({
-    month: goal.month, grossRevenue: Math.max(0, Number(goal.grossRevenue) || 0),
-    ordersCount: Math.max(0, Math.floor(Number(goal.ordersCount) || 0)), itemsSold: Math.max(0, Math.floor(Number(goal.itemsSold) || 0)),
-  })) : [];
-  const celebratedGoalKeys = Array.isArray(source.celebratedGoalKeys) ? Array.from(new Set(source.celebratedGoalKeys.filter((value) => /^\d{4}-\d{2}:(grossRevenue|ordersCount|itemsSold)$/.test(value)))) : [];
+  const monthlyGoals = Array.isArray(source.monthlyGoals) ? source.monthlyGoals.map((goal, index) => {
+    if (!goal || typeof goal !== "object") return null;
+    const oldMonth = String(goal.month || "").match(/^(\d{4})-(0[1-9]|1[0-2])$/);
+    const oldStart = oldMonth ? oldMonth[0] + "-01" : "";
+    const oldEnd = oldMonth ? localDateKey(new Date(Number(oldMonth[1]), Number(oldMonth[2]), 0)) : "";
+    const startDate = parseDateInput(goal.startDate) || oldStart;
+    const endDate = parseDateInput(goal.endDate) || oldEnd || startDate;
+    if (!startDate || !endDate || endDate < startDate) return null;
+    const id = String(goal.id || "goal-" + startDate + "-" + index);
+    const normalized = Object.fromEntries(GOAL_METRICS.map((metric) => [metric.key, Math.max(0, metric.kind === "count" ? Math.floor(Number(goal[metric.key]) || 0) : Number(goal[metric.key]) || 0)]));
+    if (goal.averageOrderValue == null) normalized.averageOrderValue = 0;
+    if (goal.estimatedProfit == null) normalized.estimatedProfit = 0;
+    return { ...normalized, id, name: String(goal.name || "Goal · " + startDate), startDate, endDate, month: startDate.slice(0, 7) };
+  }).filter(Boolean) : [];
+  const celebratedGoalKeys = Array.isArray(source.celebratedGoalKeys) ? Array.from(new Set(source.celebratedGoalKeys.filter((value) => /^[A-Za-z0-9:_-]+:(grossRevenue|estimatedProfit|ordersCount|itemsSold|averageOrderValue|listingsAdded|completedTasks|reviewsReceived)$/.test(value)))) : [];
   const dailyScratchNotes = source.dailyScratchNotes && typeof source.dailyScratchNotes === "object" && !Array.isArray(source.dailyScratchNotes) ? source.dailyScratchNotes : {};
   return {
-    ...withCurrentSkuCounters({ ...EMPTY_DB, ...source, version: Math.max(savedVersion, EMPTY_DB.version), businessStartDate: parseDateInput(source.businessStartDate) || "", onboardingCompleted: typeof incoming.onboardingCompleted === "boolean" ? incoming.onboardingCompleted : savedVersion < 7, buttonSoundsEnabled: typeof incoming.buttonSoundsEnabled === "boolean" ? incoming.buttonSoundsEnabled : false, themeName, dateFormat, customTheme, marketplaceFeeRules, dashboardWidgetOrder, hiddenDashboardWidgets, sortModes, listings, dropdownOptions, timeSessions, timerSessions, activeShift, activeTimer, orders, appearanceSettings, reportSettings, monthlyGoals, celebratedGoalKeys, dailyScratchNotes }),
+    ...withCurrentSkuCounters({ ...EMPTY_DB, ...source, version: Math.max(savedVersion, EMPTY_DB.version), businessStartDate: parseDateInput(source.businessStartDate) || "", onboardingCompleted: typeof incoming.onboardingCompleted === "boolean" ? incoming.onboardingCompleted : savedVersion < 7, buttonSoundsEnabled: typeof incoming.buttonSoundsEnabled === "boolean" ? incoming.buttonSoundsEnabled : false, themeName: normalizedThemeName, dateFormat, customTheme, marketplaceFeeRules, dashboardWidgetOrder, hiddenDashboardWidgets, sortModes, listings, dropdownOptions, timeSessions, timerSessions, activeShift, activeTimer, orders, appearanceSettings, reportSettings, monthlyGoals, celebratedGoalKeys, dailyScratchNotes }),
     products: source.products.map((product) => ({ ...product, recipe: Array.isArray(product.recipe) ? product.recipe.filter((part) => part && typeof part === "object" && !Array.isArray(part)) : [] })),
     events: source.events.map((event) => ({ ...event, done: !!event.done })),
     workPlans: source.workPlans.map((plan) => ({ ...plan, done: !!plan.done })),
@@ -2339,7 +2412,7 @@ function RecordModal({ visible, type, record, db, prefill, onClose, onSave, onMa
 }
 
 const HELP_COPY = {
-  Dashboard: ["This is your business overview, not a separate accounting ledger. Sales, order stages, low-stock materials, tasks, and time blocks are calculated from records you enter elsewhere. Change the Sales and cash view to daily, weekly, monthly, or yearly; tap a fulfillment status to open its product list. Use Settings to set a monthly gross-sales target or rearrange dashboard cards.", "Example: tap Ready to Ship to see only products in that status. Set a $1,500 monthly sales goal in Settings to see recorded gross sales progress; the goal measures sales, not profit."],
+  Dashboard: ["This is your business overview, not a separate accounting ledger. Sales, order stages, low-stock materials, tasks, and time blocks are calculated from records you enter elsewhere. Change the Sales and cash view to daily, weekly, monthly, or yearly; tap a fulfillment status to open its product list. Saved date-range goals appear here with progress, and you can edit or add them from the dashboard or Settings. Open Business Assistant for guided reports and a day planner.", "Example: tap Ready to Ship to see only products in that status. A goal can track gross revenue, estimated profit, orders, items sold, average order value, listings, completed tasks, or reviews for any start and end dates. An order is one sale record; its item quantities are counted separately."],
   Components: ["A component is a raw material or supply you keep in stock, such as beads, fabric, clasps, or mailers. Add one record per supply, choose a consistent unit, set the quantity you physically have, and optionally record cost, supplier, and a low-stock threshold. Restocks add units and preserve purchase history; a manual quantity correction asks for a reason. Search and sorting only change how you find records.", "Example: create ‘Brass lobster clasps,’ unit ‘pieces,’ quantity 40, cost per unit 0.18, and alert at 10. When a 100-piece order arrives, use Restock with quantity 100 and its actual purchase total; do not replace the old 40 with 100."],
   Products: ["A product is a completed item you intend to sell. Add its buyer-facing name, normal price, ready-to-sell count, colors, materials, condition, and the weight of the fully packed parcel. The recipe is optional: it lists how much of each component one finished unit consumes, so Production can update stock. Descriptive materials text and recipe quantities are separate fields.", "Example: add ‘Pearl drop earrings,’ price 28.00, inventory 3, colors ‘ivory, brass.’ In the recipe, assign 2 hooks and 4 pearls per pair. Recording production of 2 pairs then uses 4 hooks and 8 pearls."],
   Listings: ["A listing is your record of a product page on one or more sales channels. The Listings page also has a date calendar and an upcoming promotion/relisting section that you can expand to see every plan. A listing follows its linked product’s name automatically unless you enter a listing-only name. For the marketplace description, copy the linked product text when you want or write a separate version; copied descriptions are flagged when the product text changes. These edits save in this tracker and do not publish changes to the marketplace. Add prices, status, dates, public URLs, and discount plans here.", "Example: create a listing for ‘Pearl drop earrings’ and select Etsy. Leave Listing name blank to follow the product name, choose Copy the product description, or write different buyer-facing text. If the product description changes later, Listings shows an update reminder so you can review and copy it again."],
@@ -2354,7 +2427,8 @@ const HELP_COPY = {
   Production: ["Production turns a saved product recipe into an inventory transaction. Choose a product and enter a positive quantity; decimals are supported for items tracked by weight or volume. The app multiplies every recipe amount by that number, subtracts those component quantities, and adds the finished quantity to product inventory. Check the recipe units and available component stock first; this tracker does not place purchase orders for shortages.", "Example: one candle recipe uses 200 g wax and one wick. Recording 3 candles subtracts 600 g wax and 3 wicks, then adds 3 candles to finished inventory."],
   Reports: ["Reports summarize only the sales, inventory, fees, expenses, and other activity entered in this tracker. They are not connected to your shops, bank, tax service, or accounting software. Compare figures with source statements and correct missing or duplicated records before relying on a total. Profit uses saved per-unit product costs, including recipe materials and acquisition or sourcing costs, plus entered expenses; it does not estimate labor or taxes.", "Example: if the report says 12 orders and your marketplace statement says 13, find the missing sale in Orders before using the total in your monthly review."],
   Suppliers: ["Use this directory for the supplier or shop name, contact method, website, category, and your purchasing notes. Reuse the same supplier name on component and restock records so you can recognize the relationship. Notes can hold useful buying details such as minimum order, package size, or typical delivery time; this is not a purchase-order system.", "Example: add ‘Northside Bead Co.’ with its order email and website, then note ‘Minimum order $25; brass chain usually ships in 3–5 days.’ Use that same name when recording a clasp restock."],
-  Settings: ["Business profile stores the shop name, display currency, and defaults. Theme and colors affect appearance; marketplace options control the channel choices in listings and orders. Fee rules are estimates: the percent applies to the item subtotal and the fixed amount is added once per order. Data and backups lets you copy backup text, restore it, clear business records, or perform a full factory reset. Records stay in this browser on this device; there is no login or cloud sync yet.", "Example: for an illustrative 6.5% fee plus $0.30 per order on a $40 sale, the estimate is $2.90 ($2.60 + $0.30), before any extra fee. These are sample numbers only, not a marketplace’s actual rates. Check the channel’s current fee schedule and enter its real rules."],
+  "Business Assistant": ["Choose a report to review saved sales, fulfillment, cash, stock, tasks, calendar events, work blocks, goals, reviews, listings, or product inventory. Answers show each matching record as its own bullet. Select a day to view its schedule, add a dated task, event, work block, or note, and keep a quick note for that date. The assistant has preset choices and does not accept typed questions.", "Example: choose Low or out-of-stock components to see each supply, its quantity and alert threshold, and its supplier if one is saved. Use the date picker to review another day."],
+  Settings: ["Choose an app-wide visual template and font family under App appearance. Business goals shows every saved date-range goal and lets you add, edit, or delete goals whenever you need. The profile stores your shop name, currency, date format, and defaults. Marketplace fee rules are estimates; data and backups lets you copy or restore records. Records stay in this browser on this device; there is no login or cloud sync yet.", "Example: goal dates can be selected in the calendar or entered in your chosen date format, such as 11/02/2026. A Sunday-start period is prefilled as a convenience and can be changed."],
   "Help & FAQ": ["Search the guide for setup steps, supplier choices, purchase dates, backup and restore instructions, and answers about how tracker data is stored. Use the page links to jump straight to a feature.", "Example: search for ‘purchase date’ to learn how to enter the date on a restock, or search for ‘backup’ to copy a text backup and restore it later."],
   Notes: ["Save dated research, plans, diary entries, and other business notes. Search the note titles and text, filter by category, add tags, and pin notes so important ones stay at the top. Use Archive to hide an old note and restore it later. Manage the category choices in Settings → Dropdown choices. Notes are part of the normal saved tracker and its text backup.", "Example: create a Research note dated today, add tags such as ‘holiday market, pricing,’ paste your findings, and pin it while you compare venues. Create other categories such as Product launch or Personal business journal in Settings."],
   More: ["All pages lists every part of the business tracker. On a wide screen, the organized side panel keeps these pages visible; on a smaller screen, open Pages in the header. The page descriptions tell you what records each tool uses.", "Example: open Suppliers to save a supplier’s email, or choose Settings to change your profile, fee estimates, backups, and reset options."],
@@ -2779,12 +2853,27 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
   </Modal>;
 }
 
+function AssistantRobot({ motion, compact }) {
+  const sway = motion ? motion.interpolate({ inputRange: [0, 1], outputRange: ["-2deg", "2deg"] }) : "0deg";
+  return <Animated.View accessibilityLabel="Smiling Business Assistant robot" style={[styles.robotWrap, compact && styles.robotWrapCompact, { transform: [{ rotate: sway }] }]}>
+    <View style={[styles.robotAntenna, compact && styles.robotAntennaCompact]}><View style={styles.robotAntennaBall} /></View>
+    <View style={[styles.robotHead, compact && styles.robotHeadCompact]}>
+      <View style={styles.robotEyeRow}><View style={[styles.robotEye, compact && styles.robotEyeCompact]} /><View style={[styles.robotEye, compact && styles.robotEyeCompact]} /></View>
+      <View style={[styles.robotSmile, compact && styles.robotSmileCompact]} />
+      <View style={styles.robotCheekRow}><View style={styles.robotCheek} /><View style={styles.robotCheek} /></View>
+    </View>
+    {!compact ? <View style={styles.robotBody}><View style={styles.robotBodyDot} /><View style={styles.robotBodyDot} /><View style={styles.robotBodyDot} /></View> : null}
+  </Animated.View>;
+}
+
 function Card({ children, style }) {
   const compact = CURRENT_APPEARANCE.density === "Compact";
   const spacious = CURRENT_APPEARANCE.density === "Spacious";
-  const padding = compact ? 8 : spacious ? 15 : 10;
+  const padding = compact ? 8 : spacious ? 16 : 12;
   const shadow = Math.max(0, Math.min(1.5, Number(CURRENT_APPEARANCE.shadowIntensity) || 0));
-  return <View style={[styles.card, { borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding, elevation: shadow, shadowOpacity: shadow * 0.08, shadowRadius: 4 + shadow * 4 }, style]}>{children}</View>;
+  const variants = { soft: styles.cardSoft, floating: styles.cardFloating, outlined: styles.cardOutlined, ledger: styles.cardLedger, colorBlock: styles.cardColorBlock, minimal: styles.cardMinimal };
+  const variant = variants[CURRENT_APPEARANCE.cardStyle] || styles.cardSoft;
+  return <View style={[styles.card, variant, { borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding, elevation: shadow, shadowOpacity: shadow * 0.08, shadowRadius: 4 + shadow * 4 }, style]}>{children}</View>;
 }
 
 function SettingsAccordion({ title, subtitle, expanded, onPress, children }) {
@@ -2855,14 +2944,32 @@ export default function App() {
   const [bulkCreateListingsOpen, setBulkCreateListingsOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [assistantQuery, setAssistantQuery] = useState("");
-  const [assistantResponse, setAssistantResponse] = useState("Choose a question or ask about today’s sales, shipping, tasks, or stock.");
-  const [goalMonthInput, setGoalMonthInput] = useState(TODAY.slice(0, 7));
-  const [goalGrossInput, setGoalGrossInput] = useState("");
-  const [goalOrdersInput, setGoalOrdersInput] = useState("");
-  const [goalItemsInput, setGoalItemsInput] = useState("");
+  const [assistantDay, setAssistantDay] = useState(TODAY);
+  const [assistantAnswer, setAssistantAnswer] = useState(null);
+  const [goalEditorOpen, setGoalEditorOpen] = useState(false);
+  const [editingGoalId, setEditingGoalId] = useState("");
+  const [goalNameInput, setGoalNameInput] = useState("");
+  const [goalStartDateInput, setGoalStartDateInput] = useState("");
+  const [goalEndDateInput, setGoalEndDateInput] = useState("");
+  const [goalTargetsInput, setGoalTargetsInput] = useState({});
   const [bulkDeleteMode, setBulkDeleteMode] = useState("");
+  const assistantBotMotion = useRef(new Animated.Value(0)).current;
+  const assistantAnswerMotion = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const animation = Animated.loop(Animated.sequence([
+      Animated.timing(assistantBotMotion, { toValue: 1, duration: 1050, useNativeDriver: true }),
+      Animated.timing(assistantBotMotion, { toValue: 0, duration: 1050, useNativeDriver: true }),
+    ]));
+    animation.start();
+    return () => animation.stop();
+  }, [assistantBotMotion]);
+  useEffect(() => {
+    if (!assistantAnswer) return undefined;
+    assistantAnswerMotion.setValue(0);
+    const animation = Animated.spring(assistantAnswerMotion, { toValue: 1, speed: 16, bounciness: 4, useNativeDriver: true });
+    animation.start();
+    return () => animation.stop();
+  }, [assistantAnswer, assistantAnswerMotion]);
   const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
   const [editingRecord, setEditingRecord] = useState(null);
   const [formPrefill, setFormPrefill] = useState(null);
@@ -2937,7 +3044,7 @@ export default function App() {
   const [customThemeSections, setCustomThemeSections] = useState({ surfaces: true, typography: false, accents: false, borders: false });
   const [customPresetChoice, setCustomPresetChoice] = useState(DEFAULT_THEME_NAME);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
-  const [settingsSections, setSettingsSections] = useState({ profile: true, appearance: true, aesthetic: false, marketplaces: true, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
+  const [settingsSections, setSettingsSections] = useState({ profile: true, appearance: true, goals: false, marketplaces: true, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
   const [backupOpen, setBackupOpen] = useState(false);
   const [pendingRecordConfirmation, setPendingRecordConfirmation] = useState(null);
   const [recordActionNotice, setRecordActionNotice] = useState("");
@@ -2974,7 +3081,7 @@ export default function App() {
     setListingPlansExpanded(false);
     setDiscountPlansExpanded(false);
     setShowDismissedAttention(false);
-    setSettingsSections({ profile: screen === "Settings", appearance: false, marketplaces: false, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
+    setSettingsSections({ profile: screen === "Settings", appearance: false, goals: false, marketplaces: false, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
   }, [screen]);
   const navigateToScreen = (target) => {
     if (!target || target === screen) return;
@@ -4296,43 +4403,49 @@ export default function App() {
     const ids = Array.from(new Set(bulkDeleteIds));
     if (!ids.length) { Alert.alert("Select records first", "Choose one or more rows before deleting them."); return; }
     const selected = (db[key] || []).filter((item) => ids.includes(item.id));
-    const blocked = [];
-    if (key === "components") {
-      const used = selected.filter((component) => db.products.some((product) => active(product) && (product.recipe || []).some((part) => part.componentId === component.id || !part.componentId && String(part.sku || "").toLowerCase() === String(component.sku || "").toLowerCase())));
-      if (used.length) blocked.push("Components used by product recipes: " + used.map((item) => item.name).join(", "));
-    }
-    if (key === "products") {
-      selected.forEach((product) => {
-        const refs = [];
-        if (db.listings.some((listing) => listing.productId === product.id)) refs.push("listings");
-        if (db.orders.some((order) => (order.items || []).some((line) => line.productId === product.id))) refs.push("orders");
-        if ((db.deletedOrders || []).some((order) => (order.items || []).some((line) => line.productId === product.id))) refs.push("deleted sale history");
-        if (db.reviews.some((review) => review.productId === product.id)) refs.push("reviews");
-        if (db.productions.some((batch) => batch.productId === product.id)) refs.push("production history");
-        if (refs.length) blocked.push(product.name + " is linked to " + refs.join(", "));
-      });
-    }
-    if (key === "listings") {
-      selected.forEach((listing) => {
-        const used = db.orders.some((order) => (order.items || []).some((line) => line.listingId === listing.id || line.listingSku && String(line.listingSku).toLowerCase() === String(listing.listingSku || "").toLowerCase())) || (db.deletedOrders || []).some((order) => (order.items || []).some((line) => line.listingId === listing.id || line.listingSku && String(line.listingSku).toLowerCase() === String(listing.listingSku || "").toLowerCase()));
-        if (used) blocked.push(listing.listingSku + " is linked to saved sale history");
-      });
-    }
-    if (blocked.length) { Alert.alert("Resolve linked records first", blocked.join("\n\n") + "\n\nThese rows were kept so saved recipes and sale history stay connected."); return; }
+    const reasonsById = new Map();
+    const addReason = (record, reason) => reasonsById.set(record.id, (reasonsById.get(record.id) || []).concat([reason]));
+    if (key === "components") selected.forEach((component) => {
+      const usedBy = db.products.filter((product) => active(product) && (product.recipe || []).some((part) => part.componentId === component.id || !part.componentId && String(part.sku || "").toLowerCase() === String(component.sku || "").toLowerCase()));
+      if (usedBy.length) addReason(component, "used in product recipe(s): " + usedBy.map((product) => product.name).join(", "));
+    });
+    if (key === "products") selected.forEach((product) => {
+      const refs = [];
+      if (db.listings.some((listing) => listing.productId === product.id)) refs.push("saved listing(s)");
+      if (db.orders.some((order) => (order.items || []).some((line) => line.productId === product.id))) refs.push("sale record(s)");
+      if ((db.deletedOrders || []).some((order) => (order.items || []).some((line) => line.productId === product.id))) refs.push("deleted sale history");
+      if (db.reviews.some((review) => review.productId === product.id)) refs.push("review(s)");
+      if (db.productions.some((batch) => batch.productId === product.id)) refs.push("production history");
+      if (refs.length) addReason(product, "linked to " + refs.join(", "));
+    });
+    if (key === "listings") selected.forEach((listing) => {
+      const used = db.orders.some((order) => (order.items || []).some((line) => line.listingId === listing.id || line.listingSku && String(line.listingSku).toLowerCase() === String(listing.listingSku || "").toLowerCase()))
+        || (db.deletedOrders || []).some((order) => (order.items || []).some((line) => line.listingId === listing.id || line.listingSku && String(line.listingSku).toLowerCase() === String(listing.listingSku || "").toLowerCase()));
+      if (used) addReason(listing, "linked to saved sale history");
+    });
+    const blocked = selected.filter((item) => reasonsById.has(item.id));
+    const deletable = selected.filter((item) => !reasonsById.has(item.id));
     const keyLabel = key === "components" ? "component" : key === "products" ? "product" : "listing";
+    const blockedList = blocked.map((item) => "• " + (item.name || item.listingSku || keyLabel) + " — " + reasonsById.get(item.id).join("; ")).join("\n");
+    if (!deletable.length) {
+      Alert.alert("Nothing can be deleted yet", "All " + selected.length + " selected record(s) are connected to other data and were kept:\n\n" + blockedList);
+      return;
+    }
+    const safeList = deletable.map((item) => "• " + (item.name || item.listingSku || keyLabel)).join("\n");
+    const blockedSummary = blocked.length ? "\n\nKept because other records depend on them:\n" + blockedList : "";
     requestRecordConfirmation({
-      title: "Delete " + selected.length + " " + keyLabel + (selected.length === 1 ? "?" : "s?"),
-      message: "This permanently removes the selected records after checking links. Product materials for unsold finished inventory will be returned to component stock. The deletion cannot be undone; export a backup first if you need a copy.",
-      confirmLabel: "Delete selected",
-      successMessage: selected.length + " " + keyLabel + (selected.length === 1 ? " deleted." : "s deleted."),
+      title: "Delete " + deletable.length + " selected " + keyLabel + (deletable.length === 1 ? "?" : "s?"),
+      message: "Delete only these records?\n" + safeList + blockedSummary + "\n\n" + (key === "products" ? "Materials for unsold finished inventory will be returned to component stock. " : "") + "Deletion cannot be undone; export a backup first if you need a copy.",
+      confirmLabel: "Delete " + deletable.length + " safe record" + (deletable.length === 1 ? "" : "s"),
+      successMessage: deletable.length + " " + keyLabel + (deletable.length === 1 ? " deleted." : "s deleted.") + (blocked.length ? " " + blocked.length + " linked record(s) were kept." : ""),
       onConfirm: () => {
-        const selectedIds = new Set(selected.map((item) => item.id));
+        const selectedIds = new Set(deletable.map((item) => item.id));
         const now = new Date().toISOString();
         setData((old) => {
           const next = { ...old, [key]: (old[key] || []).filter((item) => !selectedIds.has(item.id)) };
           if (key === "products") {
             const returned = {};
-            selected.filter(active).forEach((product) => (product.recipe || []).forEach((part) => {
+            deletable.filter(active).forEach((product) => (product.recipe || []).forEach((part) => {
               const quantity = Math.max(0, Number(part.quantity) || 0) * Math.max(0, Number(product.inventory) || 0);
               if (part.componentId && quantity > 0) returned[part.componentId] = (returned[part.componentId] || 0) + quantity;
             }));
@@ -4800,47 +4913,100 @@ export default function App() {
   });
 
   const saveSettings = (key, value) => setData((old) => ({ ...old, [key]: value }));
-  const saveAppearanceSetting = (key, value) => {
-    const current = { ...APPEARANCE_DEFAULTS, ...(db.appearanceSettings || {}) };
-    const next = { ...current, [key]: value };
-    if (key === "baseFontSize") next[key] = Math.max(0.85, Math.min(1.2, Number(value) || 1));
-    if (key === "cardRadius") next[key] = Math.max(4, Math.min(28, Number(value) || 12));
-    if (key === "buttonRoundness") next[key] = Math.max(0, Math.min(24, Number(value) || 0));
-    if (key === "tableRowHeight") next[key] = Math.max(36, Math.min(64, Number(value) || 44));
-    if (key === "shadowIntensity") next[key] = Math.max(0, Math.min(1.5, Number(value) || 0));
-    if (key === "dividerOpacity") next[key] = Math.max(0.15, Math.min(1, Number(value) || 0.15));
-    saveSettings("appearanceSettings", next);
+  const applyVisualTemplate = (templateName) => {
+    const template = VISUAL_TEMPLATES.find((item) => item.name === templateName);
+    if (!template) return;
+    const savedAppearance = { ...APPEARANCE_DEFAULTS, ...(db.appearanceSettings || {}) };
+    const nextAppearance = { ...template.appearance, templateName: template.name, fontFamily: savedAppearance.fontFamily || "System", baseFontSize: 1 };
+    const nextTheme = template.themeName || DEFAULT_THEME_NAME;
+    setThemeColors(nextTheme, db.customTheme);
+    setData((old) => ({ ...old, themeName: nextTheme, appearanceSettings: nextAppearance }));
   };
-  const goalActualsFor = (month) => {
-    const monthOrders = db.orders.filter((order) => parseDateInput(order.date)?.slice(0, 7) === month);
-    const itemsSold = monthOrders.reduce((sum, order) => (order.items || []).reduce((lineSum, line, index) => lineSum + Math.max(0, Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0), sum), 0);
-    return { grossRevenue: monthOrders.reduce((sum, order) => sum + totalOrder(order), 0), ordersCount: monthOrders.length, itemsSold };
+  const saveFontFamily = (fontFamily) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), fontFamily } }));
+  const openGoalEditor = (goal) => {
+    if (goal) {
+      setEditingGoalId(goal.id);
+      setGoalNameInput(goal.name || "");
+      setGoalStartDateInput(goal.startDate || "");
+      setGoalEndDateInput(goal.endDate || "");
+      setGoalTargetsInput(Object.fromEntries(GOAL_METRICS.map((metric) => [metric.key, Number(goal[metric.key]) > 0 ? String(goal[metric.key]) : ""])));
+    } else {
+      const range = defaultGoalDateRange();
+      setEditingGoalId("");
+      setGoalNameInput("");
+      setGoalStartDateInput(range.startDate);
+      setGoalEndDateInput(range.endDate);
+      setGoalTargetsInput({});
+    }
+    setGoalEditorOpen(true);
   };
-  const saveMonthlyGoal = () => {
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(goalMonthInput)) { Alert.alert("Choose a target month", "Enter a month in YYYY-MM format, such as 2026-11."); return; }
-    const targets = { grossRevenue: goalGrossInput, ordersCount: goalOrdersInput, itemsSold: goalItemsInput };
-    for (const [label, value] of Object.entries(targets)) if (String(value).trim() !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0)) { Alert.alert("Check the goal amount", label + " must be a number of zero or more."); return; }
-    const goal = { month: goalMonthInput, grossRevenue: Math.max(0, Number(goalGrossInput) || 0), ordersCount: Math.max(0, Math.floor(Number(goalOrdersInput) || 0)), itemsSold: Math.max(0, Math.floor(Number(goalItemsInput) || 0)) };
-    setData((old) => ({ ...old, monthlyGoals: (old.monthlyGoals || []).filter((item) => item.month !== goal.month).concat([goal]).sort((a, b) => a.month.localeCompare(b.month)) }));
+  const goalActualsFor = (goal) => {
+    if (!goal || !goal.startDate || !goal.endDate) return Object.fromEntries(GOAL_METRICS.map((metric) => [metric.key, 0]));
+    const inRange = (value) => {
+      const date = parseDateInput(value) || timestampDateKey(value);
+      return !!date && date >= goal.startDate && date <= goal.endDate;
+    };
+    const orders = db.orders.filter((order) => active(order) && inRange(order.date || order.createdAt));
+    const expenses = db.expenses.filter((item) => inRange(item.date));
+    const incomes = db.incomes.filter((item) => inRange(item.date));
+    const totals = calculateTotals({ ...db, orders, expenses, incomes });
+    const itemsSold = orders.reduce((sum, order) => (order.items || []).reduce((lineSum, line, index) => lineSum + Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0)), sum), 0);
+    const completedTasks = db.tasks.filter((task) => active(task) && task.done && inRange(task.completedAt)).length;
+    const listingsAdded = db.listings.filter((listing) => inRange(listing.createdAt || listing.startDate)).length;
+    const reviewsReceived = db.reviews.filter((review) => inRange(review.date || review.createdAt)).length;
+    return {
+      grossRevenue: totals.gross,
+      estimatedProfit: totals.estimatedProfit,
+      ordersCount: orders.length,
+      itemsSold,
+      averageOrderValue: orders.length ? totals.gross / orders.length : 0,
+      listingsAdded,
+      completedTasks,
+      reviewsReceived,
+    };
   };
-  useEffect(() => {
-    const saved = (db.monthlyGoals || []).find((goal) => goal.month === goalMonthInput);
-    setGoalGrossInput(saved && saved.grossRevenue ? String(saved.grossRevenue) : "");
-    setGoalOrdersInput(saved && saved.ordersCount ? String(saved.ordersCount) : "");
-    setGoalItemsInput(saved && saved.itemsSold ? String(saved.itemsSold) : "");
-  }, [goalMonthInput, db.monthlyGoals]);
-  useEffect(() => {
-    if (!ready) return;
-    const month = TODAY.slice(0, 7);
-    const goal = (db.monthlyGoals || []).find((item) => item.month === month);
-    if (!goal) return;
-    const actuals = goalActualsFor(month);
-    const metricNames = { grossRevenue: "gross revenue", ordersCount: "orders", itemsSold: "items sold" };
-    const completed = ["grossRevenue", "ordersCount", "itemsSold"].filter((key) => Number(goal[key]) > 0 && actuals[key] >= Number(goal[key]) && !(db.celebratedGoalKeys || []).includes(month + ":" + key));
-    if (!completed.length) return;
-    Alert.alert("Monthly goal reached", "You reached your " + completed.map((key) => metricNames[key]).join(", ") + " target for " + month + ". Set another goal for next month when you’re ready.");
-    setData((old) => ({ ...old, celebratedGoalKeys: Array.from(new Set((old.celebratedGoalKeys || []).concat(completed.map((key) => month + ":" + key)))) }));
-  }, [ready, db.monthlyGoals, db.orders, db.celebratedGoalKeys]);
+  const saveGoal = () => {
+    const startDate = parseDateInput(goalStartDateInput);
+    const endDate = parseDateInput(goalEndDateInput);
+    if (!startDate || !endDate) { Alert.alert("Choose both dates", "Enter a start date and an end date in your selected date format, or choose both from the calendars."); return; }
+    if (endDate < startDate) { Alert.alert("Check the date range", "The end date must be the same as or later than the start date."); return; }
+    const targets = {};
+    for (const metric of GOAL_METRICS) {
+      const raw = String(goalTargetsInput[metric.key] || "").trim();
+      if (!raw) { targets[metric.key] = 0; continue; }
+      const value = Number(raw);
+      if (!Number.isFinite(value) || value < 0) { Alert.alert("Check the goal targets", metric.label + " must be a number of zero or more."); return; }
+      targets[metric.key] = metric.kind === "count" ? Math.floor(value) : value;
+    }
+    if (!GOAL_METRICS.some((metric) => targets[metric.key] > 0)) { Alert.alert("Add at least one target", "Enter a target for one or more measures before saving."); return; }
+    const existing = (db.monthlyGoals || []).find((item) => item.id === editingGoalId);
+    const goal = { ...(existing || {}), ...targets, id: editingGoalId || uid("goal"), name: goalNameInput.trim() || "Goal · " + dateLabel(startDate) + " – " + dateLabel(endDate), startDate, endDate, month: startDate.slice(0, 7) };
+    setData((old) => ({ ...old, monthlyGoals: (old.monthlyGoals || []).filter((item) => item.id !== goal.id).concat([goal]).sort((a, b) => a.startDate.localeCompare(b.startDate)) }));
+    setGoalEditorOpen(false);
+  };
+  const deleteGoal = (goal) => requestRecordConfirmation({
+    title: "Delete this goal?", message: "“" + goal.name + "” and its saved targets will be removed. Sales, orders, and other records will stay as they are.", confirmLabel: "Delete goal", successMessage: "Goal deleted.",
+    onConfirm: () => setData((old) => ({ ...old, monthlyGoals: (old.monthlyGoals || []).filter((item) => item.id !== goal.id) })),
+  });
+  const renderGoalProgressCards = () => {
+    const goals = db.monthlyGoals || [];
+    if (!goals.length) return <Text style={styles.fieldHint}>No goals saved yet. Add one to see progress here and return to it from Settings at any time.</Text>;
+    return goals.map((goal) => {
+      const actuals = goalActualsFor(goal);
+      const targets = GOAL_METRICS.filter((metric) => Number(goal[metric.key]) > 0);
+      return <Card key={goal.id} style={styles.goalProgressCard}>
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{goal.name}</Text><Text style={styles.recordMeta}>{dateLabel(goal.startDate)} – {dateLabel(goal.endDate)}</Text></View><Pill text={TODAY < goal.startDate ? "Upcoming" : TODAY > goal.endDate ? "Ended" : "In progress"} tone={TODAY < goal.startDate ? "neutral" : TODAY > goal.endDate ? "gray" : "green"} /></View>
+        {targets.map((metric) => {
+          const target = Number(goal[metric.key]) || 0;
+          const actual = Number(actuals[metric.key]) || 0;
+          const percent = target > 0 ? Math.min(100, Math.max(0, Math.floor(actual / target * 100))) : 0;
+          const format = (value) => metric.kind === "money" ? money(value, db.currency) : String(Math.floor(Number(value) || 0));
+          return <View key={metric.key} style={styles.monthlyGoalRow}><View style={styles.cardTop}><Text style={styles.detailLabel}>{metric.label}</Text><Text style={styles.detailValue}>{format(actual)} / {format(target)}</Text></View><View style={styles.salesGoalTrack}><View style={[styles.salesGoalFill, { width: percent + "%" }]} /></View><Text style={styles.fieldHint}>{percent}% · {metric.help}</Text></View>;
+        })}
+        <View style={styles.actionRow}><Action label="Edit goal" quiet onPress={() => openGoalEditor(goal)} /><Action label="Delete goal" quiet onPress={() => deleteGoal(goal)} /></View>
+      </Card>;
+    });
+  };
   const saveMarketplaceFeeRule = (marketplace, field, value) => setData((old) => ({
     ...old,
     marketplaceFeeRules: {
@@ -5297,22 +5463,16 @@ export default function App() {
     const periodIsCurrentMonth = dashboardPeriod === "month" && dashboardRange.start.slice(0, 7) === TODAY.slice(0, 7);
     const dashboardResetLabel = ({ day: "Today", week: "This week", month: "This month", year: "This year" })[dashboardPeriod] || "Today";
     const monthSales = periodTotals.gross;
-    const selectedMonthGoal = (db.monthlyGoals || []).find((goal) => goal.month === TODAY.slice(0, 7));
+    const selectedMonthGoal = (db.monthlyGoals || []).find((goal) => goal.startDate <= TODAY && goal.endDate >= TODAY && Number(goal.grossRevenue) > 0);
     const salesGoal = Math.max(0, Number(selectedMonthGoal && selectedMonthGoal.grossRevenue || db.monthlySalesGoal) || 0);
-    const salesProgress = periodIsCurrentMonth && salesGoal > 0 ? Math.min(100, Math.round((monthSales / salesGoal) * 100)) : 0;
+    const salesGoalActual = selectedMonthGoal ? goalActualsFor(selectedMonthGoal).grossRevenue : monthSales;
+    const salesProgress = periodIsCurrentMonth && salesGoal > 0 ? Math.min(100, Math.round((salesGoalActual / salesGoal) * 100)) : 0;
     const readyToShip = db.orders.filter((order) => !order.archived && !order.refundedAt && ["Needs Packaging", "Packaging"].includes(order.status)).length;
     const shippedOrders = db.orders.filter((order) => !order.archived && !order.refundedAt && order.status === "Shipped").length;
     const todayTasks = openTasks.filter((task) => task.dueDate === TODAY).length;
     const todayEvents = db.events.filter((event) => active(event) && !event.done && event.date === TODAY);
     const todayDueTasks = openTasks.filter((task) => task.dueDate && task.dueDate <= TODAY);
     const readyToShipOrders = db.orders.filter((order) => active(order) && !order.refundedAt && ["Needs Packaging", "Packaging", "Ready to Ship"].includes(order.status));
-    const selectedGoal = (db.monthlyGoals || []).find((goal) => goal.month === goalMonthInput) || (goalMonthInput === TODAY.slice(0, 7) && Number(db.monthlySalesGoal) > 0 ? { month: goalMonthInput, grossRevenue: Number(db.monthlySalesGoal), ordersCount: 0, itemsSold: 0 } : { month: goalMonthInput, grossRevenue: 0, ordersCount: 0, itemsSold: 0 });
-    const selectedGoalActuals = goalActualsFor(goalMonthInput);
-    const monthlyGoalRows = [
-      { key: "grossRevenue", label: "Gross revenue", format: (value) => money(value, db.currency) },
-      { key: "ordersCount", label: "Orders", format: (value) => String(value) },
-      { key: "itemsSold", label: "Items sold", format: (value) => String(value) },
-    ].filter((row) => Number(selectedGoal[row.key]) > 0);
     const activeListings = db.listings.filter(active);
     const liveListings = activeListings.filter((listing) => listingReservesProductStock(listing, db.products.find((product) => product.id === listing.productId)));
     const activeProducts = db.products.filter(active);
@@ -5390,7 +5550,7 @@ export default function App() {
           <View style={styles.planningPeriodNav}><Pressable onPress={() => shiftDashboardPeriod(-1)} style={styles.monthArrow}><Text style={styles.monthArrowText}>‹</Text></Pressable><Text style={styles.planningPeriodText}>{dashboardPeriodLabel}</Text><Pressable onPress={() => shiftDashboardPeriod(1)} style={styles.monthArrow}><Text style={styles.monthArrowText}>›</Text></Pressable><Action label={dashboardResetLabel} quiet onPress={() => setDashboardAnchor(TODAY)} /></View>
           <Card style={styles.salesGoalCard}>
             <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.salesGoalLabel}>SALES FOR THIS PERIOD</Text><Text style={styles.salesGoalValue}>{money(monthSales, db.currency)}</Text></View><View style={styles.salesIcon}><Text style={styles.salesIconText}>↗</Text></View></View>
-            {periodIsCurrentMonth && salesGoal > 0 ? <><View style={styles.salesGoalTrack}><View style={[styles.salesGoalFill, { width: String(salesProgress) + "%" }]} /></View><Text style={styles.recordMeta}>{salesProgress}% of {money(salesGoal, db.currency)} monthly goal</Text></> : <Text style={styles.recordMeta}>{periodTotals.orders} order{periodTotals.orders === 1 ? "" : "s"} · {dashboardPeriodLabel}</Text>}
+            {periodIsCurrentMonth && salesGoal > 0 ? <><View style={styles.salesGoalTrack}><View style={[styles.salesGoalFill, { width: String(salesProgress) + "%" }]} /></View><Text style={styles.recordMeta}>{salesProgress}% · {money(salesGoalActual, db.currency)} / {money(salesGoal, db.currency)} {selectedMonthGoal ? "goal · " + dateLabel(selectedMonthGoal.startDate) + " – " + dateLabel(selectedMonthGoal.endDate) : "legacy monthly goal"}</Text></> : <Text style={styles.recordMeta}>{periodTotals.orders} order{periodTotals.orders === 1 ? "" : "s"} · {dashboardPeriodLabel}</Text>}
           </Card>
           <View style={styles.metricGrid}>
             <Metric label="Gross sales" value={money(periodTotals.gross, db.currency)} />
@@ -5493,11 +5653,9 @@ export default function App() {
         <Text style={styles.fieldHint}>Briefing: {todayDueTasks.length ? todayDueTasks.length + " task(s) need attention" : "No tasks are due"}; {readyToShipOrders.length ? readyToShipOrders.length + " order(s) need shipping work" : "shipping queue is clear"}; {todayEvents.length ? "calendar events are scheduled" : "calendar is open"}.</Text>
       </Card>
       <Card style={styles.monthlyGoalsCard}>
-        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Monthly goals</Text><Text style={styles.fieldHint}>Set a month and any combination of sales, order, and item targets.</Text></View><Text style={styles.goalMonthLabel}>{goalMonthInput}</Text></View>
-        <TextInput value={goalMonthInput} onChangeText={setGoalMonthInput} placeholder="YYYY-MM" placeholderTextColor={COLORS.placeholder} style={styles.goalMonthInput} accessibilityLabel="Goal target month in YYYY-MM format" />
-        <View style={styles.goalInputRow}><View style={styles.flex}><Field field={{ label: "Gross revenue", number: true, placeholder: "Skip this target" }} value={goalGrossInput} onChange={setGoalGrossInput} /></View><View style={styles.flex}><Field field={{ label: "Orders", number: true, placeholder: "Optional" }} value={goalOrdersInput} onChange={setGoalOrdersInput} /></View><View style={styles.flex}><Field field={{ label: "Items sold", number: true, placeholder: "Optional" }} value={goalItemsInput} onChange={setGoalItemsInput} /></View></View>
-        <View style={styles.actionRow}><Action label="Save monthly goals" onPress={saveMonthlyGoal} />{goalMonthInput === TODAY.slice(0, 7) && monthlyGoalRows.some((row) => selectedGoalActuals[row.key] >= Number(selectedGoal[row.key])) ? <Action label="Set next month’s goals" quiet onPress={() => { const next = new Date(goalMonthInput + "-01T12:00:00"); next.setMonth(next.getMonth() + 1); setGoalMonthInput(localDateKey(next).slice(0, 7)); }} /> : null}</View>
-        {monthlyGoalRows.length ? monthlyGoalRows.map((row) => { const progress = Math.min(100, Math.floor(selectedGoalActuals[row.key] / Number(selectedGoal[row.key]) * 100)); return <View key={row.key} style={styles.monthlyGoalRow}><View style={styles.cardTop}><Text style={styles.detailLabel}>{row.label}</Text><Text style={styles.detailValue}>{row.format(selectedGoalActuals[row.key])} / {row.format(Number(selectedGoal[row.key]))}</Text></View><View style={styles.salesGoalTrack}><View style={[styles.salesGoalFill, { width: progress + "%" }]} /></View><Text style={styles.fieldHint}>{progress}% complete · Selected month only</Text></View>; }) : <Text style={styles.fieldHint}>Leave any target blank to hide that progress bar. Enter 0 to turn a saved target off.</Text>}
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Business goals</Text><Text style={styles.fieldHint}>Your saved date-range goals stay here and in Settings. Edit or remove one whenever plans change.</Text></View><Action label="Add goal" onPress={() => openGoalEditor()} /></View>
+        <Text style={styles.fieldHint}>Orders count sales. Items sold counts the quantities inside those sales, so one order can include several items.</Text>
+        {renderGoalProgressCards()}
       </Card>
       {!hiddenWidgets.includes("welcome") ? <React.Fragment key="welcome">{widgetContent.welcome}</React.Fragment> : null}
       {widgetContent.fulfillment}
@@ -7375,7 +7533,6 @@ export default function App() {
         <Text style={styles.fieldHint}>Date fields accept several common formats. This preference controls how dates appear across the tracker.</Text>
         <View style={styles.actionRow}><Action label="Take the practical app walkthrough" quiet onPress={() => setTutorialOpen(true)} /></View>
         <Field field={{ label: "Default low-stock level", number: true }} value={String(db.defaultLowStock)} onChange={(value) => saveSettings("defaultLowStock", Math.max(0, asNumber(value, 3)))} />
-        <Field field={{ label: "Monthly sales goal (0 disables the goal bar)", number: true, placeholder: "0.00" }} value={String(db.monthlySalesGoal || 0)} onChange={(value) => saveSettings("monthlySalesGoal", Math.max(0, asNumber(value, 0)))} />
         <Field field={{ label: "Default task priority", options: (db.dropdownOptions.taskPriorities || []).map((x) => ({ label: x, value: x })) }} value={db.defaultTaskPriority || "Normal"} onChange={(value) => saveSettings("defaultTaskPriority", value)} />
         <Field field={{ label: "Default calendar event type", options: (db.dropdownOptions.eventTypes || []).map((x) => ({ label: x, value: x })) }} value={db.defaultEventType || "Deadline"} onChange={(value) => saveSettings("defaultEventType", value)} />
       <SettingsAccordion title="Marketplaces and fees" subtitle="Optional fee estimates for listings and sales" expanded={settingsSections.marketplaces} onPress={() => toggleSection("marketplaces")}>
@@ -7395,44 +7552,34 @@ export default function App() {
         </SettingsAccordion>
       </SettingsAccordion>
       </SettingsAccordion>
-      <SettingsAccordion title="Theme and colors" subtitle="Choose a palette for every page or customize each color" expanded={settingsSections.appearance} onPress={() => toggleSection("appearance")}>
-        <Text style={styles.fieldLabel}>Current app theme · {THEME_SPECS.length} light and {THEME_SPECS.length} dark palettes</Text>
-        <Pressable onPress={() => setThemePickerOpen(true)} style={styles.themePickerButton}><View style={styles.flex}><Text style={styles.recordTitle}>{db.themeName || DEFAULT_THEME_NAME}</Text><Text style={styles.recordMeta}>Preview palette colors before choosing. Applies throughout the app.</Text></View><Text style={styles.actionText}>Choose ›</Text></Pressable>
-        <ThemePreview theme={selectedTheme} />
-        <Card>
-          <Text style={styles.cardTitle}>Customize your current palette</Text>
-          <Text style={styles.bodyText}>Custom includes the same 23 color roles used by the app palettes. Pick any existing light or dark palette as a starting point, then adjust each color separately.</Text>
-          <Field field={{ key: "customPresetChoice", label: "Start from any palette", options: THEMES.filter((theme) => theme.name !== CUSTOM_THEME_NAME).map((theme) => ({ label: theme.name, value: theme.name })), searchable: true, searchPlaceholder: "Search all light and dark palettes", placeholder: "Choose a starting palette", hint: "Includes every built-in palette in both Light Mode and Dark Mode." }} value={customPresetChoice} onChange={setCustomPresetChoice} />
-          <View style={styles.actionRow}><Action label="Load palette into Custom" onPress={() => applyCustomPreset(customPresetChoice)} /></View>
-          <Field field={{ key: "mode", label: "Custom appearance", explanation: "Choose a light or dark base. Switching modes resets surface, text, border, and touch-feedback colors to matching defaults while keeping your accent color.", options: [{ label: "Dark Mode", value: "dark" }, { label: "Light Mode", value: "light" }] }} value={(db.customTheme || DEFAULT_CUSTOM_THEME).mode || "dark"} onChange={(value) => saveCustomThemeColor("mode", value)} />
-          {CUSTOM_THEME_COLOR_GROUPS.map((group) => <SettingsAccordion key={group.key} title={group.title} subtitle={group.subtitle} expanded={!!customThemeSections[group.key]} onPress={() => toggleCustomThemeSection(group.key)}>
-            {group.colors.map(([key, label]) => <CustomColorSetting key={key} label={label} value={String((db.customTheme || DEFAULT_CUSTOM_THEME)[key] || DEFAULT_CUSTOM_THEME[key])} isOpen={customColorPicker === key} onToggle={() => setCustomColorPicker(customColorPicker === key ? "" : key)} onChange={(value) => saveCustomThemeColor(key, value)} onPick={(value) => saveCustomThemeColor(key, value)} />)}
-          </SettingsAccordion>)}
-          <Text style={styles.fieldHint}>Pick a swatch or enter a six-digit hex code, like #E5394F. Changing a color switches the app to Custom.</Text>
-        </Card>
+      <SettingsAccordion title="App appearance" subtitle="Choose a complete app look, then choose its font" expanded={settingsSections.appearance} onPress={() => toggleSection("appearance")}>
+        <Text style={styles.bodyText}>Templates change the app’s colors, cards, buttons, spacing, headings, and overall feel together. Pick one template and a font family; there are no separate radius or spacing controls.</Text>
+        <Text style={styles.fieldLabel}>App templates · {VISUAL_TEMPLATES.length} choices</Text>
+        <View style={styles.templateGrid}>{VISUAL_TEMPLATES.map((template) => {
+          const theme = template.themeName === CUSTOM_THEME_NAME
+            ? { colors: makeCustomThemeColors(db.customTheme) }
+            : THEMES.find((item) => item.name === template.themeName) || DEFAULT_THEME;
+          const selected = appearance.templateName === template.name;
+          return <Pressable key={template.name} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => applyVisualTemplate(template.name)} style={[styles.templateTile, selected && styles.templateTileSelected]}>
+            <View style={[styles.templateMiniCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.line, borderRadius: template.appearance.cardRadius }]}>
+              <View style={[styles.templateMiniAccent, { backgroundColor: theme.colors.wine }]} />
+              <View style={[styles.templateMiniLine, { backgroundColor: theme.colors.soft }]} />
+              <View style={[styles.templateMiniLineShort, { backgroundColor: theme.colors.line }]} />
+            </View>
+            <Text style={styles.templateName}>{template.name}</Text>
+            <Text style={styles.templateDescription}>{template.description}</Text>
+            {selected ? <Pill text="Selected" tone="green" /> : null}
+          </Pressable>;
+        })}</View>
+        <Field field={{ key: "appearanceFont", label: "Font family", searchable: true, searchPlaceholder: "Find a font", options: FONT_FAMILY_OPTIONS.map((font) => ({ label: font, value: font })), hint: "The font applies throughout the tracker." }} value={appearance.fontFamily} onChange={saveFontFamily} />
+        <View style={styles.aestheticPreview}><Text style={styles.cardTitle}>Preview · {appearance.templateName}</Text><Text style={styles.bodyText}>This sample updates when you choose a template or font.</Text><View style={styles.aestheticPreviewRow}><Text style={styles.detailLabel}>Sample product · PROD-014</Text><Text style={styles.detailValue}>$28.00</Text></View><Action label="Sample action" onPress={() => {}} /></View>
       </SettingsAccordion>
-      <SettingsAccordion title="Aesthetic Studio" subtitle="12 app-wide style controls · changes preview as you adjust them" expanded={settingsSections.aesthetic} onPress={() => toggleSection("aesthetic")}>
-        <Text style={styles.bodyText}>Style settings are saved with your tracker and work independently from your selected color palette.</Text>
-        <ChoiceChips label="Font family" options={["System", "Serif", "Monospace"]} value={appearance.fontFamily} onChange={(value) => saveAppearanceSetting("fontFamily", value)} />
-        <Field field={{ label: "Base font size scale (0.85 to 1.2)", number: true, placeholder: "1.0" }} value={String(appearance.baseFontSize)} onChange={(value) => saveAppearanceSetting("baseFontSize", value)} />
-        <ChoiceChips label="Heading weight" options={[{ label: "Bold", value: "700" }, { label: "Extra bold", value: "800" }, { label: "Black", value: "900" }]} value={String(appearance.headingWeight)} onChange={(value) => saveAppearanceSetting("headingWeight", value)} />
-        <Field field={{ label: "Card border radius (4 to 28 px)", number: true }} value={String(appearance.cardRadius)} onChange={(value) => saveAppearanceSetting("cardRadius", value)} />
-        <ChoiceChips label="Padding density" options={["Compact", "Comfortable", "Spacious"]} value={appearance.density} onChange={(value) => saveAppearanceSetting("density", value)} />
-        <ChoiceChips label="Header layout" options={["Compact", "Roomy"]} value={appearance.headerLayout} onChange={(value) => saveAppearanceSetting("headerLayout", value)} />
-        <Field field={{ label: "Shadow intensity (0 to 1.5)", number: true }} value={String(appearance.shadowIntensity)} onChange={(value) => saveAppearanceSetting("shadowIntensity", value)} />
-        <Field field={{ label: "Button roundness (0 to 24 px)", number: true }} value={String(appearance.buttonRoundness)} onChange={(value) => saveAppearanceSetting("buttonRoundness", value)} />
-        <Field field={{ label: "Table row height (36 to 64 px)", number: true }} value={String(appearance.tableRowHeight)} onChange={(value) => saveAppearanceSetting("tableRowHeight", value)} />
-        <ChoiceChips label="Accent glow" options={[{ label: "Off", value: false }, { label: "On", value: true }]} value={!!appearance.accentGlow} onChange={(value) => saveAppearanceSetting("accentGlow", value)} />
-        <Field field={{ label: "Divider opacity (0.15 to 1)", number: true }} value={String(appearance.dividerOpacity)} onChange={(value) => saveAppearanceSetting("dividerOpacity", value)} />
-        <ChoiceChips label="Scrollbar style" options={["Auto", "Visible", "Minimal"]} value={appearance.scrollbarStyle} onChange={(value) => saveAppearanceSetting("scrollbarStyle", value)} />
-        <View style={[styles.aestheticPreview, { borderRadius: appearance.cardRadius, padding: appearance.density === "Compact" ? 8 : appearance.density === "Spacious" ? 18 : 13 }]}>
-          <Text style={[styles.cardTitle, { fontSize: 18 * Number(appearance.baseFontSize || 1), fontWeight: appearance.headingWeight }]}>Live preview · GRIMMS</Text>
-          <Text style={styles.bodyText}>This card, button, and sample row use your current app-wide appearance.</Text>
-          <View style={[styles.aestheticPreviewRow, { minHeight: appearance.tableRowHeight }]}><Text style={styles.detailLabel}>Sample product · PROD-014</Text><Text style={styles.detailValue}>$28.00</Text></View>
-          <Action label="Preview button" onPress={() => {}} />
-        </View>
+      <SettingsAccordion title="Business goals" subtitle="View, edit, and manage saved date-range goals" expanded={settingsSections.goals} onPress={() => toggleSection("goals")}>
+        <Text style={styles.bodyText}>Goals can use any start and end dates. The default starts on the Sunday of the week containing the first day of this month and ends on the month’s last day. Use the calendar or your selected date format when you change either date. Orders count sale records; items sold totals the units on their lines.</Text>
+        <View style={styles.actionRow}><Action label="Add a goal" onPress={() => openGoalEditor()} /></View>
+        {renderGoalProgressCards()}
       </SettingsAccordion>
-      <SettingsAccordion title="Dashboard widgets" subtitle="Show, hide, and arrange your dashboard" expanded={settingsSections.widgets} onPress={() => toggleSection("widgets")}>
+<SettingsAccordion title="Dashboard widgets" subtitle="Show, hide, and arrange your dashboard" expanded={settingsSections.widgets} onPress={() => toggleSection("widgets")}>
         <View style={styles.sectionHeadingRow}><Text style={styles.bodyText}>Show or hide widgets and move them to arrange your home screen.</Text><Action label="Reset" quiet onPress={resetDashboardWidgets} /></View>
         {(db.dashboardWidgetOrder || DEFAULT_DASHBOARD_WIDGET_ORDER).map((widgetId) => {
           const widget = DASHBOARD_WIDGETS.find((item) => item.id === widgetId);
@@ -7519,6 +7666,7 @@ export default function App() {
     if (fulfillmentRouteMatch) return renderFulfillmentStatus(fulfillmentRouteMatch[1], fulfillmentRouteMatch[2]);
     switch (screen) {
       case "Dashboard": return renderDashboard();
+      case "Business Assistant": return renderBusinessAssistant();
       case "Components": return renderComponents();
       case "Products": return renderProducts();
       case "Production": return renderProduction();
@@ -7560,31 +7708,189 @@ export default function App() {
     navigateRoot(row.page);
     openDetails(row.type, row.record);
   };
-  const answerAssistantQuestion = (query) => {
-    const text = String(query || "").trim();
-    if (!text) return;
-    setAssistantQuery(text);
-    const normalized = text.toLowerCase();
-    const todaysOrders = db.orders.filter((order) => parseDateInput(order.date)?.slice(0, 10) === TODAY && !order.archived);
-    const shippingOrders = db.orders.filter((order) => active(order) && !order.refundedAt && ["Needs Packaging", "Packaging", "Ready to Ship"].includes(order.status));
-    const dueTasks = db.tasks.filter((task) => active(task) && !task.done && task.dueDate && task.dueDate <= TODAY);
-    const lowStockComponents = db.components.filter((item) => active(item) && Number(item.quantity) <= Number(item.lowStock));
-    if (/money|sales|revenue|profit|made|earned|payout/.test(normalized)) {
-      const todayExpenses = db.expenses.filter((item) => item.date === TODAY);
-      const totals = calculateTotals({ ...db, orders: todaysOrders, expenses: todayExpenses, incomes: db.incomes.filter((item) => item.date === TODAY) });
-      setAssistantResponse("Today: " + money(totals.gross, db.currency) + " in recorded gross sales across " + todaysOrders.length + " order(s). Estimated profit after fees, refunds, shipping, expenses, product costs and other income is " + money(totals.estimatedProfit, db.currency) + ".");
-    } else if (/ship|pack|fulfill|order/.test(normalized)) {
-      setAssistantResponse(shippingOrders.length + " order(s) need shipping work: " + (shippingOrders.slice(0, 5).map((order) => (order.orderSku || "Sale") + " · " + order.status).join("; ") || "the queue is clear") + ".");
-    } else if (/task|deadline|due|priority/.test(normalized)) {
-      setAssistantResponse(dueTasks.length + " open task(s) are due today or overdue: " + (dueTasks.slice(0, 5).map((task) => task.title + " · due " + dateLabel(task.dueDate)).join("; ") || "nothing is overdue or due today") + ".");
-    } else if (/stock|component|material|supply|inventory/.test(normalized)) {
-      setAssistantResponse(lowStockComponents.length + " component(s) are low or out of stock: " + (lowStockComponents.slice(0, 5).map((item) => item.name + " · " + item.quantity + " " + (item.unit || "units")).join("; ") || "all tracked components are above their alert levels") + ".");
-    } else if (/calendar|event|today/.test(normalized)) {
-      const events = db.events.filter((event) => active(event) && !event.done && event.date === TODAY);
-      setAssistantResponse(events.length + " event(s) on today’s calendar: " + (events.map((event) => event.title).join("; ") || "there are none") + ".");
-    } else {
-      setAssistantResponse("I can answer from your saved tracker about today’s sales and profit, orders to ship, due tasks, low stock, and calendar events. Try one of those questions.");
+  const answerBusinessAssistantChoice = (choiceId) => {
+    const day = parseDateInput(assistantDay) || TODAY;
+    const dateOf = (value) => parseDateInput(value) || timestampDateKey(value) || String(value || "").slice(0, 10);
+    const ordersOnDay = db.orders.filter((order) => active(order) && dateOf(order.date || order.createdAt) === day);
+    const tasksOnDay = db.tasks.filter((task) => active(task) && ((task.dueDate === day && !task.done) || (task.done && task.completedAt === day)));
+    const openTasks = db.tasks.filter((task) => active(task) && !task.done);
+    const eventsOnDay = db.events.filter((event) => active(event) && event.date === day);
+    const plansOnDay = (db.workPlans || []).filter((plan) => plan.date === day);
+    const lowStock = db.components.filter((item) => active(item) && Number(item.quantity || 0) <= Number(item.lowStock == null || item.lowStock === "" ? db.defaultLowStock : item.lowStock));
+    const detail = (title, text) => ({ title: String(title || "Untitled record"), detail: String(text || "") });
+    const countItems = (order) => (order.items || []).reduce((sum, line, index) => sum + Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0)), 0);
+    const dayTotals = calculateTotals({
+      ...db,
+      orders: ordersOnDay,
+      expenses: db.expenses.filter((item) => dateOf(item.date) === day),
+      incomes: db.incomes.filter((item) => dateOf(item.date) === day),
+    });
+    let title = "Business Assistant report";
+    let summary = "This report uses records saved in your tracker for " + dateLabel(day) + ".";
+    let rows = [];
+    let note = "Amounts and stock reflect what has been entered in the tracker.";
+    if (choiceId === "today-overview") {
+      title = "Daily overview · " + dateLabel(day);
+      const dueTasks = openTasks.filter((task) => task.dueDate && task.dueDate <= day);
+      const dayLowStock = lowStock;
+      summary = ordersOnDay.length + " sale(s), " + dueTasks.length + " task(s) due or overdue, " + eventsOnDay.filter((event) => !event.done).length + " open event(s), and " + dayLowStock.length + " low-stock component(s).";
+      rows = [detail("Gross revenue", money(dayTotals.gross, db.currency) + " · item totals before fees and refunds"), detail("Estimated profit", money(dayTotals.estimatedProfit, db.currency) + " · uses saved payout, expense, income, shipping, and recipe-cost records"), detail("Tasks due or overdue", String(dueTasks.length) + (dueTasks.length ? " · " + dueTasks.map((task) => task.title + " (due " + dateLabel(task.dueDate) + ")").join("; ") : " · none")), detail("Events", String(eventsOnDay.filter((event) => !event.done).length) + (eventsOnDay.length ? " · " + eventsOnDay.map((event) => event.title + (event.done ? " (done)" : "")).join("; ") : " · none")), detail("Low stock", String(dayLowStock.length) + " component(s) · choose the stock report for every item and its threshold")];
+      if (plansOnDay.length) rows.push(detail("Planned work", plansOnDay.length + " block(s) · " + plansOnDay.map((plan) => plan.title || plan.name || "Work block").join("; ")));
+    } else if (choiceId === "sales-day") {
+      title = "Sales and profit · " + dateLabel(day);
+      summary = "There are " + ordersOnDay.length + " active sale record(s). Gross revenue is the item subtotal; estimated profit follows the tracker’s payout and cost calculation.";
+      rows = [detail("Gross revenue", money(dayTotals.gross, db.currency)), detail("Estimated payouts after recorded fees and refunds", money(dayTotals.payouts, db.currency)), detail("Other income", money(dayTotals.income, db.currency)), detail("Shipping cost", money(dayTotals.shipping, db.currency)), detail("Recorded expenses", money(dayTotals.expenses, db.currency)), detail("Estimated material cost", money(dayTotals.materialCosts, db.currency)), detail("Estimated profit", money(dayTotals.estimatedProfit, db.currency))];
+    } else if (choiceId === "items-day") {
+      const sold = ordersOnDay.reduce((sum, order) => sum + countItems(order), 0);
+      title = "Items sold · " + dateLabel(day);
+      summary = sold + " net item unit(s) across " + ordersOnDay.length + " sale record(s). Orders and items are different measures: one order may contain multiple units.";
+      rows = ordersOnDay.flatMap((order) => (order.items || []).map((line, index) => detail((line.productName || line.name || line.productSku || "Unlabeled product") + " · " + (order.orderSku || "Sale"), Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0)) + " unit(s) · " + money(Math.max(0, Number(line.quantity) || 0) * Math.max(0, Number(line.unitPrice) || 0), db.currency) + " line subtotal")));
+    } else if (choiceId === "cash-day") {
+      const incomes = db.incomes.filter((item) => dateOf(item.date) === day);
+      const expenses = db.expenses.filter((item) => dateOf(item.date) === day);
+      title = "Income and expenses · " + dateLabel(day);
+      summary = "Other income and recorded expenses are listed separately from order payouts.";
+      rows = incomes.map((item) => detail(item.description || item.name || "Other income", (item.category || "Income") + " · " + money(item.amount, db.currency))).concat(expenses.map((item) => detail(item.description || item.name || "Expense", (item.category || "Expense") + " · " + money(item.amount, db.currency))));
+      if (!rows.length) rows = [detail("No entries", "No other income or expenses are recorded for this day.")];
+      rows.push(detail("Income total", money(dayTotals.income, db.currency)), detail("Expense total", money(dayTotals.expenses, db.currency)));
+    } else if (choiceId === "ship-queue" || choiceId === "orders-needing-attention") {
+      const needsWork = db.orders.filter((order) => active(order) && !order.refundedAt && (choiceId === "ship-queue"
+        ? ["Needs Packaging", "Packaging", "Ready to Ship"].includes(order.status)
+        : ["Needs Packaging", "Packaging", "Ready to Ship", "Awaiting Payment"].includes(order.status)));
+      title = choiceId === "ship-queue" ? "Orders that need shipping" : "Orders with unfinished fulfillment";
+      summary = needsWork.length ? needsWork.length + " saved sale record(s) need attention. Each bullet is one order, with its customer, item count, amount, and current status." : "No active orders match this status group.";
+      rows = needsWork.map((order) => detail(order.orderSku || "Sale", [order.status || "No status", countItems(order) + " item(s)", money(totalOrder(order), db.currency), order.marketplace || "Channel not recorded", order.customer || "Customer not recorded", order.trackingNumber ? "Tracking " + order.trackingNumber : "No tracking entered"].join(" · ")));
+    } else if (choiceId === "sales-day-list") {
+      title = "Sales recorded · " + dateLabel(day);
+      summary = ordersOnDay.length ? "Every active sale record entered for this day is shown separately below." : "No active sales are dated for this day.";
+      rows = ordersOnDay.map((order) => detail(order.orderSku || "Sale", [order.status || "No status", order.marketplace || "Channel not recorded", countItems(order) + " item(s)", money(totalOrder(order), db.currency), order.customer || "Customer not recorded"].join(" · ")));
+    } else if (choiceId === "best-sellers") {
+      const totals = new Map();
+      db.orders.filter(active).forEach((order) => (order.items || []).forEach((line, index) => {
+        const label = line.productName || line.name || line.productSku || "Unlabeled product";
+        const value = totals.get(label) || { units: 0, sales: 0 };
+        value.units += Math.max(0, (Number(line.quantity) || 0) - (orderLineRestockedQuantities(order)[index] || 0));
+        value.sales += Math.max(0, Number(line.quantity) || 0) * Math.max(0, Number(line.unitPrice) || 0);
+        totals.set(label, value);
+      }));
+      const ranking = Array.from(totals.entries()).sort((a, b) => b[1].units - a[1].units || b[1].sales - a[1].sales);
+      title = "Best-selling products · all recorded dates";
+      summary = ranking.length ? "Ranked by net item units sold, then gross line sales. Returned and restocked units are subtracted from the unit count." : "No order items are recorded yet.";
+      rows = ranking.map(([name, value], index) => detail((index + 1) + ". " + name, value.units + " unit(s) · " + money(value.sales, db.currency) + " gross line sales"));
+    } else if (choiceId === "low-stock" || choiceId === "restock-priority" || choiceId === "stock-list") {
+      const stock = (choiceId === "stock-list" ? db.components.filter(active) : lowStock).slice();
+      if (choiceId === "restock-priority") {
+        const urgency = (item) => {
+          const quantity = Math.max(0, Number(item.quantity) || 0);
+          const threshold = Number(item.lowStock == null || item.lowStock === "" ? db.defaultLowStock : item.lowStock) || 0;
+          return quantity === 0 ? -1 : threshold > 0 ? quantity / threshold : 2;
+        };
+        stock.sort((a, b) => urgency(a) - urgency(b) || String(a.name || "").localeCompare(String(b.name || "")));
+      }
+      else stock.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+      title = choiceId === "low-stock" ? "Low or out-of-stock components" : choiceId === "restock-priority" ? "Restock priority" : "Component stock list";
+      summary = choiceId === "stock-list" ? stock.length + " active component(s), each with its current count and alert threshold." : stock.length ? stock.length + " component(s) are at or below their low-stock threshold. Review every item individually:" : "No tracked components are currently at or below their low-stock threshold.";
+      rows = stock.map((item) => {
+        const quantity = Number(item.quantity) || 0;
+        const threshold = Number(item.lowStock == null || item.lowStock === "" ? db.defaultLowStock : item.lowStock) || 0;
+        const shortage = Math.max(0, threshold - quantity);
+        return detail(item.name || "Unnamed component", quantity + " " + (item.unit || "units") + " on hand · alert at " + threshold + " · " + (quantity <= 0 ? "OUT OF STOCK" : quantity <= threshold ? "LOW STOCK" : "above threshold") + (shortage ? " · " + shortage + " below threshold" : "") + (item.supplier ? " · supplier: " + item.supplier : " · supplier not recorded"));
+      });
+    } else if (choiceId === "production-ready") {
+      const products = db.products.filter(active).slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+      title = "Products ready to make";
+      summary = "For recipes with valid component links, the buildable count is the smallest whole batch supported by any required component. Products with no recipe are marked so instead of guessing.";
+      rows = products.map((product) => {
+        const parts = (product.recipe || []).filter((part) => part.componentId && Number(part.quantity) > 0);
+        const capacity = parts.length ? Math.min(...parts.map((part) => Math.floor((Number((db.components.find((item) => item.id === part.componentId && active(item)) || {}).quantity) || 0) / Number(part.quantity)))) : null;
+        return detail(product.name || "Unnamed product", "Finished on hand: " + (Number(product.inventory) || 0) + " · " + (capacity == null ? "no usable recipe recorded" : "can make " + Math.max(0, capacity) + " more from component stock"));
+      });
+      if (!rows.length) rows = [detail("No products saved", "Add products and optional component recipes to see build capacity.")];
+    } else if (choiceId === "tasks-day" || choiceId === "overdue-tasks") {
+      const tasks = choiceId === "tasks-day" ? tasksOnDay : openTasks.filter((task) => task.dueDate && task.dueDate < day).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+      title = choiceId === "tasks-day" ? "Tasks · " + dateLabel(day) : "Overdue and open tasks";
+      summary = choiceId === "tasks-day" ? tasks.length + " task(s) due or completed on this date." : tasks.length + " unfinished task(s) have a due date before " + dateLabel(day) + ". Tasks without a due date are not included in the overdue count.";
+      rows = tasks.map((task) => detail(task.title || "Untitled task", [(task.done ? "Completed" : "Open"), task.priority || "Normal priority", task.category || "Other", task.dueDate ? "Due " + dateLabel(task.dueDate) : "No due date", task.description || ""].filter(Boolean).join(" · ")));
+    } else if (choiceId === "events-day" || choiceId === "workplans-day") {
+      const isEvent = choiceId === "events-day";
+      const entries = isEvent ? eventsOnDay : plansOnDay;
+      title = (isEvent ? "Calendar events · " : "Planned work blocks · ") + dateLabel(day);
+      summary = entries.length ? entries.length + (isEvent ? " event(s)" : " work block(s)") + " saved for this date." : "Nothing is scheduled for this date.";
+      rows = entries.map((item) => detail(item.title || item.name || (isEvent ? "Untitled event" : "Work block"), [item.done ? "Completed" : "Open", item.kind || item.category || "", item.startTime && item.endTime ? item.startTime + "–" + item.endTime : "", item.description || item.notes || ""].filter(Boolean).join(" · ")));
+    } else if (choiceId === "goal-progress") {
+      const goals = db.monthlyGoals || [];
+      title = "Saved goal progress";
+      summary = goals.length ? "Each saved goal is measured only across its own start and end dates. Dollar amounts and count measures use their own units." : "No goals have been saved yet. Add one from the dashboard or Settings.";
+      rows = goals.flatMap((goal) => {
+        const actuals = goalActualsFor(goal);
+        return [detail(goal.name || "Business goal", dateLabel(goal.startDate) + " – " + dateLabel(goal.endDate))].concat(GOAL_METRICS.filter((metric) => Number(goal[metric.key]) > 0).map((metric) => detail("  " + metric.label, (metric.kind === "money" ? money(actuals[metric.key], db.currency) : String(Math.floor(actuals[metric.key] || 0)) + " / " + Math.floor(goal[metric.key])) + (metric.kind === "money" ? " / " + money(goal[metric.key], db.currency) : ""))));
+      });
+    } else if (choiceId === "reviews-summary") {
+      const reviews = db.reviews.filter(active).slice().sort((a, b) => String(dateOf(b.date || b.createdAt)).localeCompare(String(dateOf(a.date || a.createdAt))));
+      const ratings = reviews.map((review) => Number(review.rating)).filter((rating) => Number.isFinite(rating) && rating > 0);
+      const average = ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : null;
+      title = "Customer reviews";
+      summary = reviews.length + " active review(s) saved" + (average == null ? "; no numeric ratings are available." : "; average saved rating " + average.toFixed(1) + " from " + ratings.length + " rated review(s)." );
+      rows = reviews.map((review) => detail(review.customer || review.author || review.productName || "Customer review", [review.rating ? String(review.rating) + " / 5 stars" : "No rating entered", dateOf(review.date || review.createdAt) ? dateLabel(dateOf(review.date || review.createdAt)) : "No date", review.text || review.comment || review.notes || "No written comment saved"].join(" · ")));
+    } else if (choiceId === "listing-status") {
+      const listings = db.listings.filter(active);
+      const groups = new Map();
+      listings.forEach((item) => groups.set(item.status || "No status", (groups.get(item.status || "No status") || []).concat([item])));
+      title = "Current listing status";
+      summary = listings.length + " active listing(s) are grouped by their saved status.";
+      rows = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([status, items]) => detail(status, items.length + " listing(s): " + items.map((item) => item.productName || item.listingNameOverride || item.listingSku || "Unnamed listing").join(", ")));
+    } else if (choiceId === "inventory-summary") {
+      const products = db.products.filter(active);
+      const units = products.reduce((sum, product) => sum + Math.max(0, Number(product.inventory) || 0), 0);
+      title = "Finished product inventory";
+      summary = products.length + " active product record(s) with " + units + " finished unit(s) entered as on hand.";
+      rows = products.map((product) => detail(product.name || "Unnamed product", (Number(product.inventory) || 0) + " on hand" + (product.sku ? " · " + product.sku : "") + (productAvailableUnits(product, db.listings) === 0 && Number(product.inventory) > 0 ? " · reserved by a live listing" : "")));
     }
+    if (!rows.length) rows = [detail("No matching records", "There is no matching saved data for this report. Add or update the relevant tracker records, then choose this report again.")];
+    setAssistantAnswer({ id: choiceId, title, summary, rows, note, day });
+  };
+  const renderBusinessAssistant = () => {
+    const day = parseDateInput(assistantDay) || TODAY;
+    const tasks = db.tasks.filter((task) => active(task) && ((task.dueDate === day && !task.done) || (task.done && task.completedAt === day)));
+    const events = db.events.filter((event) => active(event) && event.date === day);
+    const plans = (db.workPlans || []).filter((plan) => plan.date === day);
+    const notes = db.notes.filter((item) => active(item) && (parseDateInput(item.date) || timestampDateKey(item.date)) === day);
+    const openTaskCount = tasks.filter((item) => !item.done).length;
+    const renderScheduleRow = (type, item, done, onDone) => <View key={type + item.id} style={styles.assistantAgendaRow}>
+      <View style={styles.flex}><Text style={styles.recordTitle}>{item.title || item.name || "Untitled " + type}</Text><Text style={styles.recordMeta}>{type}{item.dueDate || item.date ? " · " + dateLabel(item.dueDate || item.date) : ""}{item.startTime && item.endTime ? " · " + item.startTime + "–" + item.endTime : ""}{item.priority ? " · " + item.priority + " priority" : ""}{item.done ? " · Done" : " · Open"}{item.description || item.notes ? " · " + (item.description || item.notes) : ""}</Text></View>
+      <View style={styles.actionRow}><Action label={done ? "Undo" : "Done"} quiet onPress={onDone} /><Action label="Edit" quiet onPress={() => beginEdit(type === "work block" ? "workPlan" : type, item)} /></View>
+    </View>;
+    const motionStyle = { opacity: assistantAnswerMotion, transform: [{ translateY: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [15, 0] }) }, { scale: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }) }] };
+    return <>
+      <Card style={styles.assistantHeroCard}>
+        <View style={styles.assistantHeroRow}><AssistantRobot motion={assistantBotMotion} /><View style={styles.flex}><Text style={styles.assistantEyebrow}>YOUR BUSINESS WORKSPACE</Text><Text style={styles.assistantHeroTitle}>Business Assistant</Text><Text style={styles.bodyText}>Pick a report to get a specific answer from your saved records. Choose a date to plan the day, add work, and keep notes in one place.</Text></View></View>
+        <Field field={{ key: "assistantDay", label: "Selected day", date: true, hint: "Choose a date or type it in your selected date format." }} value={assistantDay} onChange={(value) => setAssistantDay(parseDateInput(value) || value)} />
+        <View style={styles.actionRow}><Action label="＋ Add task" onPress={() => beginAdd("task", { dueDate: day })} /><Action label="＋ Add event" onPress={() => beginAdd("event", { date: day })} /><Action label="＋ Work block" onPress={() => beginAdd("workPlan", { date: day })} /><Action label="＋ Note" onPress={() => beginAdd("note", { date: day })} /><Action label="Open Calendar" quiet onPress={() => navigateRoot("Calendar")} /></View>
+      </Card>
+      <Card style={styles.assistantChoicesCard}>
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Choose a report</Text><Text style={styles.fieldHint}>Reports are grouped by topic; tap any option to see the details as separate lines.</Text></View></View>
+        {BUSINESS_ASSISTANT_GROUPS.map((group) => <View key={group.label} style={styles.assistantChoiceGroup}>
+          <Text style={styles.assistantGroupTitle}>{group.label}</Text>
+          <View style={styles.assistantChoiceGrid}>{group.choices.map(([id, label]) => <Pressable key={id} accessibilityRole="button" style={({ pressed }) => [styles.assistantChoice, pressed && styles.pressedState]} onPress={() => answerBusinessAssistantChoice(id)}><Text style={styles.assistantChoiceText}>{label}</Text><Text style={styles.assistantChoiceArrow}>›</Text></Pressable>)}</View>
+        </View>)}
+      </Card>
+      {assistantAnswer ? <Animated.View style={motionStyle}>
+        <Card style={styles.assistantAnswerCard}>
+          <View style={styles.assistantAnswerHeader}><View style={styles.flex}><Text style={styles.assistantEyebrow}>TRACKER REPORT · {dateLabel(assistantAnswer.day)}</Text><Text style={styles.assistantAnswerTitle}>{assistantAnswer.title}</Text></View><AssistantRobot motion={assistantBotMotion} compact /></View>
+          <Text style={styles.assistantAnswerSummary}>{assistantAnswer.summary}</Text>
+          <View style={styles.assistantAnswerList}>{assistantAnswer.rows.map((row, index) => <View key={assistantAnswer.id + "-" + index} style={styles.assistantAnswerRow}><Text style={styles.assistantBullet}>•</Text><View style={styles.flex}><Text style={styles.assistantAnswerRowTitle}>{row.title}</Text>{row.detail ? <Text style={styles.assistantAnswerRowText}>{row.detail}</Text> : null}</View></View>)}</View>
+          <Text style={styles.fieldHint}>{assistantAnswer.note}</Text>
+        </Card>
+      </Animated.View> : <Card style={styles.assistantEmptyAnswer}><Text style={styles.cardTitle}>Your report will appear here</Text><Text style={styles.bodyText}>For example, Low or out-of-stock components lists every affected supply on its own line, with its count, threshold, and supplier when recorded.</Text></Card>}
+      <Card style={styles.assistantDayCard}>
+        <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Plan the day · {dateLabel(day)}</Text><Text style={styles.fieldHint}>{openTaskCount} open task(s) scheduled for this date · {events.filter((item) => !item.done).length} open event(s) · {plans.filter((item) => !item.done).length} open work block(s)</Text></View></View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Tasks</Text>{tasks.length ? tasks.map((task) => renderScheduleRow("task", task, task.done, () => completeTask(task))) : <Text style={styles.fieldHint}>No task is scheduled for this day.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Calendar events</Text>{events.length ? events.map((event) => renderScheduleRow("event", event, event.done, () => completeEvent(event))) : <Text style={styles.fieldHint}>No event is scheduled for this day.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Work blocks</Text>{plans.length ? plans.map((plan) => renderScheduleRow("work block", plan, plan.done, () => completeWorkPlan(plan))) : <Text style={styles.fieldHint}>No work block is planned for this day.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><View style={styles.cardTop}><Text style={styles.fieldLabel}>Notes for this day</Text><Action label="Add dated note" quiet onPress={() => beginAdd("note", { date: day })} /></View>{notes.length ? notes.map((item) => <Pressable key={item.id} style={styles.assistantNoteRow} onPress={() => beginEdit("note", item)}><Text style={styles.recordTitle}>{item.title || "Untitled note"}</Text><Text style={styles.recordMeta}>{item.category || "Business note"}{item.tags ? " · " + item.tags : ""}</Text><Text style={styles.bodyText}>{item.content || item.body || item.text || "Open to edit this note."}</Text></Pressable>) : <Text style={styles.fieldHint}>No dated notes saved for this day yet.</Text>}</View>
+        <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Quick note</Text><TextInput value={(db.dailyScratchNotes || {})[day] || ""} onChangeText={(value) => setData((old) => ({ ...old, dailyScratchNotes: { ...(old.dailyScratchNotes || {}), [day]: value } }))} placeholder="Save a thought or reminder for this day…" placeholderTextColor={COLORS.placeholder} style={styles.dailyScratchInput} multiline /></View>
+      </Card>
+    </>;
   };
   const renderSettingsShortcut = () => {
     const selected = screen === "Settings";
@@ -7879,7 +8185,28 @@ export default function App() {
           </View>
         </View>
       </Modal>
-      <Pressable accessibilityRole="button" accessibilityLabel="Open friendly business assistant" style={styles.assistantFab} onPress={() => setAssistantOpen(true)}><Text style={styles.assistantFabText}>✦</Text></Pressable>
+      {screen !== "Business Assistant" ? <Pressable accessibilityRole="button" accessibilityLabel="Open Business Assistant" style={styles.assistantFab} onPress={() => navigateRoot("Business Assistant")}>
+        <Animated.View style={{ transform: [{ translateY: assistantBotMotion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}><AssistantRobot motion={assistantBotMotion} compact /></Animated.View>
+      </Pressable> : null}
+      <Modal visible={goalEditorOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setGoalEditorOpen(false)}>
+        <SafeAreaView style={styles.modalSafe}>
+          <View style={styles.modalHeader}><Pressable onPress={() => setGoalEditorOpen(false)}><Text style={styles.modalCancel}>Cancel</Text></Pressable><Text style={styles.modalTitle}>{editingGoalId ? "Edit business goal" : "Create business goal"}</Text><View style={styles.modalHeaderSpacer} /></View>
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
+              <Card><Text style={styles.cardTitle}>Name and dates</Text><Text style={styles.bodyText}>Choose any start and end dates. By default, the start is the Sunday of the week that contains the 1st of this month, and the end is the last day of the month.</Text>
+                <Field field={{ label: "Goal name", placeholder: "For example, Holiday launch" }} value={goalNameInput} onChange={setGoalNameInput} />
+                <Field field={{ key: "goalStartDate", label: "Start date", date: true, hint: "Use your selected date format or choose a date from the calendar." }} value={goalStartDateInput} onChange={setGoalStartDateInput} />
+                <Field field={{ key: "goalEndDate", label: "End date", date: true, hint: "The end date is included in the goal period." }} value={goalEndDateInput} onChange={setGoalEndDateInput} />
+              </Card>
+              <Card><Text style={styles.cardTitle}>Targets · leave any unused target blank</Text><Text style={styles.bodyText}>Orders count sale records. Items sold adds the quantities on the individual order lines, less returned units that were restocked. One order with three products is one order and three items sold.</Text>
+                {GOAL_METRICS.map((metric) => <Field key={metric.key} field={{ key: "goal-" + metric.key, label: metric.label + (metric.kind === "money" ? " (" + db.currency + ")" : ""), number: true, placeholder: "Skip this target", hint: metric.help }} value={goalTargetsInput[metric.key] || ""} onChange={(value) => setGoalTargetsInput((old) => ({ ...old, [metric.key]: value }))} />)}
+              </Card>
+              <View style={styles.actionRow}><Action label={editingGoalId ? "Save changes" : "Save goal"} onPress={saveGoal} /><Action label="Cancel" quiet onPress={() => setGoalEditorOpen(false)} /></View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
       <Modal visible={globalSearchOpen} transparent animationType="fade" onRequestClose={() => setGlobalSearchOpen(false)}>
         <View style={styles.globalSearchOverlay}><Pressable style={styles.globalSearchScrim} accessibilityLabel="Close quick search" onPress={() => setGlobalSearchOpen(false)} /><View style={styles.globalSearchPanel}>
           <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Quick search</Text><Text style={styles.fieldHint}>Search products, components, listings, orders, and notes. Barcode scanners work in this field.</Text></View><Pressable onPress={() => setGlobalSearchOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
@@ -7887,15 +8214,6 @@ export default function App() {
           <ScrollView style={styles.globalSearchResults} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
             {globalSearchQuery.trim() ? globalSearchResults.length ? globalSearchResults.map((row) => <Pressable key={row.type + row.record.id} style={styles.globalSearchResult} onPress={() => openGlobalSearchResult(row)}><View style={styles.flex}><Text style={styles.recordTitle}>{row.title || "Untitled record"}</Text><Text style={styles.recordMeta}>{row.type} · {row.detail || "No extra details"}</Text></View><Text style={styles.helpLinkArrow}>›</Text></Pressable>) : <Text style={styles.bodyText}>No saved records match this code or search.</Text> : <Text style={styles.bodyText}>Start typing or scan a barcode. Matching records appear here as you enter the code.</Text>}
           </ScrollView>
-        </View></View>
-      </Modal>
-      <Modal visible={assistantOpen} transparent animationType="fade" onRequestClose={() => setAssistantOpen(false)}>
-        <View style={styles.assistantOverlay}><Pressable style={styles.assistantScrim} accessibilityLabel="Close assistant" onPress={() => setAssistantOpen(false)} /><View style={styles.assistantPanel}>
-          <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Grimm · your business sidekick</Text><Text style={styles.fieldHint}>Answers use the records saved in this browser.</Text></View><Pressable onPress={() => setAssistantOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
-          <View style={styles.assistantChips}>{[["Money made today?", "How much money did I make today?"], ["Orders to ship", "How many orders need to be shipped?"], ["Due tasks", "What tasks are due?"], ["Low stock", "Which supplies are low on stock?"]].map(([label, query]) => <Pressable key={label} style={styles.assistantChip} onPress={() => answerAssistantQuestion(query)}><Text style={styles.assistantChipText}>{label}</Text></Pressable>)}</View>
-          <View style={styles.assistantResponse}><Text style={styles.assistantResponseText}>{assistantResponse}</Text></View>
-          <View style={styles.assistantAskRow}><TextInput value={assistantQuery} onChangeText={setAssistantQuery} placeholder="Ask about sales, shipping, tasks, or stock…" placeholderTextColor={COLORS.placeholder} style={styles.assistantInput} onSubmitEditing={() => answerAssistantQuestion(assistantQuery)} returnKeyType="send" /><Action label="Ask" onPress={() => answerAssistantQuestion(assistantQuery)} /></View>
-          <Text style={styles.fieldHint}>This assistant reads your saved tracker data. It does not connect to marketplace accounts.</Text>
         </View></View>
       </Modal>
     </SafeAreaView>
@@ -8031,6 +8349,12 @@ function makeStyles() { return StyleSheet.create({
   fulfillmentListLabel: { color: COLORS.ink, fontSize: 12, fontWeight: "600", flex: 1 },
   fulfillmentListArrow: { color: COLORS.muted, fontSize: 22, paddingHorizontal: 2 },
   card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, padding: CURRENT_APPEARANCE.density === "Compact" ? 8 : CURRENT_APPEARANCE.density === "Spacious" ? 15 : 10, marginBottom: 6 },
+  cardSoft: { backgroundColor: COLORS.card, borderColor: COLORS.line },
+  cardFloating: { backgroundColor: COLORS.card, borderColor: COLORS.softLine, shadowColor: COLORS.ink, shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  cardOutlined: { backgroundColor: COLORS.card, borderWidth: 2, borderColor: COLORS.wine },
+  cardLedger: { backgroundColor: COLORS.paper, borderRadius: 4, borderLeftWidth: 4, borderLeftColor: COLORS.wine, borderColor: COLORS.line },
+  cardColorBlock: { backgroundColor: COLORS.soft, borderColor: COLORS.softLine },
+  cardMinimal: { backgroundColor: COLORS.card, borderWidth: 0, borderBottomWidth: 1, borderBottomColor: COLORS.line, borderRadius: 0, elevation: 0, shadowOpacity: 0 },
   settingsAccordion: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, marginBottom: 7, overflow: "hidden" },
   settingsAccordionHeader: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: COLORS.card },
   settingsAccordionTitle: { color: COLORS.ink, fontSize: 13, fontWeight: "800" },
@@ -8403,24 +8727,61 @@ function makeStyles() { return StyleSheet.create({
   globalSearchInput: { minHeight: 46, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, color: COLORS.ink, backgroundColor: COLORS.card, marginTop: 13, fontSize: 13 },
   globalSearchResults: { maxHeight: 420, marginTop: 9 },
   globalSearchResult: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 8 },
-  assistantFab: { position: "absolute", right: 17, bottom: 18, width: 54, height: 54, borderRadius: 27, backgroundColor: COLORS.wine, borderWidth: 2, borderColor: COLORS.card, alignItems: "center", justifyContent: "center", elevation: 7, shadowColor: COLORS.wine, shadowOpacity: 0.24, shadowRadius: 7 },
-  assistantFabText: { color: COLORS.onAccent, fontSize: 25, fontWeight: "800" },
-  assistantOverlay: { flex: 1, justifyContent: "flex-end" },
-  assistantScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(20,18,20,0.4)" },
-  assistantPanel: { width: "100%", maxWidth: 620, maxHeight: "82%", alignSelf: "center", backgroundColor: COLORS.paper, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderColor: COLORS.line, padding: 16, paddingBottom: 22, elevation: 10 },
-  assistantChips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12 },
-  assistantChip: { minHeight: 34, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 18, backgroundColor: COLORS.rose, borderWidth: 1, borderColor: COLORS.line },
-  assistantChipText: { color: COLORS.wine, fontSize: 11, fontWeight: "700" },
-  assistantResponse: { marginTop: 12, padding: 13, borderRadius: 14, backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line },
-  assistantResponseText: { color: COLORS.ink, fontSize: 13, lineHeight: 19 },
-  assistantAskRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 11 },
-  assistantInput: { flex: 1, minHeight: 42, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 11, paddingVertical: 8, color: COLORS.ink, backgroundColor: COLORS.card, fontSize: 12 },
+  assistantFab: { position: "absolute", right: 15, bottom: 16, width: 66, height: 66, borderRadius: 33, backgroundColor: COLORS.soft, borderWidth: 2, borderColor: COLORS.card, alignItems: "center", justifyContent: "center", elevation: 8, shadowColor: COLORS.wine, shadowOpacity: 0.22, shadowRadius: 9, zIndex: 20 },
+  robotWrap: { width: 78, height: 94, alignItems: "center", justifyContent: "flex-start" },
+  robotWrapCompact: { width: 48, height: 48, justifyContent: "center" },
+  robotAntenna: { width: 3, height: 12, backgroundColor: COLORS.wine, alignItems: "center", justifyContent: "flex-start", marginBottom: -1 },
+  robotAntennaCompact: { height: 6, marginBottom: -1 },
+  robotAntennaBall: { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.amber, marginTop: -3 },
+  robotHead: { width: 62, height: 50, borderRadius: 19, backgroundColor: COLORS.card, borderWidth: 2, borderColor: COLORS.wine, alignItems: "center", justifyContent: "center", position: "relative" },
+  robotHeadCompact: { width: 41, height: 34, borderRadius: 13, borderWidth: 1.5 },
+  robotEyeRow: { width: "54%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 3 },
+  robotEye: { width: 7, height: 9, borderRadius: 5, backgroundColor: COLORS.wine },
+  robotEyeCompact: { width: 5, height: 6 },
+  robotSmile: { width: 18, height: 8, borderBottomWidth: 2, borderLeftWidth: 1.5, borderRightWidth: 1.5, borderColor: COLORS.wine, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, marginTop: 1 },
+  robotSmileCompact: { width: 12, height: 6, borderBottomWidth: 1.5, borderLeftWidth: 1, borderRightWidth: 1, marginTop: 0 },
+  robotCheekRow: { width: "76%", flexDirection: "row", justifyContent: "space-between", position: "absolute", top: 28 },
+  robotCheek: { width: 5, height: 3, borderRadius: 3, backgroundColor: COLORS.rose },
+  robotBody: { width: 48, height: 28, borderRadius: 12, backgroundColor: COLORS.soft, borderWidth: 2, borderColor: COLORS.wine, marginTop: 4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 },
+  robotBodyDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.wine },
+  assistantHeroCard: { borderColor: COLORS.softLine, padding: 15 },
+  assistantHeroRow: { flexDirection: "row", alignItems: "center", gap: 13, marginBottom: 10 },
+  assistantEyebrow: { color: COLORS.wine, fontSize: 9, letterSpacing: 1.3, fontWeight: "800", marginBottom: 3 },
+  assistantHeroTitle: { color: COLORS.ink, fontSize: 22, lineHeight: 27, fontWeight: "800" },
+  assistantChoicesCard: { marginTop: 5 },
+  assistantChoiceGroup: { marginTop: 14 },
+  assistantGroupTitle: { color: COLORS.wine, fontSize: 12, fontWeight: "800", marginBottom: 7 },
+  assistantChoiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  assistantChoice: { width: "48%", flexGrow: 1, minHeight: 47, paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 7 },
+  assistantChoiceText: { flex: 1, color: COLORS.ink, fontSize: 11, lineHeight: 15, fontWeight: "700" },
+  assistantChoiceArrow: { color: COLORS.wine, fontSize: 21, lineHeight: 23 },
+  assistantAnswerCard: { marginTop: 6, borderColor: COLORS.wine, borderWidth: 1.5, padding: 15 },
+  assistantEmptyAnswer: { marginTop: 6, backgroundColor: COLORS.soft },
+  assistantAnswerHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  assistantAnswerTitle: { color: COLORS.ink, fontSize: 17, lineHeight: 22, fontWeight: "800" },
+  assistantAnswerSummary: { color: COLORS.ink, fontSize: 12, lineHeight: 18, marginTop: 9, marginBottom: 3 },
+  assistantAnswerList: { marginTop: 6 },
+  assistantAnswerRow: { flexDirection: "row", alignItems: "flex-start", gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line, paddingVertical: 9 },
+  assistantBullet: { color: COLORS.wine, fontSize: 16, lineHeight: 20, fontWeight: "900", width: 12 },
+  assistantAnswerRowTitle: { color: COLORS.ink, fontSize: 12, lineHeight: 16, fontWeight: "800" },
+  assistantAnswerRowText: { color: COLORS.muted, fontSize: 11, lineHeight: 16, marginTop: 2 },
+  assistantDayCard: { marginTop: 6 },
+  assistantAgendaSection: { marginTop: 13, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line, paddingTop: 10 },
+  assistantAgendaRow: { paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.softLine },
+  assistantNoteRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.softLine, paddingVertical: 10 },
+  goalProgressCard: { marginTop: 9, borderColor: COLORS.softLine },
+  templateGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 7, marginBottom: 12 },
+  templateTile: { width: "48%", minWidth: 145, flexGrow: 1, padding: 9, borderRadius: 13, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
+  templateTileSelected: { borderWidth: 2, borderColor: COLORS.wine, backgroundColor: COLORS.soft },
+  templateMiniCard: { height: 48, borderWidth: 1, padding: 6, marginBottom: 7, overflow: "hidden" },
+  templateMiniAccent: { width: "54%", height: 7, borderRadius: 5, marginBottom: 5 },
+  templateMiniLine: { width: "83%", height: 6, borderRadius: 5, marginBottom: 4 },
+  templateMiniLineShort: { width: "55%", height: 4, borderRadius: 4 },
+  templateName: { color: COLORS.ink, fontSize: 11, fontWeight: "800", lineHeight: 15 },
+  templateDescription: { color: COLORS.muted, fontSize: 9, lineHeight: 13, marginTop: 3, marginBottom: 4 },
   commandCenterCard: { borderColor: COLORS.softLine, marginBottom: 12 },
   dailyScratchInput: { minHeight: 64, maxHeight: 130, borderWidth: 1, borderColor: COLORS.line, borderRadius: 11, padding: 10, color: COLORS.ink, backgroundColor: COLORS.soft, textAlignVertical: "top", fontSize: 12, marginTop: 4 },
   monthlyGoalsCard: { borderColor: COLORS.line, marginBottom: 14 },
-  goalMonthLabel: { color: COLORS.wine, fontSize: 12, fontWeight: "800" },
-  goalMonthInput: { alignSelf: "flex-start", minWidth: 110, borderWidth: 1, borderColor: COLORS.line, borderRadius: 9, paddingHorizontal: 10, paddingVertical: 7, marginTop: 10, marginBottom: 7, backgroundColor: COLORS.card, color: COLORS.ink, fontSize: 12 },
-  goalInputRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   monthlyGoalRow: { marginTop: 10, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line },
   orderLinesEditor: { marginBottom: 9 },
   orderLineCard: { backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line, borderRadius: Number(CURRENT_APPEARANCE.cardRadius) || 12, padding: 11, marginTop: 7, marginBottom: 7 },
