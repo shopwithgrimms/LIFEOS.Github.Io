@@ -73,8 +73,8 @@ const ASSISTANT_ROBOTS = [
 const APPEARANCE_DEFAULTS = {
   templateName: "Modern Ledger", fontFamily: "System", baseFontSize: 1,
   headingWeight: "700", cardRadius: 14, density: "Comfortable", headerLayout: "minimal",
-  shadowIntensity: 0.05, buttonRoundness: 10, tableRowHeight: 48, accentGlow: false,
-  dividerOpacity: 0.8, scrollbarStyle: "Auto", cardStyle: "soft", shellStyle: "sidebar",
+  shadowIntensity: 0, buttonRoundness: 10, tableRowHeight: 56, accentGlow: false,
+  dividerOpacity: 0.8, scrollbarStyle: "Auto", cardStyle: "minimal", shellStyle: "sidebar",
   buttonStyle: "minimal", iconStyle: "outlined", motif: "none", robotStyle: "orbit",
   assistantColor: "#3157C8", businessGlanceShape: "panel",
 };
@@ -246,12 +246,12 @@ const THEMES = THEME_SPECS.flatMap((spec) => [
   { name: spec[0] + " — Dark Mode", mode: "dark", colors: makeThemeColors(spec, true) },
 ]).concat([{ name: CUSTOM_THEME_NAME, mode: "dark", colors: makeCustomThemeColors(DEFAULT_CUSTOM_THEME) }]);
 const VISUAL_TEMPLATES = [
-  { name: "Modern Ledger", description: "A clear business workspace with quiet borders, balanced spacing, and a calm blue accent.", appearance: { shellStyle: "sidebar", cardStyle: "soft", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 14, density: "Comfortable", shadowIntensity: 0.05, buttonRoundness: 10, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.8 } },
-  { name: "Commerce Clean", description: "A focused shop dashboard with crisp outlines and a strong, consistent hierarchy.", appearance: { shellStyle: "sidebar", cardStyle: "outlined", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0.04, buttonRoundness: 9, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.85 } },
-  { name: "Square Console", description: "A modular, square-corner look for a compact, information-first workspace.", appearance: { shellStyle: "sidebar", cardStyle: "gallery", headerLayout: "minimal", buttonStyle: "square", iconStyle: "outlined", motif: "none", cardRadius: 6, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 6, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.9 } },
-  { name: "Warm Neutral", description: "Soft stone surfaces with a restrained accent and a comfortable amount of whitespace.", appearance: { shellStyle: "sidebar", cardStyle: "colorBlock", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "soft", motif: "none", cardRadius: 16, density: "Comfortable", shadowIntensity: 0.04, buttonRoundness: 10, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.75 } },
-  { name: "Executive Flat", description: "A lightweight, low-distraction style with clean dividers and almost no shadow.", appearance: { shellStyle: "sidebar", cardStyle: "minimal", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 8, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.9 } },
-  { name: "Sage Ledger", description: "An understated ledger treatment with a slim accent edge and calm green details.", appearance: { shellStyle: "sidebar", cardStyle: "ledger", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 14, density: "Comfortable", shadowIntensity: 0.03, buttonRoundness: 9, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.8 } },
+  { name: "Modern Ledger", description: "A clear business workspace with quiet borders, balanced spacing, and a calm blue accent.", appearance: { shellStyle: "sidebar", cardStyle: "minimal", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 9, tableRowHeight: 56, headingWeight: "700", dividerOpacity: 0.9 } },
+  { name: "Commerce Clean", description: "A focused shop dashboard with crisp outlines and a strong, consistent hierarchy.", appearance: { shellStyle: "sidebar", cardStyle: "outlined", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0.04, buttonRoundness: 9, tableRowHeight: 56, headingWeight: "700", dividerOpacity: 0.85 } },
+  { name: "Square Console", description: "A modular, square-corner look for a compact, information-first workspace.", appearance: { shellStyle: "sidebar", cardStyle: "gallery", headerLayout: "minimal", buttonStyle: "square", iconStyle: "outlined", motif: "none", cardRadius: 6, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 6, tableRowHeight: 56, headingWeight: "700", dividerOpacity: 0.9 } },
+  { name: "Warm Neutral", description: "Soft stone surfaces with a restrained accent and a comfortable amount of whitespace.", appearance: { shellStyle: "sidebar", cardStyle: "colorBlock", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "soft", motif: "none", cardRadius: 16, density: "Comfortable", shadowIntensity: 0.04, buttonRoundness: 10, tableRowHeight: 56, headingWeight: "700", dividerOpacity: 0.75 } },
+  { name: "Executive Flat", description: "A lightweight, low-distraction style with clean dividers and almost no shadow.", appearance: { shellStyle: "sidebar", cardStyle: "minimal", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 8, tableRowHeight: 56, headingWeight: "700", dividerOpacity: 0.9 } },
+  { name: "Sage Ledger", description: "An understated ledger treatment with a slim accent edge and calm green details.", appearance: { shellStyle: "sidebar", cardStyle: "ledger", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 14, density: "Comfortable", shadowIntensity: 0.03, buttonRoundness: 9, tableRowHeight: 56, headingWeight: "700", dividerOpacity: 0.8 } },
 ];
 const GOAL_METRICS = [
   { key: "grossRevenue", label: "Gross revenue", kind: "money", help: "Item subtotal: quantity × unit price, before fees, refunds, and shipping." },
@@ -348,6 +348,9 @@ const ANNOUNCEMENTS = [
 ];
 const PAGE_ICON_NAMES = {
   Dashboard: "dashboard",
+  Inventory: "products",
+  Analytics: "analytics",
+  More: "menu",
   "Business Assistant": "assistant",
   "Business Goals": "analytics",
   "Business Overview": "analytics",
@@ -569,13 +572,15 @@ const MORE_ITEMS = [
   ["Settings", "ST", "Business profile and data tools"],
 ];
 
-const SIDEBAR_GROUPS = [
-  { label: "WORKSPACE", pages: ["Dashboard", "Business Assistant", "Business Goals", "Components", "Products", "Notes"] },
-  { label: "SALES", pages: ["Listings", "Orders", "Reviews"] },
-  { label: "INSIGHTS", pages: ["Business Overview", "Listing Analytics", "Finances"] },
-  { label: "OPERATIONS", pages: ["Production", "Calendar", "Time", "Ideas", "Audit", "Suppliers"] },
-  { label: "SUPPORT", pages: ["Help & FAQ"] },
+const CORE_NAV_ITEMS = [
+  { label: "Dashboard", target: "Dashboard", icon: "dashboard" },
+  { label: "Inventory", target: "Products", icon: "products" },
+  { label: "Orders", target: "Orders", icon: "orders" },
+  { label: "Analytics", target: "Business Overview", icon: "analytics" },
+  { label: "More", target: "More", icon: "menu" },
+  { label: "Settings", target: "Settings", icon: "settings" },
 ];
+const SIDEBAR_GROUPS = [{ label: "WORKSPACE", pages: CORE_NAV_ITEMS.slice(0, 5).map((item) => item.label) }];
 
 const localDateKey = (date) => {
   const d = date instanceof Date ? date : new Date(date || Date.now());
@@ -2836,44 +2841,37 @@ function WelcomeBackModal({ visible, db, onContinue, onRestoreBackup }) {
   </Modal>;
 }
 
-function RecordDetailModal({ visible, type, record, currency, inventoryHistory = [], onClose, onEdit }) {
+function RecordDetailModal({ visible, type, record, currency, inventoryHistory = [], onClose, onEdit, actions }) {
   if (!record) return null;
   const title = type === "order" ? (record.items || []).map((item) => item.productName).join(", ") || "Sale" : record.name || record.productName || record.title || "Record";
-  const weight = record.packageWeight ? record.packageWeight + " " + (record.packageWeightUnit || "oz") : "";
   const details = [
     ["SKU", record.orderSku || record.listingSku || record.sku || (record.items || []).map((item) => item.productSku).filter(Boolean).join(", ")],
     ["Category", record.category], ["Colors", Array.isArray(record.colors) ? record.colors.join(", ") : record.colors],
-    ["Materials", Array.isArray(record.materials) ? record.materials.join(", ") : record.materials],
-    ["Sizes", Array.isArray(record.sizes) ? record.sizes.join(", ") : record.sizes], ["Audience or gender", record.gender],
-    ["Product description", record.description || (!record.colors && !record.sizes && !record.gender ? record.materials : "")], ["Condition", record.condition],
-    ["Collectible condition", record.cardCondition], ["Set or series", record.collectibleSetName], ["Grading status", record.gradingStatus], ["Grade or certification", record.grade], ["PriceCharting reference", record.priceChartingUrl],
-    ["Price", record.price != null ? money(record.price, currency) : type === "order" ? money(totalOrder(record), currency) : ""],
-    ["Inventory", record.inventory != null ? String(record.inventory) : ""], ["Final packaged weight", weight],
-    ["Marketplace", record.marketplace || (record.marketplaces || []).join(", ")], ["Status", record.status],
-    ["Listing live date", record.startDate ? dateLabel(record.startDate) : ""], ["Date", record.date ? dateLabel(record.date) : ""],
-    ["Next relisting date", record.relistDate ? dateLabel(record.relistDate) : ""],
-    ["Supplier", record.supplier], ["Listing URL", record.url],
-    ["Recipe", (record.recipe || []).map((part) => part.quantity + " " + part.unit + " " + part.name).join(" · ")],
-    ["Discount plans", (record.discountPlans || []).map((plan) => plan.percent + "% · " + dateLabel(plan.startDate)).join(" · ")],
-    ["Unit cost", record.cost != null ? money(record.cost, currency) : ""],
-    [record.feeSource === "actual" ? "Actual fees paid" : "Estimated fees", record.fees != null ? money(record.fees, currency) : ""],
-    ["Extra fee estimate", record.extraFees != null ? money(record.extraFees, currency) : ""],
-    ["Shipping paid", record.shippingCost != null ? money(record.shippingCost, currency) : ""],
-    ["Payment / shipping", [record.paymentMethod, record.shippingMethod].filter(Boolean).join(" · ")], ["Tracking ID", record.trackingNumber], ["Carrier", record.trackingCarrier], ["Tracking link", record.trackingUrl],
+    ["Materials", Array.isArray(record.materials) ? record.materials.join(", ") : record.materials], ["Sizes", Array.isArray(record.sizes) ? record.sizes.join(", ") : record.sizes],
+    ["Description", record.description || record.materials], ["Condition", record.condition], ["Price", record.price != null ? money(record.price, currency) : type === "order" ? money(totalOrder(record), currency) : ""],
+    ["Inventory", record.inventory != null ? String(record.inventory) : record.quantity != null ? String(record.quantity) + " " + (record.unit || "units") : ""],
+    ["Marketplace", record.marketplace || (record.marketplaces || []).join(", ")], ["Status", record.status], ["Date", record.date ? dateLabel(record.date) : ""],
+    ["Supplier", record.supplier], ["Listing URL", record.url], ["Recipe", (record.recipe || []).map((part) => part.quantity + " " + part.unit + " " + part.name).join(" · ")],
+    ["Unit cost", record.cost != null ? money(record.cost, currency) : ""], ["Fees", record.fees != null ? money(record.fees, currency) : ""], ["Shipping paid", record.shippingCost != null ? money(record.shippingCost, currency) : ""],
+    ["Customer", record.customer], ["Tracking ID", record.trackingNumber], ["Carrier", record.trackingCarrier], ["Tracking link", record.trackingUrl],
   ].filter(([, value]) => value);
-  return <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-    <SafeAreaView style={styles.modalSafe}>
-      <View style={styles.modalHeader}><Pressable onPress={onClose}><Text style={styles.modalCancel}>Close</Text></Pressable><Text style={styles.modalTitle}>Details</Text>{type !== "order" || (!record.refundedAt && !(Number(record.refundAmount) > 0)) ? <Pressable onPress={onEdit}><Text style={styles.modalSave}>Edit</Text></Pressable> : <View style={styles.modalHeaderSpacer} />}</View>
-      <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.cardTitle}>{title}</Text>
-        {details.map(([label, value]) => <View key={label} style={styles.detailLine}><Text style={styles.detailLabel}>{label}</Text><Text style={styles.detailValue}>{value}</Text></View>)}
-        {record.notes ? <View style={styles.helpExample}><Text style={styles.fieldLabel}>Notes and description</Text><Text style={styles.bodyText}>{record.notes}</Text></View> : null}
-        {inventoryHistory.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Inventory change history</Text>{inventoryHistory.map((entry) => <View key={entry.id} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>{entry.kind} · {entry.quantity > 0 ? "+" : ""}{entry.quantity}{type === "component" ? ` ${record.unit || "units"}` : " units"}</Text><Text style={styles.recordMeta}>{dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</Text></View></View>)}</View> : null}
-        {type === "order" && (record.timeline || []).length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Sale progress</Text>{record.timeline.map((step, index) => <View key={step.status + index} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>✓ {step.status}</Text><Text style={styles.recordMeta}>{dateLabel(step.date)}</Text></View></View>)}</View> : null}
-        {type === "order" && record.refundHistory && record.refundHistory.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Refund and return history</Text>{record.refundHistory.map((entry) => <Text key={entry.id} style={styles.recordMeta}>{money(entry.amount, currency)} · {entry.returnedQuantity || 0} returned · {entry.restockQuantity || 0} restocked · {dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</Text>)}</View> : null}
-        {type === "order" && record.auditLog && record.auditLog.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Corrections</Text>{record.auditLog.map((entry) => <Text key={entry.id} style={styles.recordMeta}>{entry.action} · {dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</Text>)}</View> : null}
-      </ScrollView>
-    </SafeAreaView>
+  return <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
+    <View style={styles.recordDrawerOverlay}><Pressable style={styles.recordDrawerScrim} onPress={onClose} accessibilityLabel="Close record details" />
+      <SafeAreaView style={styles.recordDrawerPanel}>
+        <View style={styles.recordDrawerHeader}><View style={styles.flex}><Text style={styles.recordDrawerEyebrow}>{type.toUpperCase()} DETAILS</Text><Text style={styles.recordDrawerTitle} numberOfLines={2}>{title}</Text></View>
+          <View style={styles.recordDrawerHeaderActions}>{type !== "order" || (!record.refundedAt && !(Number(record.refundAmount) > 0)) ? <Pressable accessibilityRole="button" onPress={onEdit} style={styles.drawerEditButton}><Text style={styles.drawerEditText}>Edit</Text></Pressable> : null}<Pressable accessibilityRole="button" onPress={onClose} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
+        </View>
+        <ScrollView contentContainerStyle={styles.recordDrawerContent} keyboardShouldPersistTaps="handled">
+          {details.map(([label, value]) => <View key={label} style={styles.detailLine}><Text style={styles.detailLabel}>{label}</Text><Text style={styles.detailValue}>{value}</Text></View>)}
+          {record.notes ? <View style={styles.helpExample}><Text style={styles.fieldLabel}>Notes</Text><Text style={styles.bodyText}>{record.notes}</Text></View> : null}
+          {inventoryHistory.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Inventory change history</Text>{inventoryHistory.map((entry) => <View key={entry.id} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>{entry.kind} · {entry.quantity > 0 ? "+" : ""}{entry.quantity}{type === "component" ? " " + (record.unit || "units") : " units"}</Text><Text style={styles.recordMeta}>{dateLabel(entry.date)}{entry.note ? " · " + entry.note : ""}</Text></View></View>)}</View> : null}
+          {type === "order" && (record.timeline || []).length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Sale progress</Text>{record.timeline.map((step, index) => <View key={step.status + index} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>✓ {step.status}</Text><Text style={styles.recordMeta}>{dateLabel(step.date)}</Text></View></View>)}</View> : null}
+          {type === "order" && record.refundHistory && record.refundHistory.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Refund and return history</Text>{record.refundHistory.map((entry) => <Text key={entry.id} style={styles.recordMeta}>{money(entry.amount, currency)} · {entry.returnedQuantity || 0} returned · {entry.restockQuantity || 0} restocked · {dateLabel(entry.date)}{entry.note ? " · " + entry.note : ""}</Text>)}</View> : null}
+          {type === "order" && record.auditLog && record.auditLog.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Corrections</Text>{record.auditLog.map((entry) => <Text key={entry.id} style={styles.recordMeta}>{entry.action} · {dateLabel(entry.date)}{entry.note ? " · " + entry.note : ""}</Text>)}</View> : null}
+          {actions ? <View style={styles.recordDrawerActions}>{actions}</View> : null}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   </Modal>;
 }
 
@@ -3002,15 +3000,13 @@ function Metric({ label, value, sub, color, compact }) {
   );
 }
 
-function ScreenDashboardHeader({ title, description, metrics = [], actions = [] }) {
-  const { width } = useWindowDimensions();
-  const compactMetrics = Platform.OS === "web" && width >= 900;
-  return <Card style={[styles.screenDashboardHeader, styles["screenDashboardHeader_" + CURRENT_APPEARANCE.headerLayout]]}>
-    <Text style={styles.screenDashboardTitle}>{title}</Text>
-    {description ? <Text style={styles.bodyText}>{description}</Text> : null}
-    {metrics.length ? <View style={[styles.metricGrid, compactMetrics && styles.metricGridCompact]}>{metrics.map((metric) => <Metric key={metric.label} {...metric} compact={compactMetrics} />)}</View> : null}
+function ScreenDashboardHeader({ description, metrics = [], actions = [] }) {
+  const compactMetrics = metrics.length >= 3;
+  return <View style={styles.screenSummary}>
+    {description ? <Text style={styles.screenSummaryDescription} numberOfLines={2}>{description}</Text> : null}
+    {metrics.length ? <View style={[styles.metricGrid, compactMetrics && styles.metricGridCompact]}>{metrics.slice(0, 3).map((metric) => <Metric key={metric.label} {...metric} compact={compactMetrics} />)}</View> : null}
     {actions.length ? <View style={styles.actionRow}>{actions.map((action) => <Action key={action.label} label={action.label} onPress={action.onPress} quiet={action.quiet} />)}</View> : null}
-  </Card>;
+  </View>;
 }
 
 export default function App() {
@@ -3039,6 +3035,13 @@ export default function App() {
   const [bulkCreateListingsOpen, setBulkCreateListingsOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [assistantDockOpen, setAssistantDockOpen] = useState(false);
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return undefined;
+    const onKeyDown = (event) => { if ((event.metaKey || event.ctrlKey) && String(event.key).toLowerCase() === "k") { event.preventDefault(); setGlobalSearchOpen(true); setGlobalSearchQuery(""); } };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
   const [assistantDay, setAssistantDay] = useState(TODAY);
   const [assistantEndDate, setAssistantEndDate] = useState(TODAY);
   const [assistantRangeMode, setAssistantRangeMode] = useState("day");
@@ -3069,14 +3072,13 @@ export default function App() {
   const [detailSelection, setDetailSelection] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [inventoryActionsOpen, setInventoryActionsOpen] = useState(false);
   const [announcementOpen, setAnnouncementOpen] = useState(false);
   const [attentionOpen, setAttentionOpen] = useState(false);
   const [helpSearch, setHelpSearch] = useState("");
   const [helpExpandedFaq, setHelpExpandedFaq] = useState(0);
   const [helpExpandedGuide, setHelpExpandedGuide] = useState("");
-  const [expandedOrderIds, setExpandedOrderIds] = useState([]);
-  const [expandedComponentIds, setExpandedComponentIds] = useState([]);
-  const [expandedProductIds, setExpandedProductIds] = useState([]);
   const [expandedListingIds, setExpandedListingIds] = useState([]);
   const [showArchivedComponents, setShowArchivedComponents] = useState(false);
   const [showArchivedProducts, setShowArchivedProducts] = useState(false);
@@ -3473,7 +3475,6 @@ export default function App() {
     beginAdd(type, prefill);
   };
   const openDetails = (type, record) => setDetailSelection({ type, id: record.id, record });
-  const toggleOrderExpanded = (orderId) => setExpandedOrderIds((old) => old.includes(orderId) ? [] : [orderId]);
   const closeForm = () => { setModalType(""); setEditingRecord(null); setFormPrefill(null); setShiftTaskCreationMode(false); };
   const setData = (recipe) => setDb((old) => {
     const updated = recipe(old);
@@ -5600,7 +5601,7 @@ export default function App() {
     });
     const shopReviews = db.reviews || [];
     const averageStars = shopReviews.length ? (shopReviews.reduce((sum, item) => sum + (Number(item.stars) || 0), 0) / shopReviews.length).toFixed(1) : "—";
-    const dashboardStatuses = Array.from(new Set([...(fulfillmentStatuses || []), ...db.orders.map((order) => order.status).filter(Boolean)]));
+    const dashboardStatuses = Array.from(new Set([...(fulfillmentStatuses || []), ...db.orders.map((order) => order.status).filter(Boolean)])).filter((status) => db.orders.some((order) => !order.archived && !order.refundedAt && order.status === status));
     const shiftDashboardPeriod = (delta) => {
       const date = new Date(dashboardAnchor + "T12:00:00");
       if (dashboardPeriod === "day") date.setDate(date.getDate() + delta);
@@ -5660,7 +5661,6 @@ export default function App() {
             <Text style={styles.recordMeta}>{periodTotals.orders} order{periodTotals.orders === 1 ? "" : "s"} · {dashboardPeriodLabel}</Text>
           </Card>
           <View style={styles.metricGrid}>
-            <Metric label="Gross sales" value={money(periodTotals.gross, db.currency)} />
             <Metric label="Estimated profit" value={money(periodTotals.estimatedProfit, db.currency)} sub="Payout plus other income, less shipping, expenses, and product costs" color={periodTotals.estimatedProfit < 0 ? COLORS.red : COLORS.green} />
             <Metric label="Fees + shipping" value={money(periodTotals.fees + periodTotals.shipping, db.currency)} />
             <Metric label="Expenses" value={money(periodTotals.expenses, db.currency)} />
@@ -5672,10 +5672,10 @@ export default function App() {
       fulfillment: (
         <>
           <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Order fulfillment</Text><Pressable hitSlop={8} onPress={() => navigateToScreen("Orders")}><Text style={styles.actionText}>Open orders ›</Text></Pressable></View>
-        <View style={styles.fulfillmentList}>{dashboardStatuses.map((status, index) => {
+        <View style={styles.fulfillmentList}>{dashboardStatuses.length ? dashboardStatuses.map((status, index) => {
             const count = db.orders.filter((order) => !order.archived && !order.refundedAt && order.status === status).length;
             return <Pressable key={status} accessibilityRole="button" accessibilityLabel={`${status}: ${count} orders. Open products in this status.`} android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToFulfillment(status)} style={({ pressed }) => [styles.fulfillmentListRow, index === dashboardStatuses.length - 1 && styles.fulfillmentListRowLast, pressed && styles.pressedState]}><Text style={styles.fulfillmentListCount}>{count}</Text><Text style={styles.fulfillmentListLabel}>{status}</Text><Text style={styles.fulfillmentListArrow}>›</Text></Pressable>;
-          })}</View>
+          }) : <Text style={styles.fieldHint}>No active orders need fulfillment right now.</Text>}</View>
         </>
       ),
       time: (
@@ -5695,8 +5695,8 @@ export default function App() {
       ),
       attention: (
         <>
-          <View style={styles.sectionHeadingRow}><View style={styles.flex}><Text style={styles.sectionTitle}>Needs your attention</Text><Text style={styles.subtle}>{attentionItems.length} open</Text></View>{attentionItems.length ? <Action label="Dismiss all" quiet onPress={() => dismissAttentionItems(attentionItems)} /> : null}</View>
-          {attentionItems.length === 0 ? <Card><Text style={styles.emptyTitle}>Nothing urgent right now</Text><Text style={styles.bodyText}>There are no open inventory, order, listing, or task alerts today.</Text></Card> : attentionItems.map((item) => {
+          <View style={styles.sectionHeadingRow}><View style={styles.flex}><Text style={styles.sectionTitle}>Needs your attention</Text><Text style={styles.subtle}>{attentionItems.length} open</Text></View><View style={styles.actionRow}>{attentionItems.length > 5 ? <Action label={"See all (" + attentionItems.length + ")"} quiet onPress={() => setAttentionOpen(true)} /> : null}{attentionItems.length ? <Action label="Dismiss all" quiet onPress={() => dismissAttentionItems(attentionItems)} /> : null}</View></View>
+          {attentionItems.length === 0 ? <Card><Text style={styles.emptyTitle}>Nothing urgent right now</Text><Text style={styles.bodyText}>There are no open inventory, order, listing, or task alerts today.</Text></Card> : attentionItems.slice(0, 5).map((item) => {
             const expanded = expandedDashboardAttention.includes(item.id);
             return <Card key={item.id}><View style={styles.cardTop}><Pressable style={styles.flex} onPress={() => setExpandedDashboardAttention((old) => old.includes(item.id) ? [] : [item.id])}><Text style={styles.recordTitle}>{item.icon}  {item.title}</Text>{expanded ? <Text style={styles.bodyText}>{item.detail}</Text> : <Text style={styles.recordMeta}>Tap to see details</Text>}</Pressable><View style={{ alignItems: "flex-end", gap: 6 }}><Action label="Open" quiet onPress={() => navigateToScreen(item.screen)} /><Pressable onPress={() => dismissAttentionItem(item)}><Text style={styles.deleteOptionText}>Dismiss</Text></Pressable></View></View></Card>;
           })}
@@ -5779,8 +5779,9 @@ export default function App() {
     const totalValue = activeComponents.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.cost) || 0), 0);
     return (
       <>
-        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Materials inventory</Text><Text style={styles.infoBannerText}>Component stock is shared with product recipes, production, and sales. Record purchases through Restock so your quantities and costs stay in sync.</Text><View style={styles.actionRow}><Action label="＋ Add component" onPress={() => beginAdd("component")} /><Action label="＋ Restock" quiet onPress={() => beginAdd("restock")} /><Action label={bulkDeleteMode === "components" ? "Cancel selection" : "Multi-delete"} quiet onPress={() => beginBulkDelete("components")} />{bulkDeleteMode === "components" ? <Action label={`Delete selected (${bulkDeleteIds.length})`} onPress={() => confirmBulkDelete("components")} /> : null}</View></View>
-        <View style={styles.metricGrid}><Metric label="Active components" value={String(activeComponents.length)} /><Metric label="Low or out of stock" value={String(lowStock.length)} /><Metric label="Units tracked" value={String(activeComponents.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0))} /><Metric label="Stock value at cost" value={money(totalValue, db.currency)} /></View>
+        <Text style={styles.pageLeadText}>Materials, stock levels, and costs used across production.</Text>
+        <View style={styles.metricGrid}><Metric label="Active components" value={String(activeComponents.length)} /><Metric label="Low or out of stock" value={String(lowStock.length)} /><Metric label="Stock value at cost" value={money(totalValue, db.currency)} /></View>
+        <SettingsAccordion title="Inventory tools" subtitle="Add stock and manage components" expanded={inventoryActionsOpen} onPress={() => setInventoryActionsOpen((open) => !open)}><View style={styles.actionRow}><Action label="＋ Add component" onPress={() => beginAdd("component")} /><Action label="＋ Restock" quiet onPress={() => beginAdd("restock")} /><Action label={bulkDeleteMode === "components" ? "Cancel selection" : "Select components to delete"} quiet onPress={() => beginBulkDelete("components")} />{bulkDeleteMode === "components" ? <Action label={"Delete selected (" + bulkDeleteIds.length + ")"} onPress={() => confirmBulkDelete("components")} /> : null}</View></SettingsAccordion>
         <ChoiceChips label="Filter components" options={["All", ...categories]} value={componentCategoryFilter} onChange={setComponentCategoryFilter} />
         <View style={styles.actionRow}><Action label={expandedAttributeFilters.components ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("components") ? " · " + attributeFilterCount("components") + " active" : "")} quiet onPress={() => toggleAttributeFilters("components")} />{attributeFilterCount("components") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("components")} /> : null}</View>
         {expandedAttributeFilters.components ? <>
@@ -5790,25 +5791,19 @@ export default function App() {
           <ChoiceChips label="Audience" options={["All", ...attributeFilterOptions(db.components, "genders", "gender")]} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("components", "gender", value)} />
         </> : null}
         <View style={styles.actionRow}><Action label={showArchivedComponents ? "Show active components" : "Show archived components (" + (db.components.length - activeComponents.length) + ")"} quiet onPress={() => setShowArchivedComponents(!showArchivedComponents)} /></View>
-        {pagedComponents.length ? pagedComponents.map((item) => {
+        {pagedComponents.length ? <View style={styles.recordTable}><View style={styles.recordTableHeader}><Text style={styles.recordHeaderPrimary}>Component</Text>{wideLayout ? <Text style={styles.recordHeaderSku}>SKU</Text> : null}<Text style={styles.recordHeaderStatus}>On hand</Text><Text style={styles.recordHeaderNumber}>Unit cost</Text></View>{pagedComponents.map((item) => {
           const low = Number(item.quantity) <= Number(item.lowStock);
-          const expanded = expandedComponentIds.includes(item.id);
           const usingProducts = productsUsingComponent(item);
-          const toggleExpanded = () => setExpandedComponentIds((old) => old.includes(item.id) ? [] : [item.id]);
-          return (
-            <Card key={item.id} style={styles.compactComponentCard}>
-              <View style={styles.cardTop}>{bulkDeleteMode === "components" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("components", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle} numberOfLines={2}>{item.name}</Text><Text style={styles.recordMeta}>{item.sku} · {item.category || "Other"} · {item.quantity} {item.unit || "pieces"} on hand</Text><Text style={styles.recordMeta}>{money(item.cost, db.currency)} per unit · {money((Number(item.quantity) || 0) * (Number(item.cost) || 0), db.currency)} stock value</Text><Text style={styles.recordMeta}>Used in {usingProducts.length} active product recipe{usingProducts.length === 1 ? "" : "s"}</Text></View><Pill text={item.archived ? "Archived" : Number(item.quantity) <= 0 ? "Out of stock" : low ? "Low stock" : "In stock"} tone={item.archived ? "neutral" : Number(item.quantity) <= 0 ? "red" : low ? "amber" : "green"} /></View>
-              <View style={styles.componentCardActions}><Action label={expanded ? "Hide details" : "Details"} quiet onPress={toggleExpanded} />{expanded && !item.archived ? <Action label="Restock" onPress={() => beginAdd("restock", { componentId: item.id })} /> : null}<Action label="Duplicate" quiet onPress={() => duplicateRecord("component", item)} /><Action label="Edit" quiet onPress={() => beginEdit("component", { ...item, cost: String(item.cost), quantity: String(item.quantity), lowStock: String(item.lowStock) })} /></View>
-              {expanded ? <>
-                <View style={styles.detailLine}><Text style={styles.detailLabel}>Low-stock alert</Text><Text style={styles.detailValue}>{item.lowStock} {item.unit || "pieces"}</Text></View>
-                <View style={styles.detailLine}><Text style={styles.detailLabel}>Supplier</Text><Text style={styles.detailValue}>{item.supplier || "Not saved"}</Text></View>
-                {usingProducts.length ? <View style={styles.recipePreview}><Text style={styles.fieldLabel}>Products using this component</Text>{usingProducts.map(({ product, parts }) => <Text key={product.id} style={styles.bodyText}>{product.name} · {parts.map((part) => (Number(part.quantity) || 0) + " " + (part.unit || item.unit || "pieces") + " per finished unit").join(", ")} · {Number(product.inventory) || 0} finished in stock</Text>)}</View> : <Text style={styles.fieldHint}>No active product recipe uses this component.</Text>}
-                {item.notes ? <Text style={styles.bodyText}>{item.notes}</Text> : null}
-                {item.archived ? <Action label="Restore component" onPress={() => restoreRecord("components", item)} /> : <View style={styles.actionRow}><Action label="Archive" quiet onPress={() => archiveRecord("components", item, "component")} /><Action label="Delete" quiet onPress={() => permanentlyDeleteRecord("components", item, "component")} /></View>}
-              </> : null}
-            </Card>
-          );
-        }) : <EmptyState title="No components yet" body="Add the materials you use to make your products. Stock and costs will connect to production." action="Add a component" onPress={() => beginAdd("component")} />}
+          return <View key={item.id} style={styles.recordTableRow}>
+            {bulkDeleteMode === "components" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("components", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}
+            <Pressable accessibilityRole="button" accessibilityLabel={"Open " + item.name + " details"} onPress={() => openDetails("component", item)} style={({ pressed }) => [styles.recordTableCells, pressed && styles.pressedState]}>
+              <View style={styles.recordCellPrimary}><Text style={styles.recordTitle} numberOfLines={1}>{item.name}</Text><Text style={styles.recordMeta} numberOfLines={1}>{item.category || "Other"} · Used in {usingProducts.length} product recipes</Text></View>
+              {wideLayout ? <Text style={styles.recordCellSku} numberOfLines={1}>{item.sku || "—"}</Text> : null}
+              <View style={styles.recordCellStatus}><Pill text={item.archived ? "Archived" : Number(item.quantity) <= 0 ? "Out of stock" : low ? "Low stock" : "In stock"} tone={item.archived ? "neutral" : Number(item.quantity) <= 0 ? "red" : low ? "amber" : "green"} /><Text style={styles.recordMeta}>{item.quantity} {item.unit || "units"}</Text></View>
+              <Text style={styles.recordCellNumber}>{money(item.cost, db.currency)}</Text>
+            </Pressable>
+          </View>
+        })}</View> : <EmptyState title="No components yet" body="Add the materials you use to make your products. Stock and costs will connect to production." action="Add a component" onPress={() => beginAdd("component")} />}
         {pagedComponents.length < list.length ? <View style={styles.actionRow}><Action label={"Show 60 more components · " + (list.length - pagedComponents.length) + " remaining"} quiet onPress={() => showMoreRows("components")} /></View> : null}
         {history.length > 0 && <><View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Inventory history</Text><Action label={inventoryHistoryExpanded ? "Hide history" : "Show all history (" + history.length + ")"} quiet onPress={() => setInventoryHistoryExpanded(!inventoryHistoryExpanded)} /></View>{inventoryHistoryExpanded ? history.map((entry) => {
           const component = db.components.find((x) => x.id === entry.componentId);
@@ -5833,11 +5828,11 @@ export default function App() {
       (!search || [item.name, item.sku, item.category, item.colors, item.description, item.materials, item.sizes, item.gender, item.condition, item.notes].join(" ").toLowerCase().includes(search.toLowerCase()))
     ), "sku");
     const pagedProducts = pageRows("products", list);
-    const inventoryValue = activeProducts.reduce((sum, item) => sum + (Number(item.inventory) || 0) * (Number(item.price) || 0), 0);
     return (
       <>
-        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Your product catalog</Text><Text style={styles.infoBannerText}>Live marketplace listings reserve a product’s finished stock. Product cards show ready-to-sell units separately from finished units on hand; archiving or pausing an unsold listing releases the remaining finished units. Production checks each recipe against component stock.</Text><View style={styles.actionRow}><Action label="＋ Add product" onPress={() => beginAdd("product")} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("product")} /><Action label="＋ Make products" quiet onPress={() => navigateToScreen("Production")} /><Action label={bulkDeleteMode === "products" ? "Cancel selection" : "Multi-delete"} quiet onPress={() => beginBulkDelete("products")} />{bulkDeleteMode === "products" ? <Action label={`Delete selected (${bulkDeleteIds.length})`} onPress={() => confirmBulkDelete("products")} /> : null}{!showArchivedProducts && outOfStockProducts.length ? <Action label={"Archive all out of stock · " + outOfStockProducts.length} quiet onPress={archiveAllOutOfStockProducts} /> : null}</View>{!showArchivedProducts && outOfStockProducts.length ? <Text style={styles.infoBannerText}>One click also archives linked unsold listings. Listings tied to recorded sales, orders, production history, and component stock stay unchanged. Restore products and their unsold listings anytime from Show archived products.</Text> : null}</View>
-        <View style={styles.metricGrid}><Metric label="Active products" value={String(activeProducts.length)} /><Metric label="Finished units on hand" value={String(activeProducts.reduce((sum, item) => sum + (Number(item.inventory) || 0), 0))} /><Metric label="Out of stock" value={String(activeProducts.filter((item) => Number(item.inventory) <= 0).length)} /><Metric label="Retail value on hand" value={money(inventoryValue, db.currency)} /></View>
+        <Text style={styles.pageLeadText}>Finished goods ready to sell, with live listings accounted for.</Text>
+        <View style={styles.metricGrid}><Metric label="Active products" value={String(activeProducts.length)} /><Metric label="Ready to sell" value={String(activeProducts.reduce((sum, item) => sum + productAvailableUnits(item, db.listings), 0))} /><Metric label="Out of stock" value={String(outOfStockProducts.length)} /></View>
+        <SettingsAccordion title="Inventory tools" subtitle="Bulk edits, production, and stock actions" expanded={inventoryActionsOpen} onPress={() => setInventoryActionsOpen((open) => !open)}><View style={styles.actionRow}><Action label="＋ Add product" onPress={() => beginAdd("product")} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("product")} /><Action label="Open production" quiet onPress={() => navigateToScreen("Production")} /><Action label={bulkDeleteMode === "products" ? "Cancel selection" : "Select products to delete"} quiet onPress={() => beginBulkDelete("products")} />{bulkDeleteMode === "products" ? <Action label={"Delete selected (" + bulkDeleteIds.length + ")"} onPress={() => confirmBulkDelete("products")} /> : null}{!showArchivedProducts && outOfStockProducts.length ? <Action label={"Archive all out of stock · " + outOfStockProducts.length} quiet onPress={archiveAllOutOfStockProducts} /> : null}</View></SettingsAccordion>
         <ChoiceChips label="Filter products" options={["All", ...categories]} value={productCategoryFilter} onChange={setProductCategoryFilter} />
         <View style={styles.actionRow}><Action label={expandedAttributeFilters.products ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("products") ? " · " + attributeFilterCount("products") + " active" : "")} quiet onPress={() => toggleAttributeFilters("products")} />{attributeFilterCount("products") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("products")} /> : null}</View>
         {expandedAttributeFilters.products ? <>
@@ -5847,28 +5842,22 @@ export default function App() {
           <ChoiceChips label="Audience" options={["All", ...attributeFilterOptions(db.products, "genders", "gender")]} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("products", "gender", value)} />
         </> : null}
         <View style={styles.actionRow}><Action label={showArchivedProducts ? "Show active products" : "Show archived products (" + (db.products.length - activeProducts.length) + ")"} quiet onPress={() => setShowArchivedProducts(!showArchivedProducts)} /></View>
-        {pagedProducts.length ? pagedProducts.map((item) => {
-          const recipes = item.recipe || [];
+        {pagedProducts.length ? <View style={styles.recordTable}><View style={styles.recordTableHeader}><Text style={styles.recordHeaderPrimary}>Product</Text>{wideLayout ? <Text style={styles.recordHeaderSku}>SKU</Text> : null}<Text style={styles.recordHeaderStatus}>Status</Text><Text style={styles.recordHeaderNumber}>Price</Text></View>{pagedProducts.map((item) => {
           const productListings = db.listings.filter((listing) => listing.productId === item.id);
           const activeProductListings = productListings.filter((listing) => listingReservesProductStock(listing, item));
           const finishedOnHand = Math.max(0, Number(item.inventory) || 0);
           const readyToSell = productAvailableUnits(item, db.listings);
           const reservedByListings = Math.max(0, finishedOnHand - readyToSell);
-          const expanded = expandedProductIds.includes(item.id);
-          const toggleExpanded = () => setExpandedProductIds((old) => old.includes(item.id) ? [] : [item.id]);
-          return (
-            <Card key={item.id}>
-              <View style={styles.cardTop}>{bulkDeleteMode === "products" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("products", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle}>{item.name}</Text><Text style={styles.recordMeta}>{item.sku} · {item.category || "Other"} · {readyToSell} ready to sell · {reservedByListings} reserved in live listings · {finishedOnHand} finished on hand</Text><Text style={styles.recordMeta}>{money(item.price, db.currency)} each · {money(finishedOnHand * (Number(item.price) || 0), db.currency)} retail value on hand</Text><Text style={styles.recordMeta}>{money(currentRecipeCost(item, db.components), db.currency)} unit cost including recipe and sourcing · {recipes.length} component{recipes.length === 1 ? "" : "s"} in recipe · {activeProductListings.length} live listing{activeProductListings.length === 1 ? "" : "s"}</Text></View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={item.archived ? "Archived" : readyToSell > 0 ? "In stock" : finishedOnHand > 0 ? "Listed" : "Out of stock"} tone={item.archived ? "neutral" : readyToSell > 0 ? "green" : finishedOnHand > 0 ? "amber" : "amber"} /><Action label="Duplicate" quiet onPress={() => duplicateRecord("product", item)} /><Action label="Edit" quiet onPress={() => beginEdit("product", { ...item, price: String(item.price), acquisitionCost: String(item.acquisitionCost || 0), inventory: String(item.inventory), recipe: recipes.map((part) => ({ ...part, quantity: String(part.quantity) })) })} /></View></View>
-              <View style={styles.actionRow}><Action label={expanded ? "Hide details" : "Show details"} quiet onPress={toggleExpanded} />{expanded && recipes.length > 0 && !item.archived ? <Action label="Make" quiet onPress={() => { setProductionProduct(item.id); navigateToScreen("Production"); }} /> : null}</View>
-              {expanded ? <>
-                {item.description || item.materials || item.notes ? <Text style={styles.bodyText}>{item.description || item.materials || item.notes}</Text> : null}
-                {recipes.length ? <View style={styles.recipePreview}><Text style={styles.fieldLabel}>Product recipe · component stock</Text>{recipes.map((part) => { const component = db.components.find((row) => row.id === part.componentId); return <Text key={part.componentId} style={styles.bodyText}>{part.quantity} {part.unit} {part.name} · {component ? component.quantity + " " + (component.unit || "pieces") + " available" : "component archived or missing"}</Text>; })}</View> : <Text style={styles.bodyText}>No component recipe saved.</Text>}
-                <View style={styles.recipePreview}><Text style={styles.fieldLabel}>Marketplace listings linked to this product</Text>{productListings.length ? productListings.map((listing) => <Text key={listing.id} style={styles.bodyText}>{listing.listingSku || "Listing"} · {listing.archived ? "Archived" : listing.status || "Draft"} · {listing.marketplace || "No sales channel"}</Text>) : <Text style={styles.bodyText}>This product has no marketplace listings yet.</Text>}</View>
-                {item.archived ? <Action label="Restore product" onPress={() => restoreRecord("products", item)} /> : <View style={styles.actionRow}><Action label="Archive" quiet onPress={() => archiveRecord("products", item, "product")} /><Action label="Delete" quiet onPress={() => permanentlyDeleteRecord("products", item, "product")} /></View>}
-              </> : null}
-            </Card>
-          );
-        }) : <EmptyState title="Your catalog starts here" body="Create a product, add its selling price and optional recipe, then build finished inventory." action="Add a product" onPress={() => beginAdd("product")} />}
+          return <View key={item.id} style={styles.recordTableRow}>
+            {bulkDeleteMode === "products" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("products", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}
+            <Pressable accessibilityRole="button" accessibilityLabel={"Open " + item.name + " details"} onPress={() => openDetails("product", item)} style={({ pressed }) => [styles.recordTableCells, pressed && styles.pressedState]}>
+              <View style={styles.recordCellPrimary}><Text style={styles.recordTitle} numberOfLines={1}>{item.name}</Text><Text style={styles.recordMeta} numberOfLines={1}>{readyToSell} ready · {reservedByListings} listed · {finishedOnHand} on hand</Text></View>
+              {wideLayout ? <Text style={styles.recordCellSku} numberOfLines={1}>{item.sku || "—"}</Text> : null}
+              <View style={styles.recordCellStatus}><Pill text={item.archived ? "Archived" : readyToSell > 0 ? "In stock" : finishedOnHand > 0 ? "Listed" : "Out of stock"} tone={item.archived ? "neutral" : readyToSell > 0 ? "green" : "amber"} /><Text style={styles.recordMeta}>{activeProductListings.length} live listing{activeProductListings.length === 1 ? "" : "s"}</Text></View>
+              <Text style={styles.recordCellNumber}>{money(item.price, db.currency)}</Text>
+            </Pressable>
+          </View>
+        })}</View> : <EmptyState title="Your catalog starts here" body="Create a product, add its selling price and optional recipe, then build finished inventory." action="Add a product" onPress={() => beginAdd("product")} />}
         {pagedProducts.length < list.length ? <View style={styles.actionRow}><Action label={"Show 60 more products · " + (list.length - pagedProducts.length) + " remaining"} quiet onPress={() => showMoreRows("products")} /></View> : null}
       </>
     );
@@ -6869,7 +6858,6 @@ export default function App() {
   const renderOrders = () => {
     const activeOrders = db.orders.filter((order) => !order.archived);
     const orderScope = db.orders.filter((order) => showArchivedOrders ? !!order.archived : !order.archived).filter(orderMatchesSelectedPhase);
-    const payoutTotal = orderScope.reduce((sum, order) => sum + netOrderPayout(order), 0);
     const scopedOrderIds = new Set(orderScope.map((order) => order.id));
     const mappedStatuses = new Set(DASHBOARD_FULFILLMENT_PHASES.flatMap((phase) => phase.statuses));
     const customStatuses = Array.from(new Set(activeOrders.map((order) => order.status || "Needs Packaging"))).filter((status) => !mappedStatuses.has(status)).sort();
@@ -6877,55 +6865,22 @@ export default function App() {
     const pagedOrders = pageRows("orders", visibleOrders);
     return (
     <>
-      <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>{orderStatusFilter === "All" ? "Orders and fulfillment" : `Showing only: ${orderStatusFilter}`}</Text><Text style={styles.infoBannerText}>{orderStatusFilter === "All" ? "Each saved sale reduces finished inventory. Expand an order for price discounts, payouts, shipping, refunds, and its complete history." : "These orders match only this fulfillment phase. Each card shows the date it entered the current phase."}</Text><View style={styles.actionRow}><Action label="＋ Record sale" onPress={() => beginAdd("order")} />{orderStatusFilter !== "All" ? <><Action label="← Back to dashboard" quiet onPress={() => { setOrderStatusFilter("All"); navigateRoot("Dashboard"); }} /><Action label="Show all statuses" quiet onPress={() => setOrderStatusFilter("All")} /></> : null}</View></View>
-      <View style={styles.metricGrid}><Metric label="Sales recorded" value={String(orderScope.length)} /><Metric label="Need attention" value={String(orderNeedsAttention.filter((order) => scopedOrderIds.has(order.id)).length)} /><Metric label="Gross sales" value={money(orderScope.reduce((sum, order) => sum + totalOrder(order), 0), db.currency)} /><Metric label="Refunds" value={money(orderScope.reduce((sum, order) => sum + (Number(order.refundAmount) || 0), 0), db.currency)} /></View>
-        <View style={styles.metricGrid}><Metric label="Payout after fees" value={money(payoutTotal, db.currency)} sub="Actual where entered; otherwise estimated" /><Metric label="Fees" value={money(orderScope.reduce((sum, order) => sum + (Number(order.fees) || 0), 0), db.currency)} /><Metric label="Shipping paid" value={money(orderScope.reduce((sum, order) => sum + (Number(order.shippingCost) || 0), 0), db.currency)} /><Metric label="Units sold" value={String(orderScope.reduce((sum, order) => sum + (order.items || []).reduce((lineSum, item) => lineSum + (Number(item.quantity) || 0), 0), 0))} /></View>
+      <Text style={styles.pageLeadText}>{orderStatusFilter === "All" ? "Sales and fulfillment activity, with full history saved to each order." : "Orders currently in " + orderStatusFilter + "."}</Text>
+      <View style={styles.metricGrid}><Metric label="Orders" value={String(orderScope.length)} /><Metric label="Gross sales" value={money(orderScope.reduce((sum, order) => sum + totalOrder(order), 0), db.currency)} /><Metric label="Need attention" value={String(orderNeedsAttention.filter((order) => scopedOrderIds.has(order.id)).length)} /></View>
       <ChoiceChips label="Fulfillment status" options={statusOptions} value={orderStatusFilter} onChange={setOrderStatusFilter} />
       <ChoiceChips label="Order list" options={[{ label: `Active (${activeOrders.length})`, value: false }, { label: `Archived (${db.orders.filter((order) => order.archived).length})`, value: true }]} value={showArchivedOrders} onChange={(value) => { setShowArchivedOrders(value); setOrderStatusFilter("All"); }} />
       <SortControl value={db.sortModes.orders} onChange={(value) => saveSortMode("orders", value)} />
-      {pagedOrders.length ? pagedOrders.map((order) => {
-        const expanded = expandedOrderIds.includes(order.id);
-        const currentIndex = fulfillmentStatuses.indexOf(order.status);
-        const nextStatus = fulfillmentStatuses[Math.max(0, currentIndex + 1)] || "Fulfilled";
-        const statusEntered = (order.timeline || []).slice().reverse().find((step) => step.status === order.status);
-        const statusEnteredDate = statusEntered && (parseDateInput(statusEntered.date) || timestampDateKey(statusEntered.date) || timestampDateKey(statusEntered.enteredAt)) || timestampDateKey(order.updatedAt) || timestampDateKey(order.createdAt) || parseDateInput(order.date) || order.date;
+      {pagedOrders.length ? <View style={styles.recordTable}><View style={styles.recordTableHeader}><Text style={styles.recordHeaderPrimary}>Order</Text>{wideLayout ? <Text style={styles.recordHeaderSku}>Order ID</Text> : null}<Text style={styles.recordHeaderStatus}>Status</Text><Text style={styles.recordHeaderNumber}>Total</Text></View>{pagedOrders.map((order) => {
         const items = order.items || [];
-        return <Card key={order.id} style={styles.compactOrderCard}>
-          <View style={styles.cardTop}>
-            <Pressable style={styles.flex} onPress={() => toggleOrderExpanded(order.id)}>
-              <Text style={styles.recordTitle}>{items.map((item) => item.productName).join(", ") || "Sale"}</Text>
-              <Text style={styles.recordMeta}>{order.orderSku || "ORDER SKU missing"} · {items.map((item) => item.productSku).filter(Boolean).join(", ") || "Product SKU not saved"} · {order.marketplace || "Direct"} · {dateLabel(order.date)}</Text>
-              <Text style={styles.recordMeta}>Entered {order.status || "current phase"} {dateLabel(statusEnteredDate)}</Text>
-            </Pressable>
-            <Pill text={order.status} tone={order.refundedAt ? "red" : ["Fulfilled", "Complete"].includes(order.status) ? "green" : "amber"} />
-          </View>
-            <View style={styles.detailRow}><Text style={styles.detailText}>{money(totalOrder(order), db.currency)} gross</Text><Text style={styles.detailText}>{money(netOrderPayout(order), db.currency)} after fees and refunds</Text></View>
-          <View style={styles.actionRow}>
-            <Action label={expanded ? "Hide details" : "Show details"} quiet onPress={() => toggleOrderExpanded(order.id)} />
-            <Action label="Full view" quiet onPress={() => openDetails("order", order)} />
-            {!order.refundedAt && !["Fulfilled", "Complete"].includes(order.status) ? <Action label={"Next: " + nextStatus} onPress={() => updateOrderStatus(order)} /> : null}
-          </View>
-          {expanded ? <>
-            <View style={styles.detailLine}><Text style={styles.detailLabel}>Customer</Text><Text style={styles.detailValue}>{order.customer || "Not saved"}</Text></View>
-            <View style={styles.detailLine}><Text style={styles.detailLabel}>Tracking ID</Text><Text style={styles.detailValue}>{order.trackingNumber || "Not saved"}</Text></View>
-            <View style={styles.detailLine}><Text style={styles.detailLabel}>Carrier</Text><Text style={styles.detailValue}>{order.trackingCarrier || "Not saved"}</Text></View>
-            <View style={styles.detailLine}><Text style={styles.detailLabel}>Tracking link</Text><Text style={styles.detailValue}>{order.trackingUrl || "Not saved"}</Text></View>
-            <View style={styles.detailLine}><Text style={styles.detailLabel}>Payment / delivery</Text><Text style={styles.detailValue}>{[order.paymentMethod, order.shippingMethod].filter(Boolean).join(" · ") || "Not saved"}</Text></View>
-            <View style={styles.detailLine}><Text style={styles.detailLabel}>Final packaged weight</Text><Text style={styles.detailValue}>{order.packageWeight ? order.packageWeight + " " + (order.packageWeightUnit || "oz") : "Not entered"}</Text></View>
-            {items.map((item, index) => { const financial = orderLineFinancials(order, db.expenses)[index]; return <View key={item.productId + index}><View style={styles.detailLine}><Text style={styles.detailLabel}>{item.quantity} × {item.productName} · {item.productSku}{Number(item.discountPercent) > 0 ? " · " + Number(item.discountPercent).toFixed(2) + "% off" : ""}{item.listingSku ? " · Listing " + item.listingSku : ""}</Text><Text style={styles.detailValue}>{money(item.unitPrice, db.currency)} each{item.originalPrice != null && Number(item.originalPrice) > Number(item.unitPrice) ? " · was " + money(item.originalPrice, db.currency) : ""}</Text></View>{financial ? <Text style={styles.itemProfitMeta}>Estimated item profit {money(financial.profit, db.currency)} · {financial.marginPercent == null ? "margin n/a" : financial.marginPercent.toFixed(1) + "% margin"} · {financial.roiPercent == null ? "ROI n/a" : financial.roiPercent.toFixed(1) + "% ROI"}</Text> : null}</View>; })}
-            {order.deListReminderChannels && order.deListReminderChannels.length ? <View style={styles.crossPlatformReminder}><Text style={styles.crossPlatformReminderTitle}>Cross-platform sale reminder</Text><Text style={styles.bodyText}>Review these other active listings after recording this sale: {order.deListReminderChannels.join(" · ")}. Mark each as sold or pause/remove it on its marketplace to prevent a second buyer from purchasing the same inventory.</Text><Action label="Review Listings" quiet onPress={() => navigateToScreen("Listings")} /></View> : null}
-            <Text style={styles.recordMeta}>{order.feeSource === "actual" ? "Actual fees" : "Estimated fees"} {money(order.fees || 0, db.currency)} · Marketplace estimate {money(order.estimatedMarketplaceFees || 0, db.currency)} · Extra estimate {money(order.extraFees || 0, db.currency)} · Shipping paid {money(order.shippingCost || 0, db.currency)}</Text>
-            <Text style={styles.recordMeta}>{order.actualPayout != null ? "Actual payout entered: " + money(order.actualPayout, db.currency) : "Estimated payout after fees and refunds: " + money(netOrderPayout(order), db.currency)}</Text>
-            {Number(order.refundAmount) > 0 ? <Text style={styles.recordMeta}>Refunded {money(order.refundAmount, db.currency)}{order.returnedQuantity ? ` · ${order.returnedQuantity} returned` : ""}{order.restockedQuantity ? ` · ${order.restockedQuantity} restocked` : ""}</Text> : null}
-            <View style={styles.actionRow}>{!order.archived && !order.refundedAt && !(Number(order.refundAmount) > 0) ? <Action label="Edit sale" quiet onPress={() => beginEdit("order", order)} /> : null}{!order.archived && !order.refundedAt ? <Action label="Record refund or return" onPress={() => setRefundEditor(order)} /> : null}{order.archived ? <Action label="Restore order" onPress={() => restoreRecord("orders", order)} /> : <Action label="Archive order" quiet onPress={() => archiveRecord("orders", order, "order")} />}<Action label="Delete accidental sale" quiet onPress={() => permanentlyDeleteRecord("orders", order, "order")} /></View>
-            {order.refundHistory && order.refundHistory.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Refund and return history</Text>{order.refundHistory.map((entry) => <View key={entry.id} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>{money(entry.amount, db.currency)} refunded · {entry.returnedQuantity || 0} returned · {entry.restockQuantity || 0} restocked</Text><Text style={styles.recordMeta}>{dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</Text></View></View>)}</View> : null}
-            <Field field={{ label: "Sale notes", multiline: true, placeholder: "Example: gift wrap requested" }} value={order.notes || ""} onChange={(notes) => saveOrderNotes(order, notes)} />
-            <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Progress history · shown on Calendar</Text>{(order.timeline || []).map((step, index) => { const stepDate = parseDateInput(step.date) || timestampDateKey(step.date) || timestampDateKey(step.enteredAt) || timestampDateKey(order.updatedAt) || timestampDateKey(order.createdAt) || parseDateInput(order.date) || order.date; return <View key={step.status + index} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>✓ {step.status}</Text><Pressable accessibilityRole="button" accessibilityLabel={"Edit date and status for " + step.status} onPress={() => setTimelineEditor({ orderId: order.id, index, date: stepDate, status: step.status })}><Text style={styles.actionText}>Edit status/date · {dateLabel(stepDate)}</Text></Pressable></View><View style={styles.actionRow}><Action label="Delete entry" quiet onPress={() => deleteOrderTimelineStep(order, index)} /></View></View>; })}</View>
-            {!order.refundedAt ? <Field field={{ label: "Fulfillment status", optionSet: "fulfillmentStatuses", options: fulfillmentStatuses.map((status) => ({ label: status, value: status })) }} value={order.status} onChange={(status) => setOrderStatus(order, status)} onManageOptions={manageDropdownFromField} /> : <Text style={styles.bodyText}>Refund recorded {dateLabel(order.refundedAt)}</Text>}
-            {order.auditLog && order.auditLog.length ? <View style={styles.discountPlanList}><Text style={styles.fieldLabel}>Corrections</Text>{order.auditLog.map((entry) => <Text key={entry.id} style={styles.recordMeta}>{entry.action} · {dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</Text>)}</View> : null}
-          </> : null}
-        </Card>;
-      }) : <EmptyState title={showArchivedOrders ? "No archived orders" : "No orders match this filter"} body="Change the status filter or record a sale to update inventory, revenue, and the order timeline." action={showArchivedOrders ? undefined : "Record a sale"} onPress={showArchivedOrders ? undefined : () => beginAdd("order")} />}
+        return <View key={order.id} style={styles.recordTableRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel={"Open order " + (order.orderSku || "sale") + " details"} onPress={() => openDetails("order", order)} style={({ pressed }) => [styles.recordTableCells, pressed && styles.pressedState]}>
+            <View style={styles.recordCellPrimary}><Text style={styles.recordTitle} numberOfLines={1}>{items.map((item) => item.productName).join(", ") || "Sale"}</Text><Text style={styles.recordMeta} numberOfLines={1}>{order.customer || order.marketplace || "Direct sale"} · {dateLabel(order.date)}</Text></View>
+            {wideLayout ? <Text style={styles.recordCellSku} numberOfLines={1}>{order.orderSku || "—"}</Text> : null}
+            <View style={styles.recordCellStatus}><Pill text={order.refundedAt ? "Refunded" : order.status || "Open"} tone={order.refundedAt ? "red" : ["Fulfilled", "Complete"].includes(order.status) ? "green" : "amber"} /></View>
+            <Text style={styles.recordCellNumber}>{money(totalOrder(order), db.currency)}</Text>
+          </Pressable>
+        </View>
+      })}</View> : <EmptyState title={showArchivedOrders ? "No archived orders" : "No orders match this filter"} body="Change the status filter or record a sale to update inventory, revenue, and the order timeline." action={showArchivedOrders ? undefined : "Record a sale"} onPress={showArchivedOrders ? undefined : () => beginAdd("order")} />}
       {pagedOrders.length < visibleOrders.length ? <View style={styles.actionRow}><Action label={"Show 60 more orders · " + (visibleOrders.length - pagedOrders.length) + " remaining"} quiet onPress={() => showMoreRows("orders")} /></View> : null}
     </>
     );
@@ -7769,21 +7724,21 @@ export default function App() {
 
   const renderMore = () => (
     <>
-      <View style={styles.welcomeBoxCompact}><Text style={styles.eyebrow}>BUSINESS TOOLKIT</Text><Text style={styles.welcomeTitle}>All pages</Text><Text style={styles.welcomeText}>Choose any part of your business tracker.</Text></View>
       <View style={styles.moreGrid}>
-        {MORE_ITEMS.map(([name, _icon, sub]) => (
+        {MORE_ITEMS.filter(([name]) => !["Dashboard", "Products", "Components", "Orders", "Business Overview", "Listing Analytics", "Finances", "Settings", "More"].includes(name)).map(([name, _icon, sub]) => (
             <Pressable key={name} onPress={() => navigateToScreen(name)} style={[styles.moreTile, wideLayout && styles.moreTileWide]}>
             <View style={styles.moreIcon}><AppIcon name={PAGE_ICON_NAMES[name] || "dashboard"} size={19} color={COLORS.wine} /></View><Text style={styles.moreTitle}>{name}</Text><Text style={styles.moreSub}>{sub}</Text>
           </Pressable>
         ))}
       </View>
-      <Card style={styles.quickNoteCard}><Text style={styles.cardTitle}>Quick capture</Text><Text style={styles.bodyText}>Ideas, tasks, and business dates are saved in their own sections.</Text><View style={styles.actionRow}><Action label="New task" onPress={() => beginAdd("task")} /><Action label="Save an idea" onPress={() => beginAdd("idea")} /><Action label="Add an event" onPress={() => beginAdd("event")} /></View></Card>
     </>
   );
 
   const fulfillmentRouteMatch = screen.match(/^Fulfillment:(status|phase):(.*)$/);
   const isFulfillmentPage = !!fulfillmentRouteMatch;
   const fulfillmentPageTitle = fulfillmentRouteMatch ? fulfillmentRouteMatch[2] : "";
+  const isInventoryPage = screen === "Products" || screen === "Components";
+  const isAnalyticsPage = ["Business Overview", "Listing Analytics", "Finances"].includes(screen);
   const contentForScreen = () => {
     if (fulfillmentRouteMatch) return renderFulfillmentStatus(fulfillmentRouteMatch[1], fulfillmentRouteMatch[2]);
     switch (screen) {
@@ -7811,7 +7766,7 @@ export default function App() {
     }
   };
 
-  const screenTitle = isFulfillmentPage ? fulfillmentPageTitle : screen === "More" ? "All pages" : screen === "Time" ? "Time tracking" : screen;
+  const screenTitle = isFulfillmentPage ? fulfillmentPageTitle : isInventoryPage ? "Inventory" : isAnalyticsPage ? "Analytics" : screen === "More" ? "More tools" : screen === "Time" ? "Time tracking" : screen;
   const searchableRecords = [
     ...db.components.map((record) => ({ type: "component", page: "Components", record, title: record.name, detail: [record.sku, record.category, record.supplier].filter(Boolean).join(" · ") })),
     ...db.products.map((record) => ({ type: "product", page: "Products", record, title: record.name, detail: [record.sku, record.category, record.condition].filter(Boolean).join(" · ") })),
@@ -7824,7 +7779,16 @@ export default function App() {
     ...db.notes.map((record) => ({ type: "note", page: "Notes", record, title: record.title, detail: [record.category, record.tags, record.date].filter(Boolean).join(" · ") })),
     ...db.suppliers.map((record) => ({ type: "supplier", page: "Suppliers", record, title: record.name, detail: [record.category, record.contact].filter(Boolean).join(" · ") })),
   ];
-  const globalSearchResults = globalSearchQuery.trim() ? searchableRecords.filter((row) => [row.title, row.detail, JSON.stringify(row.record)].join(" ").toLowerCase().includes(globalSearchQuery.trim().toLowerCase())).slice(0, 40) : [];
+  const globalSearchResults = globalSearchQuery.trim() ? searchableRecords.filter((row) => [row.title, row.detail, JSON.stringify(row.record)].join(" ").toLowerCase().includes(globalSearchQuery.trim().toLowerCase())).slice(0, 30) : [];
+  const globalQuickActions = [
+    { label: "New product", detail: "Add to inventory", action: () => beginAdd("product") },
+    { label: "New component", detail: "Add a material", action: () => beginAdd("component") },
+    { label: "Record a sale", detail: "Create an order", action: () => beginAdd("order") },
+    { label: "New listing", detail: "Add a marketplace listing", action: () => beginAdd("listing") },
+    { label: "New task", detail: "Add to your calendar", action: () => beginAdd("task") },
+  ];
+  const globalCommandResults = CORE_NAV_ITEMS.concat(globalQuickActions.map((item) => ({ ...item, target: "" }))).filter((item) => !globalSearchQuery.trim() || (item.label + " " + (item.detail || "")).toLowerCase().includes(globalSearchQuery.trim().toLowerCase()));
+  const runGlobalCommand = (command) => { setGlobalSearchOpen(false); setGlobalSearchQuery(""); setSearch(""); if (command.action) command.action(); else navigateRoot(command.target); };
   const openGlobalSearchResult = (row) => {
     setGlobalSearchOpen(false);
     setGlobalSearchQuery("");
@@ -7977,7 +7941,7 @@ export default function App() {
     setAssistantAnswer({ id: choiceId, title, summary, rows, note, day, periodLabel });
     setTimeout(() => assistantMessagesRef.current?.scrollToEnd?.({ animated: true }), 120);
   };
-  const renderBusinessAssistant = () => {
+  const renderBusinessAssistant = (docked = false) => {
     const day = parseDateInput(assistantDay) || TODAY;
     const endDay = assistantRangeMode === "range" ? (parseDateInput(assistantEndDate) || day) : day;
     const rangeLabel = day === endDay ? dateLabel(day) : dateLabel(day) + " – " + dateLabel(endDay);
@@ -7996,12 +7960,12 @@ export default function App() {
     const motionStyle = { opacity: assistantAnswerMotion, transform: [{ translateY: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [15, 0] }) }, { scale: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }) }] };
     const userChoice = assistantAnswer && BUSINESS_ASSISTANT_GROUPS.flatMap((group) => group.choices).find(([id]) => id === assistantAnswer.id);
     const updateRangeMode = (mode) => { setAssistantRangeMode(mode); if (mode === "range") setAssistantEndDate(day); };
-    const closePlannerAndGoToCalendar = () => { setAssistantPlannerOpen(false); navigateToScreen("Calendar"); };
+    const closePlannerAndGoToCalendar = () => { setAssistantPlannerOpen(false); setAssistantDockOpen(false); navigateToScreen("Calendar"); };
     return <View style={styles.assistantPage}>
       <View style={styles.assistantPageHeader}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.assistantBackButton} onPress={() => navigationStack.length > 1 ? navigateBack() : navigateRoot("Dashboard")}><Text style={styles.assistantBackArrow}>‹</Text><Text style={styles.assistantBackText}>Back</Text></Pressable>
-        <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Business Assistant</Text></View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Open your schedule and notes" style={styles.assistantPlannerButton} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.assistantPlannerButtonText}>Plan</Text></Pressable>
+        {docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Assistant</Text></View> : <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.assistantBackButton} onPress={() => navigationStack.length > 1 ? navigateBack() : navigateRoot("Dashboard")}><Text style={styles.assistantBackArrow}>‹</Text><Text style={styles.assistantBackText}>Back</Text></Pressable>}
+        {!docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Business Assistant</Text></View> : null}
+        <View style={styles.recordDrawerHeaderActions}><Pressable accessibilityRole="button" accessibilityLabel="Open your schedule and notes" style={styles.assistantPlannerButton} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.assistantPlannerButtonText}>Plan</Text></Pressable>{docked ? <Pressable accessibilityRole="button" onPress={() => setAssistantDockOpen(false)} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable> : null}</View>
       </View>
       {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
       {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
@@ -8062,28 +8026,39 @@ export default function App() {
       {selected ? <View style={styles.sidebarActiveMark} /> : null}
     </Pressable>;
   };
+  const navigationTargetFor = (page) => {
+    if (page === "Inventory") return screen === "Components" ? "Components" : "Products";
+    if (page === "Analytics") return ["Listing Analytics", "Finances"].includes(screen) ? screen : "Business Overview";
+    return (CORE_NAV_ITEMS.find((item) => item.label === page) || {}).target || page;
+  };
+  const navigationSelected = (page) => {
+    if (page === "Inventory") return isInventoryPage;
+    if (page === "Analytics") return isAnalyticsPage;
+    if (page === "More") return screen === "More" || (!isInventoryPage && !isAnalyticsPage && !["Dashboard", "Orders", "Settings"].includes(screen) && !isFulfillmentPage);
+    return screen === page || (isFulfillmentPage && page === "Orders");
+  };
   const renderNavigationLinks = () => SIDEBAR_GROUPS.map((group) => <View key={group.label} style={styles.sidebarGroup}>
     {!(wideLayout && railLayout) ? <Text style={styles.sidebarGroupTitle}>{group.label}</Text> : null}
     {group.pages.map((page) => {
-      const selected = screen === page || (isFulfillmentPage && page === "Orders");
-      return <Pressable key={page} accessibilityRole="button" accessibilityLabel={page} onPress={() => { navigateRoot(page); setSearch(""); setMobileNavOpen(false); }} style={[styles.sidebarLink, selected && styles.sidebarLinkSelected]}>
-        <View style={[styles.sidebarIcon, wideLayout && railLayout && styles.sidebarIconRail, selected && styles.sidebarIconSelected]}><AppIcon name={PAGE_ICON_NAMES[page] || "dashboard"} size={17} color={selected ? COLORS.onAccent : COLORS.muted} /></View>
+      const selected = navigationSelected(page);
+      const icon = (CORE_NAV_ITEMS.find((item) => item.label === page) || {}).icon || PAGE_ICON_NAMES[page] || "dashboard";
+      return <Pressable key={page} accessibilityRole="button" accessibilityLabel={page} accessibilityState={{ selected }} onPress={() => { navigateRoot(navigationTargetFor(page)); setSearch(""); setMobileNavOpen(false); }} style={[styles.sidebarLink, selected && styles.sidebarLinkSelected]}>
+        <View style={[styles.sidebarIcon, wideLayout && railLayout && styles.sidebarIconRail, selected && styles.sidebarIconSelected]}><AppIcon name={icon} size={17} color={selected ? COLORS.onAccent : COLORS.muted} /></View>
         {!(wideLayout && railLayout) ? <Text style={[styles.sidebarLinkText, selected && styles.sidebarLinkTextSelected]}>{page}</Text> : null}
         {selected ? <View style={styles.sidebarActiveMark} /> : null}
       </Pressable>;
     })}
   </View>);
   const renderTopNavigationLinks = () => <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.themeNavigationContent}>
-    {Array.from(new Set(SIDEBAR_GROUPS.flatMap((group) => group.pages).concat(["Settings"]))).map((page) => {
-      const selected = screen === page || (isFulfillmentPage && page === "Orders");
-      const press = page === "Settings" ? () => navigateRoot("Settings") : () => navigateRoot(page);
-      return <Pressable key={page} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => { press(); setSearch(""); }} style={[styles.themeNavigationLink, selected && styles.themeNavigationLinkSelected]}><AppIcon name={page === "Settings" ? "settings" : PAGE_ICON_NAMES[page] || "dashboard"} size={15} color={selected ? COLORS.onAccent : COLORS.muted} /><Text style={[styles.themeNavigationText, selected && styles.themeNavigationTextSelected]}>{page}</Text></Pressable>;
+    {CORE_NAV_ITEMS.map((item) => {
+      const selected = navigationSelected(item.label);
+      return <Pressable key={item.label} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => { navigateRoot(navigationTargetFor(item.label)); setSearch(""); }} style={[styles.themeNavigationLink, selected && styles.themeNavigationLinkSelected]}><AppIcon name={item.icon} size={15} color={selected ? COLORS.onAccent : COLORS.muted} /><Text style={[styles.themeNavigationText, selected && styles.themeNavigationTextSelected]}>{item.label}</Text></Pressable>;
     })}
   </ScrollView>;
   const renderBottomNavigation = () => <View style={styles.themeBottomNav}>
-    {["Dashboard", "Components", "Products", "Orders", "More"].map((page) => {
-      const selected = screen === page || (isFulfillmentPage && page === "Orders");
-      return <Pressable key={page} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => { navigateRoot(page); setSearch(""); }} style={[styles.themeBottomNavItem, selected && styles.themeBottomNavItemSelected]}><AppIcon name={PAGE_ICON_NAMES[page] || "menu"} size={17} color={selected ? COLORS.wine : COLORS.muted} /><Text style={[styles.themeBottomNavText, selected && styles.themeBottomNavTextSelected]}>{page === "Components" ? "Stock" : page}</Text></Pressable>;
+    {CORE_NAV_ITEMS.slice(0, 5).map((item) => {
+      const selected = navigationSelected(item.label);
+      return <Pressable key={item.label} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => { navigateRoot(navigationTargetFor(item.label)); setSearch(""); }} style={[styles.themeBottomNavItem, selected && styles.themeBottomNavItemSelected]}><AppIcon name={item.icon} size={17} color={selected ? COLORS.wine : COLORS.muted} /><Text style={[styles.themeBottomNavText, selected && styles.themeBottomNavTextSelected]}>{item.label}</Text></Pressable>;
     })}
   </View>;
   const themeMode = db.themeName === CUSTOM_THEME_NAME
@@ -8092,7 +8067,7 @@ export default function App() {
   const assistantActive = screen === "Business Assistant";
   const topNavLayout = CURRENT_APPEARANCE.shellStyle === "topnav";
   const bottomNavLayout = CURRENT_APPEARANCE.shellStyle === "bottomnav";
-  const railLayout = CURRENT_APPEARANCE.shellStyle === "rail";
+  const railLayout = CURRENT_APPEARANCE.shellStyle === "rail" || sidebarCollapsed;
 
   if (!ready && !storageLoadError) {
     return <SafeAreaView style={styles.loading}><StatusBar barStyle={themeMode === "dark" ? "light-content" : "dark-content"} backgroundColor={COLORS.paper} /><Text style={styles.logoMark}>G</Text><Text style={styles.loadingText}>Opening your business tracker...</Text></SafeAreaView>;
@@ -8123,36 +8098,40 @@ export default function App() {
           <Pressable style={styles.brand} onPress={() => navigateRoot("Dashboard")}><View style={styles.brandMark}><Text style={styles.brandMarkText}>G</Text></View><View><Text style={styles.brandName}>GRIMMS</Text><Text style={styles.brandSub}>BUSINESS TRACKER</Text></View></Pressable>
         </View>
         <View style={styles.topActions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Search SKU, order number, product, or barcode" style={styles.globalSearchButton} onPress={() => setGlobalSearchOpen(true)}><AppIcon name="search" size={17} color={COLORS.ink} />{wideLayout ? <Text style={styles.globalSearchButtonText}>SKU / order search</Text> : null}</Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Search or jump to a page, Command K" style={styles.globalSearchButton} onPress={() => { setGlobalSearchOpen(true); setGlobalSearchQuery(""); }}><AppIcon name="search" size={17} color={COLORS.ink} />{wideLayout ? <><Text style={styles.globalSearchButtonText}>Search</Text><Text style={styles.globalSearchShortcut}>⌘ K</Text></> : null}</Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Open Business Assistant" style={styles.assistantDockButton} onPress={() => setAssistantDockOpen(true)}><View style={styles.assistantDockRobot}><AssistantRobot compact /></View></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={"What's new" + (unreadAnnouncementCount ? ", " + unreadAnnouncementCount + " unread" : "")} style={styles.mailboxButton} onPress={() => setAnnouncementOpen(true)}>
             <AppIcon name="mail" size={19} color={COLORS.ink} />
             {unreadAnnouncementCount ? <View style={styles.mailCountBadge}><Text style={styles.mailCountText}>{unreadAnnouncementCount > 9 ? "9+" : unreadAnnouncementCount}</Text></View> : null}
           </Pressable>
-          <Pressable onPress={saveError ? retrySave : undefined} accessibilityLabel={saveError || (saving ? "Saving tracker data" : lastSavedAt ? "Tracker saved" : "Tracker ready")}><Text style={[styles.saveState, saveError && { color: COLORS.red, fontWeight: "700" }]}>{saveError || (saving ? "Saving…" : lastSavedAt ? `Saved ${lastSavedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Ready")}</Text></Pressable>
-          <Pressable accessibilityLabel="Add a business record" style={styles.addCircle} onPress={() => setAddChooserOpen(true)}><AppIcon name="plus" size={19} color={COLORS.onAccent} /></Pressable>
+          {wideLayout ? <Pressable onPress={saveError ? retrySave : undefined} accessibilityLabel={saveError || (saving ? "Saving tracker data" : lastSavedAt ? "Tracker saved" : "Tracker ready")}><Text style={[styles.saveState, saveError && { color: COLORS.red, fontWeight: "700" }]}>{saveError || (saving ? "Saving…" : lastSavedAt ? `Saved ${lastSavedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Ready")}</Text></Pressable> : null}
+          <Pressable accessibilityRole="button" accessibilityLabel="Add a business record" style={[styles.addCircle, wideLayout && styles.newButton]} onPress={() => setAddChooserOpen(true)}>{wideLayout ? <Text style={styles.newButtonText}>＋ New</Text> : <AppIcon name="plus" size={19} color={COLORS.onAccent} />}</Pressable>
         </View>
       </View> : null}
       <View style={[styles.appBody, wideLayout && styles.appBodyWide]}>
-      {wideLayout && !topNavLayout && !bottomNavLayout && !assistantActive ? <View style={[styles.sidebar, railLayout && styles.sidebarRail]}><ScrollView style={styles.sidebarScroll} contentContainerStyle={[styles.sidebarContent, railLayout && styles.sidebarContentRail]} showsVerticalScrollIndicator={false}>{renderNavigationLinks()}</ScrollView>{!railLayout ? <View style={styles.sidebarFooter}>{renderSettingsShortcut()}</View> : <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => navigateRoot("Settings")} style={[styles.railSettings, screen === "Settings" && styles.sidebarLinkSelected]}><AppIcon name="settings" size={18} color={screen === "Settings" ? COLORS.wine : COLORS.muted} /></Pressable>}</View> : null}
+      {wideLayout && !topNavLayout && !bottomNavLayout && !assistantActive ? <View style={[styles.sidebar, railLayout && styles.sidebarRail]}><Pressable accessibilityRole="button" accessibilityLabel={railLayout ? "Expand sidebar" : "Collapse sidebar"} onPress={() => setSidebarCollapsed((collapsed) => !collapsed)} style={[styles.sidebarCollapseButton, railLayout && styles.sidebarCollapseButtonRail]}><AppIcon name="menu" size={17} color={COLORS.muted} />{!railLayout ? <Text style={styles.sidebarCollapseLabel}>Collapse menu</Text> : null}</Pressable><ScrollView style={styles.sidebarScroll} contentContainerStyle={[styles.sidebarContent, railLayout && styles.sidebarContentRail]} showsVerticalScrollIndicator={false}>{renderNavigationLinks()}</ScrollView>{!railLayout ? <View style={styles.sidebarFooter}>{renderSettingsShortcut()}</View> : <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => navigateRoot("Settings")} style={[styles.railSettings, screen === "Settings" && styles.sidebarLinkSelected]}><AppIcon name="settings" size={18} color={screen === "Settings" ? COLORS.wine : COLORS.muted} /></Pressable>}</View> : null}
       <View style={styles.contentPane}>
       {topNavLayout && !assistantActive ? <View style={styles.themeNavigationBar}>{renderTopNavigationLinks()}</View> : null}
       {!assistantActive && screen !== "More" && screen !== "Dashboard" && screen !== "Settings" && screen !== "Help & FAQ" && screen !== "Business Overview" && screen !== "Business Goals" && (
         <View style={styles.searchWrap}><AppIcon name="search" size={17} color={COLORS.muted} /><TextInput value={search} onChangeText={setSearch} placeholder={screen === "Notes" ? "Search notes, plans, diary entries, tags…" : "Search " + (isFulfillmentPage ? "products" : screen.toLowerCase())} placeholderTextColor={COLORS.placeholder} style={styles.searchInput} returnKeyType="search" /><Pressable onPress={() => setSearch("")}><Text style={styles.searchClear}>×</Text></Pressable></View>
       )}
-      {!assistantActive ? <View style={[styles.screenHeading, styles["screenHeading_" + CURRENT_APPEARANCE.headerLayout]]}><View style={styles.flex}><Text style={styles.screenTitle}>{screenTitle}</Text>{screen !== "Dashboard" ? <Text style={styles.screenSubtitle}>{isFulfillmentPage ? "Products in this fulfillment status" : screen === "Production" ? "Turn materials into finished inventory" : screen === "Time" ? "Clock shifts, connect tasks and projects, and review your hours" : screen === "Ideas" ? "Save and move product ideas through your work" : screen === "Notes" ? "Research, plans, diary entries, and business notes" : screen === "Business Overview" ? "Explore a detailed record of your business for any chosen date range" : screen === "Listing Analytics" ? "Record marketplace stats and review performance" : screen === "Help & FAQ" ? "Instructions and answers for your business tools" : "A clear view of your handmade business"}</Text> : <Text style={styles.screenSubtitle}>Your handmade business, in one place</Text>}</View>
+      {!assistantActive ? <View style={[styles.screenHeading, styles["screenHeading_" + CURRENT_APPEARANCE.headerLayout]]}>
+        <View style={styles.flex}><Text style={styles.screenTitle}>{screenTitle}</Text>{screen === "Dashboard" ? <Text style={styles.screenSubtitle}>Your business, in one place</Text> : null}</View>
         <View style={styles.headerActions}>
-          {navigationStack.length > 1 ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.headerAdd} onPress={navigateBack}><Text style={styles.headerAddText}>‹ Back</Text></Pressable> : null}
-          <Pressable accessibilityRole="button" accessibilityLabel={"Needs attention" + (pageAttentionItems.length ? ", " + pageAttentionItems.length + " items on this page" : ", none on this page")} style={[styles.mailboxButton, { width: "auto", height: 34, flexDirection: "row", gap: 5, paddingHorizontal: 8 }]} onPress={() => setAttentionOpen(true)}>
-            <AppIcon name="mail" size={15} color={pageAttentionItems.length ? COLORS.red : COLORS.muted} />
-            <Text style={{ color: pageAttentionItems.length ? COLORS.red : COLORS.muted, fontSize: 10, fontWeight: "700" }}>Attention · {pageAttentionItems.length}</Text>
-          </Pressable>
-          <Pressable accessibilityLabel={screenTitle + " help"} style={styles.helpButton} onPress={() => setHelpOpen(true)}><AppIcon name="help" size={17} color={COLORS.wine} /></Pressable>
+          {screen === "Products" ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("product")}><Text style={styles.headerAddText}>＋ Product</Text></Pressable> : null}
+          {screen === "Components" ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("component")}><Text style={styles.headerAddText}>＋ Component</Text></Pressable> : null}
+          {screen === "Orders" || isFulfillmentPage ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("order")}><Text style={styles.headerAddText}>＋ Sale</Text></Pressable> : null}
+          {screen === "Listings" ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("listing")}><Text style={styles.headerAddText}>＋ Listing</Text></Pressable> : null}
+          {navigationStack.length > 1 && !["Dashboard", "Products", "Components", "Orders", "Business Overview", "Listing Analytics", "Finances", "More", "Settings"].includes(screen) ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.headerBackButton} onPress={navigateBack}><Text style={styles.headerBackText}>‹ Back</Text></Pressable> : null}
         </View>
       </View> : null}
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         {assistantActive ? <View style={[styles.assistantPageHost, styles.flex]}>{renderBusinessAssistant()}</View> : <ScrollView ref={mainScrollRef} style={styles.mainScroll} contentContainerStyle={[styles.pageContent, wideLayout && styles.pageContentWide]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
           {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
           {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
+          {isInventoryPage || isAnalyticsPage ? <View style={styles.workspaceTabs}>
+            {(isInventoryPage ? [{ label: "Products", target: "Products" }, { label: "Components", target: "Components" }] : [{ label: "Overview", target: "Business Overview" }, { label: "Listings", target: "Listing Analytics" }, { label: "Finances", target: "Finances" }]).map((tab) => <Pressable key={tab.target} accessibilityRole="tab" accessibilityState={{ selected: screen === tab.target }} onPress={() => navigateRoot(tab.target)} style={[styles.workspaceTab, screen === tab.target && styles.workspaceTabSelected]}><Text style={[styles.workspaceTabText, screen === tab.target && styles.workspaceTabTextSelected]}>{tab.label}</Text></Pressable>)}
+          </View> : null}
           <Animated.View style={{ opacity: screenFade, transform: [{ translateY: screenFade.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }) }] }}>{contentForScreen()}</Animated.View>
           <View style={styles.bottomNote}><Text style={styles.bottomNoteText}>GRIMMS · Keep your business moving, one step at a time.</Text></View>
         </ScrollView>}
@@ -8164,7 +8143,7 @@ export default function App() {
         <View style={styles.mobileNavOverlay}>
           <Pressable style={styles.mobileNavScrim} onPress={() => setMobileNavOpen(false)} accessibilityLabel="Close pages menu" />
           <SafeAreaView style={styles.mobileNavDrawer}>
-            <View style={styles.mobileNavHeader}><View><Text style={styles.mobileNavTitle}>All pages</Text><Text style={styles.mobileNavSubtitle}>Choose a workspace area</Text></View><Pressable accessibilityRole="button" onPress={() => setMobileNavOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
+            <View style={styles.mobileNavHeader}><View><Text style={styles.mobileNavTitle}>Workspace</Text><Text style={styles.mobileNavSubtitle}>Core business areas</Text></View><Pressable accessibilityRole="button" onPress={() => setMobileNavOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
             <ScrollView contentContainerStyle={styles.sidebarContent}>{renderNavigationLinks()}</ScrollView>
             <View style={styles.sidebarFooter}>{renderSettingsShortcut()}</View>
           </SafeAreaView>
@@ -8253,7 +8232,15 @@ export default function App() {
       <TutorialModal visible={tutorialOpen} onClose={() => finishTutorial(false)} onOpenSettings={() => finishTutorial(true)} onRestoreBackup={openSavedBackupRestore} />
       <WelcomeSetupModal visible={welcomeOpen} db={db} onFinish={finishWelcomeSetup} onSkip={skipWelcomeSetup} onRestoreBackup={openSavedBackupRestore} />
       <WelcomeBackModal visible={welcomeBackOpen && !welcomeOpen} db={db} onContinue={() => setWelcomeBackOpen(false)} onRestoreBackup={openSavedBackupRestore} />
-      <RecordDetailModal visible={!!detailSelection} type={detailSelection && detailSelection.type} record={detailRecord} currency={db.currency} inventoryHistory={detailSelection && detailSelection.type === "component" ? (db.componentTransactions || []).filter((entry) => entry.componentId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : detailSelection && detailSelection.type === "product" ? (db.productTransactions || []).filter((entry) => entry.productId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : []} onClose={() => setDetailSelection(null)} onEdit={() => { beginEdit(detailSelection.type, detailRecord); setDetailSelection(null); }} />
+      <Modal visible={assistantDockOpen && !assistantActive} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setAssistantDockOpen(false)}>
+        <View style={styles.recordDrawerOverlay}><Pressable style={styles.recordDrawerScrim} onPress={() => setAssistantDockOpen(false)} accessibilityLabel="Close Business Assistant" /><SafeAreaView style={styles.assistantDrawerPanel}><View style={styles.assistantDrawerContent}>{renderBusinessAssistant(true)}</View></SafeAreaView></View>
+      </Modal>
+      <RecordDetailModal visible={!!detailSelection} type={detailSelection && detailSelection.type} record={detailRecord} currency={db.currency} inventoryHistory={detailSelection && detailSelection.type === "component" ? (db.componentTransactions || []).filter((entry) => entry.componentId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : detailSelection && detailSelection.type === "product" ? (db.productTransactions || []).filter((entry) => entry.productId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : []} onClose={() => setDetailSelection(null)} onEdit={() => { beginEdit(detailSelection.type, detailRecord); setDetailSelection(null); }} actions={detailSelection && detailRecord ? <View style={styles.actionRow}>
+        {detailSelection.type === "product" ? <><Action label="Duplicate" quiet onPress={() => { duplicateRecord("product", detailRecord); setDetailSelection(null); }} />{!detailRecord.archived && (detailRecord.recipe || []).length ? <Action label="Make" quiet onPress={() => { setProductionProduct(detailRecord.id); navigateToScreen("Production"); setDetailSelection(null); }} /> : null}{detailRecord.archived ? <Action label="Restore" onPress={() => { restoreRecord("products", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive" quiet onPress={() => { archiveRecord("products", detailRecord, "product"); setDetailSelection(null); }} />}<Action label="Delete" quiet onPress={() => { permanentlyDeleteRecord("products", detailRecord, "product"); setDetailSelection(null); }} /></> : null}
+        {detailSelection.type === "component" ? <>{!detailRecord.archived ? <Action label="Restock" onPress={() => { beginAdd("restock", { componentId: detailRecord.id }); setDetailSelection(null); }} /> : null}<Action label="Duplicate" quiet onPress={() => { duplicateRecord("component", detailRecord); setDetailSelection(null); }} />{detailRecord.archived ? <Action label="Restore" onPress={() => { restoreRecord("components", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive" quiet onPress={() => { archiveRecord("components", detailRecord, "component"); setDetailSelection(null); }} />}<Action label="Delete" quiet onPress={() => { permanentlyDeleteRecord("components", detailRecord, "component"); setDetailSelection(null); }} /></> : null}
+        {detailSelection.type === "listing" ? <>{detailRecord.archived ? <Action label="Restore" onPress={() => { restoreRecord("listings", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive" quiet onPress={() => { archiveRecord("listings", detailRecord, "listing"); setDetailSelection(null); }} />}<Action label="Delete" quiet onPress={() => { permanentlyDeleteRecord("listings", detailRecord, "listing"); setDetailSelection(null); }} /></> : null}
+        {detailSelection.type === "order" ? <>{!detailRecord.refundedAt && !["Fulfilled", "Complete"].includes(detailRecord.status) ? <Action label={"Next: " + (fulfillmentStatuses[Math.max(0, fulfillmentStatuses.indexOf(detailRecord.status) + 1)] || "Fulfilled")} onPress={() => { updateOrderStatus(detailRecord); setDetailSelection(null); }} /> : null}{!detailRecord.archived && !detailRecord.refundedAt ? <Action label="Record refund or return" onPress={() => { setRefundEditor(detailRecord); setDetailSelection(null); }} /> : null}{detailRecord.archived ? <Action label="Restore order" onPress={() => { restoreRecord("orders", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive order" quiet onPress={() => { archiveRecord("orders", detailRecord, "order"); setDetailSelection(null); }} />}<Action label="Delete accidental sale" quiet onPress={() => { permanentlyDeleteRecord("orders", detailRecord, "order"); setDetailSelection(null); }} /></> : null}
+      </View> : null} />
       <TimeEditModal visible={!!timeEdit} mode={timeEdit && timeEdit.mode} session={timeEdit && timeEdit.session} tasks={db.tasks} onClose={() => setTimeEdit(null)} onSave={saveEditedTime} />
       <DiscountPlanModal visible={!!discountEditor} listing={discountEditor ? db.listings.find((item) => item.id === discountEditor.listingId) : null} plan={discountEditor && discountEditor.plan} onClose={() => setDiscountEditor(null)} onSave={saveDiscountPlan} />
       <RelistModal visible={!!relistEditor} listing={relistEditor} product={relistEditor ? db.products.find((item) => item.id === relistEditor.productId) : null} onClose={() => setRelistEditor(null)} onSave={saveRelist} />
@@ -8387,11 +8374,12 @@ export default function App() {
       </Modal>
 
       <Modal visible={globalSearchOpen} transparent animationType="fade" onRequestClose={() => setGlobalSearchOpen(false)}>
-        <View style={styles.globalSearchOverlay}><Pressable style={styles.globalSearchScrim} accessibilityLabel="Close quick search" onPress={() => setGlobalSearchOpen(false)} /><View style={styles.globalSearchPanel}>
-          <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Quick search</Text><Text style={styles.fieldHint}>Search products, components, listings, orders, and notes. Barcode scanners work in this field.</Text></View><Pressable onPress={() => setGlobalSearchOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
-          <TextInput value={globalSearchQuery} onChangeText={setGlobalSearchQuery} placeholder="Scan or enter a SKU, barcode, order number…" placeholderTextColor={COLORS.placeholder} style={styles.globalSearchInput} autoCapitalize="none" autoCorrect={false} returnKeyType="search" />
+        <View style={styles.globalSearchOverlay}><Pressable style={styles.globalSearchScrim} accessibilityLabel="Close workspace search" onPress={() => setGlobalSearchOpen(false)} /><View style={styles.globalSearchPanel}>
+          <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.cardTitle}>Search the workspace</Text><Text style={styles.fieldHint}>Find a record, open a page, or start a common action. Press ⌘K or Ctrl K anytime.</Text></View><Pressable onPress={() => setGlobalSearchOpen(false)}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
+          <TextInput value={globalSearchQuery} onChangeText={setGlobalSearchQuery} placeholder="Search pages, records, SKUs, or actions…" placeholderTextColor={COLORS.placeholder} style={styles.globalSearchInput} autoCapitalize="none" autoCorrect={false} returnKeyType="search" />
           <ScrollView style={styles.globalSearchResults} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
-            {globalSearchQuery.trim() ? globalSearchResults.length ? globalSearchResults.map((row) => <Pressable key={row.type + row.record.id} style={styles.globalSearchResult} onPress={() => openGlobalSearchResult(row)}><View style={styles.flex}><Text style={styles.recordTitle}>{row.title || "Untitled record"}</Text><Text style={styles.recordMeta}>{row.type} · {row.detail || "No extra details"}</Text></View><Text style={styles.helpLinkArrow}>›</Text></Pressable>) : <Text style={styles.bodyText}>No saved records match this code or search.</Text> : <Text style={styles.bodyText}>Start typing or scan a barcode. Matching records appear here as you enter the code.</Text>}
+            {globalCommandResults.length ? <><Text style={styles.commandSectionLabel}>{globalSearchQuery.trim() ? "Pages and actions" : "Jump to"}</Text>{globalCommandResults.map((command) => <Pressable key={command.label} style={styles.globalSearchResult} onPress={() => runGlobalCommand(command)}><View style={styles.flex}><Text style={styles.recordTitle}>{command.label}</Text><Text style={styles.recordMeta}>{command.detail || "Open workspace"}</Text></View><Text style={styles.helpLinkArrow}>›</Text></Pressable>)}</> : null}
+            {globalSearchQuery.trim() ? <><Text style={styles.commandSectionLabel}>Records</Text>{globalSearchResults.length ? globalSearchResults.map((row) => <Pressable key={row.type + row.record.id} style={styles.globalSearchResult} onPress={() => openGlobalSearchResult(row)}><View style={styles.flex}><Text style={styles.recordTitle}>{row.title || "Untitled record"}</Text><Text style={styles.recordMeta}>{row.type} · {row.detail || "No extra details"}</Text></View><Text style={styles.helpLinkArrow}>›</Text></Pressable>) : <Text style={styles.fieldHint}>No matching saved records.</Text>}</> : <Text style={styles.fieldHint}>Search also accepts scanned barcodes and order numbers.</Text>}
           </ScrollView>
         </View></View>
       </Modal>
@@ -8410,10 +8398,47 @@ function makeStyles() { return StyleSheet.create({
   appBody: { flex: 1, minHeight: 0 },
   appBodyWide: { flexDirection: "row" },
   contentPane: { flex: 1, minWidth: 0 },
+  screenSummary: { marginBottom: 10 },
+  screenSummaryDescription: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginBottom: 8 },
+  pageLeadText: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginBottom: 10 },
+  workspaceTabs: { flexDirection: "row", alignItems: "center", gap: 4, borderBottomWidth: 1, borderBottomColor: COLORS.line, marginBottom: 14 },
+  workspaceTab: { minHeight: 38, alignItems: "center", justifyContent: "center", paddingHorizontal: 14, borderBottomWidth: 2, borderBottomColor: "transparent" },
+  workspaceTabSelected: { borderBottomColor: COLORS.wine },
+  workspaceTabText: { color: COLORS.muted, fontSize: 12, fontWeight: "600" },
+  workspaceTabTextSelected: { color: COLORS.wine, fontWeight: "700" },
+  recordTable: { backgroundColor: COLORS.card, borderTopWidth: 1, borderTopColor: COLORS.line, marginBottom: 12 },
+  recordTableHeader: { minHeight: 38, flexDirection: "row", alignItems: "center", paddingHorizontal: 12, gap: 9, backgroundColor: COLORS.soft, borderBottomWidth: 1, borderBottomColor: COLORS.line },
+  recordTableRow: { minHeight: 56, flexDirection: "row", alignItems: "center", paddingHorizontal: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, backgroundColor: COLORS.card },
+  recordTableCells: { flex: 1, minWidth: 0, minHeight: 56, flexDirection: "row", alignItems: "center", paddingHorizontal: 4, gap: 9 },
+  recordCellPrimary: { flex: 2.6, minWidth: 0, justifyContent: "center" },
+  recordCellSku: { flex: 1, minWidth: 46, color: COLORS.muted, fontSize: 11 },
+  recordCellStatus: { flex: 1.15, minWidth: 75, justifyContent: "center", alignItems: "flex-start" },
+  recordCellNumber: { flex: 0.9, minWidth: 58, color: COLORS.ink, fontSize: 12, fontWeight: "700", textAlign: "right" },
+  recordHeaderPrimary: { flex: 2.6, minWidth: 0, color: COLORS.muted, fontSize: 10, fontWeight: "700" },
+  recordHeaderSku: { flex: 1, minWidth: 46, color: COLORS.muted, fontSize: 10, fontWeight: "700" },
+  recordHeaderStatus: { flex: 1.15, minWidth: 75, color: COLORS.muted, fontSize: 10, fontWeight: "700" },
+  recordHeaderNumber: { flex: 0.9, minWidth: 58, color: COLORS.muted, fontSize: 10, fontWeight: "700", textAlign: "right" },
+  recordDrawerOverlay: { flex: 1, flexDirection: "row", justifyContent: "flex-end" },
+  recordDrawerScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(18,24,33,0.34)" },
+  recordDrawerPanel: { width: Platform.OS === "web" ? "42%" : "100%", maxWidth: 540, height: "100%", marginLeft: "auto", backgroundColor: COLORS.card, borderLeftWidth: 1, borderLeftColor: COLORS.line, elevation: 14 },
+  recordDrawerHeader: { minHeight: 76, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.line, backgroundColor: COLORS.card },
+  recordDrawerHeaderActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+  recordDrawerEyebrow: { color: COLORS.muted, fontSize: 9, letterSpacing: 1.1, fontWeight: "800", marginBottom: 3 },
+  recordDrawerTitle: { color: COLORS.ink, fontSize: 18, fontWeight: "700", lineHeight: 23 },
+  drawerEditButton: { minHeight: 34, justifyContent: "center", paddingHorizontal: 12, borderRadius: 8, backgroundColor: COLORS.wine },
+  drawerEditText: { color: COLORS.onAccent, fontSize: 12, fontWeight: "700" },
+  drawerCloseButton: { minHeight: 34, justifyContent: "center", paddingHorizontal: 8 },
+  recordDrawerContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28 },
+  recordDrawerActions: { marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: COLORS.line },
+  assistantDrawerPanel: { width: Platform.OS === "web" ? "46%" : "100%", maxWidth: 600, height: "100%", marginLeft: "auto", backgroundColor: COLORS.paper, borderLeftWidth: 1, borderLeftColor: COLORS.line, elevation: 14 },
+  assistantDrawerContent: { flex: 1, minHeight: 0 },
   assistantPageHost: { flex: 1, minHeight: 0, paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, width: "100%", maxWidth: 1100, alignSelf: "center" },
   sidebar: { width: 218, backgroundColor: CURRENT_APPEARANCE.cardStyle === "paper" || CURRENT_APPEARANCE.cardStyle === "ledger" ? COLORS.soft : COLORS.card, borderRightWidth: CURRENT_APPEARANCE.cardStyle === "minimal" ? 0 : 1, borderRightColor: COLORS.line },
   sidebarRail: { width: 76, alignItems: "center", backgroundColor: COLORS.card, borderRightColor: COLORS.line },
   sidebarScroll: { flex: 1 },
+  sidebarCollapseButton: { minHeight: 40, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 15, borderBottomWidth: 1, borderBottomColor: COLORS.line },
+  sidebarCollapseButtonRail: { justifyContent: "center", paddingHorizontal: 0 },
+  sidebarCollapseLabel: { color: COLORS.muted, fontSize: 10, fontWeight: "600" },
   sidebarContent: { paddingHorizontal: 10, paddingTop: 12, paddingBottom: 8 },
   sidebarContentRail: { width: "100%", paddingHorizontal: 8, alignItems: "center" },
   sidebarGroup: { marginBottom: 8 },
@@ -8479,19 +8504,21 @@ function makeStyles() { return StyleSheet.create({
   screenHeading_centered: { flexDirection: "column", alignItems: "center", paddingTop: 14, paddingBottom: 12 },
   screenHeading_compact: { paddingTop: 4, paddingBottom: 3 },
   screenHeading_block: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: COLORS.soft, borderBottomWidth: 3, borderBottomColor: COLORS.wine },
-  screenHeading_minimal: { paddingHorizontal: 22, paddingTop: 18, paddingBottom: 12 },
+  screenHeading_minimal: { paddingHorizontal: 22, paddingTop: 17, paddingBottom: 8 },
   screenHeading_cafe: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8, borderBottomWidth: 2, borderBottomColor: COLORS.softLine },
   screenHeading_arcade: { paddingHorizontal: 14, paddingTop: 7, paddingBottom: 5, borderBottomWidth: 1, borderBottomColor: COLORS.wine },
   screenHeading_postcard: { paddingHorizontal: 23, paddingTop: 16, paddingBottom: 12, borderLeftWidth: 5, borderLeftColor: COLORS.wine, marginLeft: 10 },
-  screenTitle: { color: COLORS.ink, fontSize: 21, fontWeight: "750", letterSpacing: -0.35 },
+  screenTitle: { color: COLORS.ink, fontSize: 23, fontWeight: "700", letterSpacing: -0.4 },
   screenSubtitle: { color: COLORS.muted, fontSize: 11, marginTop: 2 },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 7, marginLeft: 8 },
   helpButton: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, alignItems: "center", justifyContent: "center" },
+  headerBackButton: { minHeight: 34, justifyContent: "center", paddingHorizontal: 8 },
+  headerBackText: { color: COLORS.wine, fontSize: 12, fontWeight: "700" },
   headerAdd: { backgroundColor: COLORS.wine, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 12 },
   headerAddText: { color: COLORS.onAccent, fontSize: 13, fontWeight: "700" },
   mainScroll: { flex: 1 },
-  pageContent: { paddingHorizontal: CURRENT_APPEARANCE.density === "Compact" ? 12 : 16, paddingTop: 12, paddingBottom: 24, maxWidth: 1240, width: "100%", alignSelf: "center" },
-  pageContentWide: { paddingHorizontal: 24 },
+  pageContent: { paddingHorizontal: CURRENT_APPEARANCE.density === "Compact" ? 12 : 18, paddingTop: 10, paddingBottom: 28, maxWidth: 1240, width: "100%", alignSelf: "center" },
+  pageContentWide: { paddingHorizontal: 28 },
   welcomeBox: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, padding: 18, borderRadius: 14, marginBottom: 12, overflow: "hidden" },
   welcomeBoxCompact: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, padding: 16, borderRadius: 14, marginBottom: 11 },
   heroTopline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
@@ -8528,7 +8555,7 @@ function makeStyles() { return StyleSheet.create({
   reportSectionOption: { minHeight: 42, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
   reportSectionOptionSelected: { borderColor: COLORS.softLine, backgroundColor: COLORS.soft },
   reportSectionLabel: { color: COLORS.ink, fontSize: 12, fontWeight: "600", flex: 1 },
-  metric: { width: "48%", flexGrow: 1, backgroundColor: COLORS.card, borderRadius: 11, borderWidth: 1, borderColor: COLORS.line, padding: 10, minHeight: 64 },
+  metric: { width: "31%", flexGrow: 1, backgroundColor: COLORS.card, borderRadius: 10, borderWidth: 1, borderColor: COLORS.line, padding: 12, minHeight: 68 },
   metricCompact: { width: 0, flex: 1, minWidth: 0, padding: 8, minHeight: 55 },
   metricLabel: { color: COLORS.muted, fontSize: 10, fontWeight: "600" },
   metricValue: { color: COLORS.ink, fontSize: 19, fontWeight: "700", marginTop: 6 },
@@ -8655,7 +8682,7 @@ function makeStyles() { return StyleSheet.create({
   quickAddRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   quickAddButton: { backgroundColor: COLORS.rose, borderColor: COLORS.line, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12 },
   quickAddText: { color: COLORS.wineDark, fontSize: 11, fontWeight: "700" },
-  infoBanner: { backgroundColor: COLORS.lavender, borderRadius: 15, padding: 14, marginBottom: 12 },
+  infoBanner: { backgroundColor: COLORS.soft, borderRadius: 8, borderLeftWidth: 2, borderLeftColor: COLORS.softLine, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 },
   recordActionNotice: { backgroundColor: COLORS.sage, borderWidth: 1, borderColor: COLORS.green, borderRadius: 12, padding: 12, marginBottom: 10 },
   recordActionNoticeTitle: { color: COLORS.green, fontSize: 12, fontWeight: "800" },
   recordActionNoticeText: { color: COLORS.ink, fontSize: 11, lineHeight: 16, marginTop: 3 },
@@ -8932,8 +8959,8 @@ function makeStyles() { return StyleSheet.create({
   ideaLaneEmptyText: { color: COLORS.ink, fontSize: 13, fontWeight: "700", textAlign: "center" },
   ideaLaneEmptyHint: { color: COLORS.muted, fontSize: 11, lineHeight: 16, textAlign: "center", marginBottom: 4 },
   ideaNote: { padding: 12, marginHorizontal: 10, marginBottom: 10, borderRadius: 13, backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line },
-  moreGrid: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
-  moreTile: { width: "48%", flexGrow: 1, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 11, padding: 10, minHeight: 76 },
+  moreGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  moreTile: { width: "48%", flexGrow: 1, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, padding: 13, minHeight: 82 },
   moreTileWide: { width: "31%" },
   moreIcon: { width: 28, height: 28, borderRadius: 8, backgroundColor: COLORS.soft, alignItems: "center", justifyContent: "center", marginBottom: 5 },
   moreTitle: { color: COLORS.ink, fontSize: 13, fontWeight: "700" },
@@ -8975,12 +9002,18 @@ function makeStyles() { return StyleSheet.create({
   backupReview: { borderWidth: 1, borderColor: COLORS.line, borderRadius: 11, backgroundColor: COLORS.card, padding: 12, marginTop: 11 },
   backupInput: { minHeight: 300, maxHeight: 480, backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, borderRadius: 12, marginTop: 12, padding: 12, textAlignVertical: "top", color: COLORS.ink, fontSize: 10, fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace" },
   globalSearchButton: { minHeight: 34, minWidth: 36, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.card },
-  globalSearchButtonText: { color: COLORS.ink, fontSize: 10, fontWeight: "700" },
+  globalSearchButtonText: { color: COLORS.ink, fontSize: 11, fontWeight: "600" },
+  globalSearchShortcut: { color: COLORS.muted, fontSize: 9, borderWidth: 1, borderColor: COLORS.line, borderRadius: 4, overflow: "hidden", paddingHorizontal: 4, paddingVertical: 2 },
+  assistantDockButton: { width: 38, height: 36, borderRadius: 9, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  assistantDockRobot: { width: 48, height: 48, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.7 }] },
+  newButton: { width: "auto", minWidth: 70, height: 34, borderRadius: 8, paddingHorizontal: 12 },
+  newButtonText: { color: COLORS.onAccent, fontSize: 12, fontWeight: "700" },
+  commandSectionLabel: { color: COLORS.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.7, marginTop: 12, marginBottom: 2 },
   globalSearchOverlay: { flex: 1, justifyContent: "center", alignItems: "center", padding: 14 },
   globalSearchScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(20,18,20,0.5)" },
   globalSearchPanel: { width: "100%", maxWidth: 720, maxHeight: "88%", backgroundColor: COLORS.paper, borderColor: COLORS.line, borderWidth: 1, borderRadius: 18, padding: 16, elevation: 8 },
   globalSearchInput: { minHeight: 46, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, color: COLORS.ink, backgroundColor: COLORS.card, marginTop: 13, fontSize: 13 },
-  globalSearchResults: { maxHeight: 420, marginTop: 9 },
+  globalSearchResults: { maxHeight: 500, marginTop: 9 },
   globalSearchResult: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 8 },
   robotWrap: { width: 78, height: 76, alignItems: "center", justifyContent: "center", position: "relative" },
   robotWrapCompact: { width: 48, height: 48 },
