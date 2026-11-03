@@ -63,13 +63,16 @@ const ButtonSoundContext = createContext(null);
 // Keep this list to dependable, accurately named browser typefaces. A generic
 // cursive fallback made the old Comic Sans choice look like a different font.
 const FONT_FAMILY_OPTIONS = ["System", "Arial", "Trebuchet MS", "Verdana", "Georgia", "Palatino Linotype", "Times New Roman", "Courier New", "Consolas", "Tahoma"];
+const ASSISTANT_ROBOTS = [
+  { id: "orbit", name: "Orbit", detail: "Your friendly business robot" },
+];
 const APPEARANCE_DEFAULTS = {
   templateName: "Modern Ledger", fontFamily: "System", baseFontSize: 1,
   headingWeight: "700", cardRadius: 14, density: "Comfortable", headerLayout: "minimal",
   shadowIntensity: 0, buttonRoundness: 10, tableRowHeight: 56, accentGlow: false,
   dividerOpacity: 0.8, scrollbarStyle: "Auto", cardStyle: "minimal", shellStyle: "sidebar",
   buttonStyle: "minimal", iconStyle: "outlined", motif: "none", robotStyle: "orbit",
-  assistantColor: "#3157C8", assistantColorMode: "theme", businessGlanceShape: "panel",
+  assistantColor: "#3157C8", businessGlanceShape: "panel",
 };
 let CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS };
 const setAppearanceSettings = (settings) => {
@@ -288,6 +291,7 @@ const DASHBOARD_WIDGETS = [
   { id: "sales", label: "Sales and cash", description: "Daily, weekly, monthly, and yearly sales, profit, fees, and expenses" },
   { id: "fulfillment", label: "Order fulfillment", description: "Counts by sale status" },
   { id: "time", label: "Today’s time", description: "Worked time, break totals, and current shift status" },
+  { id: "attention", label: "Needs your attention", description: "Low stock, open orders, and overdue tasks" },
   { id: "snapshot", label: "Business snapshot", description: "Quick counts for products, materials, orders, and tasks" },
   { id: "connections", label: "Product and material connections", description: "See which materials are used by finished products and which products have active listings" },
   { id: "quickAdd", label: "Quick add", description: "Shortcuts for common records" },
@@ -833,11 +837,10 @@ const normalizeDatabase = (saved) => {
     ...matchedTemplate.appearance,
     templateName: matchedTemplate.name,
     fontFamily: FONT_FAMILY_OPTIONS.includes(savedAppearance.fontFamily) ? savedAppearance.fontFamily : APPEARANCE_DEFAULTS.fontFamily,
-    robotStyle: APPEARANCE_DEFAULTS.robotStyle,
+    robotStyle: ASSISTANT_ROBOTS.some((robot) => robot.id === savedAppearance.robotStyle) ? savedAppearance.robotStyle : APPEARANCE_DEFAULTS.robotStyle,
     cardRadius: Number.isFinite(Number(savedAppearance.cardRadius)) ? Math.min(32, Math.max(4, Number(savedAppearance.cardRadius))) : matchedTemplate.appearance.cardRadius,
     cardStyle: ["soft", "outlined", "minimal", "gallery", "colorBlock", "ledger"].includes(savedAppearance.cardStyle) ? savedAppearance.cardStyle : matchedTemplate.appearance.cardStyle,
     assistantColor: validHexColor(savedAppearance.assistantColor) ? savedAppearance.assistantColor : APPEARANCE_DEFAULTS.assistantColor,
-    assistantColorMode: savedAppearance.assistantColorMode === "theme" || savedAppearance.assistantColorMode === "custom" ? savedAppearance.assistantColorMode : validHexColor(savedAppearance.assistantColor) && savedAppearance.assistantColor.toUpperCase() !== APPEARANCE_DEFAULTS.assistantColor.toUpperCase() ? "custom" : "theme",
     businessGlanceShape: ["square", "panel", "rounded"].includes(savedAppearance.businessGlanceShape) ? savedAppearance.businessGlanceShape : APPEARANCE_DEFAULTS.businessGlanceShape,
     shellStyle: "sidebar",
     headerLayout: "minimal",
@@ -1639,30 +1642,6 @@ function Field({ field, value, onChange, onManageOptions }) {
 
 function SortControl({ value, onChange, options = SORT_OPTIONS }) {
   return <Field field={{ label: "Sort by", options }} value={value || "newest"} onChange={onChange} />;
-}
-
-function CompactSortControl({ value, onChange, options = CATALOG_SORT_OPTIONS }) {
-  const [open, setOpen] = useState(false);
-  const selected = options.find((option) => option.value === value) || options[0];
-  return <>
-    <Pressable accessibilityRole="button" accessibilityLabel={"Sort by " + (selected ? selected.label : "default order")} onPress={() => setOpen(true)} style={styles.catalogToolbarButton}>
-      <Text style={styles.catalogToolbarGlyph}>↕</Text><View><Text style={styles.catalogToolbarButtonLabel}>Sort</Text><Text style={styles.catalogToolbarButtonValue} numberOfLines={1}>{selected ? selected.label : "Default"}</Text></View>
-    </Pressable>
-    <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-      <View style={styles.catalogSheetBackdrop}><Pressable style={styles.catalogSheetScrim} onPress={() => setOpen(false)} accessibilityLabel="Close sort options" /><SafeAreaView style={styles.catalogSortSheet}>
-        <View style={styles.catalogSheetHeader}><View style={styles.flex}><Text style={styles.cardTitle}>Sort by</Text><Text style={styles.fieldHint}>Choose how this list is ordered.</Text></View><Pressable accessibilityRole="button" onPress={() => setOpen(false)} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
-        <ScrollView style={styles.catalogSortOptions} keyboardShouldPersistTaps="handled">
-          {options.map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: value === option.value }} onPress={() => { onChange(option.value); setOpen(false); }} style={[styles.catalogSortOption, value === option.value && styles.catalogSortOptionSelected]}><Text style={[styles.catalogSortOptionText, value === option.value && styles.catalogSortOptionTextSelected]}>{option.label}</Text>{value === option.value ? <Text style={styles.catalogSortCheck}>✓</Text> : null}</Pressable>)}
-        </ScrollView>
-      </SafeAreaView></View>
-    </Modal>
-  </>;
-}
-
-function SegmentedToggle({ options, value, onChange }) {
-  return <View style={styles.catalogSegmented}>
-    {options.map((option) => <Pressable key={String(option.value)} accessibilityRole="button" accessibilityState={{ selected: value === option.value }} onPress={() => onChange(option.value)} style={[styles.catalogSegment, value === option.value && styles.catalogSegmentSelected]}><Text style={[styles.catalogSegmentText, value === option.value && styles.catalogSegmentTextSelected]}>{option.label}</Text></Pressable>)}
-  </View>;
 }
 
 function ChoiceChips({ label, options, value, onChange }) {
@@ -2707,7 +2686,7 @@ const TUTORIAL_STEPS = [
   ["Build a finished product and its recipe", "Create a Product for something ready to sell. Add the normal selling price, finished inventory, buyer-facing colors/materials, and packed parcel weight. If you want the app to track materials used during production, add each component and the amount needed for one unit to the recipe.", "Example: one bracelet uses 12 beads and 1 clasp. Set those recipe amounts, then record a production run of 3 bracelets; the tracker subtracts 36 beads and 3 clasps and adds 3 finished bracelets."],
   ["Record listings and promotions", "A Listing records the product page you maintain on one or more channels. Add the public URLs, status, price, and your planned live or relist dates. Add discount plans to see start/end reminders in the promotion calendar. These entries never publish the listing or change a sale on the marketplace; you must do those steps there.", "Example: select Etsy and Shopify for the listing, then plan 10% off from 12/02/2026 to 12/05/2026. Add the same discount in each marketplace yourself; the tracker keeps the dates and reminder."],
   ["Enter sales and fulfill them", "Orders are entered by you; they are not imported and the app does not take payment. Saving a sale reduces finished inventory. Fee estimates use your Settings rules until you enter the actual fee from the marketplace. Move fulfillment status as each real step is completed, and add tracking after buying a shipping label.", "Example: record one $28 necklace sold on Etsy. Pack it, move the status to Ready to Ship, purchase a label, add the carrier and tracking number, then mark Shipped after handing it over."],
-  ["Review your records and protect them", "Each page’s mailbox counts open items for that page. Open it to review a record; search and sort help find records, and Details shows the saved history. Reports and profit are estimates based on what you entered, so compare them against source statements. Export a backup regularly: this version stores unencrypted local records on this device and does not sync to an account or another device.", "Example: compare recorded monthly sales and fees with your Etsy statement, correct any missing order, then export a backup from Settings → Data and backups. Use the ? on any page for its step-by-step explanation."],
+  ["Review your records and protect them", "The dashboard highlights work that may need attention. Search and sort help find a record; Details shows its history. Reports and profit are estimates based on what you entered, so compare them against source statements. Export a backup regularly: this version stores unencrypted local records on this device and does not sync to an account or another device.", "Example: compare recorded monthly sales and fees with your Etsy statement, correct any missing order, then export a backup from Settings → Data and backups. Use the ? on any page for its step-by-step explanation."],
 ];
 
 function TutorialModal({ visible, onClose, onOpenSettings, onRestoreBackup }) {
@@ -2840,7 +2819,7 @@ function WelcomeBackModal({ visible, db, onContinue, onRestoreBackup }) {
         <View style={styles.welcomeBackMark}><Text style={styles.welcomeBackMarkText}>G</Text></View>
         <Text style={styles.formHeroEyebrow}>GRIMMS BUSINESS TRACKER</Text>
         <Text style={styles.welcomeBackTitle}>Welcome back{businessName ? ", " + businessName : ""}.</Text>
-        <Text style={styles.bodyText}>Your tracker is ready on this device. Each page’s mailbox will show its open items when you need them.</Text>
+        <Text style={styles.bodyText}>Your tracker is ready on this device. Here’s a quick look at items that may need your attention.</Text>
         <View style={styles.welcomeBackStats}>
           <View style={styles.welcomeBackStat}><Text style={styles.welcomeBackNumber}>{openOrders}</Text><Text style={styles.welcomeBackLabel}>orders in progress</Text></View>
           <View style={styles.welcomeBackStat}><Text style={styles.welcomeBackNumber}>{lowStockCount}</Text><Text style={styles.welcomeBackLabel}>materials low</Text></View>
@@ -2889,36 +2868,18 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
 }
 
 function AssistantRobot({ compact }) {
-  const savedColor = CURRENT_APPEARANCE.assistantColor;
-  const usesThemeColor = CURRENT_APPEARANCE.assistantColorMode !== "custom";
-  const assistantColor = usesThemeColor ? COLORS.wine : savedColor;
+  const assistantColor = validHexColor(CURRENT_APPEARANCE.assistantColor) ? CURRENT_APPEARANCE.assistantColor : COLORS.wine;
   const assistantInk = contrastText(assistantColor);
-  const motion = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const animation = Animated.loop(Animated.sequence([
-      Animated.timing(motion, { toValue: 1, duration: compact ? 720 : 680, useNativeDriver: true }),
-      Animated.timing(motion, { toValue: 0, duration: compact ? 720 : 680, useNativeDriver: true }),
-    ]));
-    animation.start();
-    return () => animation.stop();
-  }, [motion, compact]);
-  const bobStyle = { transform: [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [0, compact ? -3 : -5] }) }, { rotate: motion.interpolate({ inputRange: [0, 1], outputRange: ["-2deg", "2deg"] }) }] };
-  const armLeftMotion = { transform: [{ rotate: motion.interpolate({ inputRange: [0, 1], outputRange: ["-17deg", "14deg"] }) }] };
-  const armRightMotion = { transform: [{ rotate: motion.interpolate({ inputRange: [0, 1], outputRange: ["14deg", "-17deg"] }) }] };
-  return <Animated.View accessibilityLabel="Orbit, Business Assistant robot" style={[styles.robotWrap, compact && styles.robotWrapCompact, bobStyle]}>
-    <View style={[styles.robotHead, compact && styles.robotHeadCompact, { backgroundColor: assistantColor, borderColor: mixHex(assistantColor, "#000000", 0.16) }]}>
-      <View style={[styles.robotFace, compact && styles.robotFaceCompact]}>
-        <View style={styles.robotEyes}><View style={[styles.robotEye, { backgroundColor: assistantInk }]} /><View style={[styles.robotEye, { backgroundColor: assistantInk }]} /></View>
-        <View style={styles.robotSmileRow}><View style={[styles.robotCheek, compact && styles.robotCheekCompact]} /><View style={[styles.robotSmile, { borderColor: assistantInk }]} /><View style={[styles.robotCheek, compact && styles.robotCheekCompact]} /></View>
+  const eyeStyle = [styles.robotEyeNew, compact && styles.robotEyeNewCompact, { backgroundColor: assistantInk }];
+  return <View accessibilityLabel="Orbit, Business Assistant robot" style={[styles.robotWrap, compact && styles.robotWrapCompact]}>
+    <View style={[styles.robotShell, compact && styles.robotShellCompact, { backgroundColor: assistantColor }]}>
+      <View style={[styles.robotFaceWindow, compact && styles.robotFaceWindowCompact]}>
+        <View style={[styles.robotEyes, compact && styles.robotEyesCompact]}><View style={eyeStyle} /><View style={eyeStyle} /></View>
+        <View style={[styles.robotMouthRow, compact && styles.robotMouthRowCompact]}><View style={[styles.robotBlush, compact && styles.robotBlushCompact]} /><View style={[styles.robotMouthNew, compact && styles.robotMouthNewCompact, { borderColor: assistantInk }]} /><View style={[styles.robotBlush, compact && styles.robotBlushCompact]} /></View>
       </View>
     </View>
-    <View style={[styles.robotLower, compact && styles.robotLowerCompact]}>
-      <Animated.View style={[styles.robotArm, compact && styles.robotArmCompact, styles.robotArmLeft, { backgroundColor: assistantColor }, armLeftMotion]} />
-      <View style={[styles.robotTorso, compact && styles.robotTorsoCompact, { backgroundColor: assistantColor, borderColor: mixHex(assistantColor, "#000000", 0.16) }]}><View style={[styles.robotTorsoDot, compact && styles.robotTorsoDotCompact, { backgroundColor: assistantInk }]} /></View>
-      <Animated.View style={[styles.robotArm, compact && styles.robotArmCompact, styles.robotArmRight, { backgroundColor: assistantColor }, armRightMotion]} />
-    </View>
-    <View style={[styles.robotFeet, compact && styles.robotFeetCompact]}><View style={[styles.robotFoot, compact && styles.robotFootCompact, { backgroundColor: assistantColor }]} /><View style={[styles.robotFoot, compact && styles.robotFootCompact, { backgroundColor: assistantColor }]} /></View>
-  </Animated.View>;
+    {!compact ? <><View style={styles.robotNeck} /><View style={[styles.robotBody, { backgroundColor: assistantColor }]}><View style={styles.robotBodyDot} /></View></> : null}
+  </View>;
 }
 
 function ThemeBackdrop() {
@@ -2986,10 +2947,10 @@ function Pill({ text, tone }) {
   return <View style={[styles.pill, colorStyle]}><Text style={[styles.pillText, tone === "gray" && styles.pillGrayText]}>{text}</Text></View>;
 }
 
-function Action({ label, onPress, quiet, style }) {
+function Action({ label, onPress, quiet }) {
   const buttonVariant = styles["actionButton_" + CURRENT_APPEARANCE.buttonStyle];
   return (
-    <Pressable onPress={onPress} android_ripple={{ color: COLORS.ripple }} style={({ pressed }) => [styles.actionButton, buttonVariant, quiet && styles.actionQuiet, style, { borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12 }, CURRENT_APPEARANCE.accentGlow && !quiet ? { shadowColor: COLORS.wine, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3 } : null, pressed && styles.pressedState]}>
+    <Pressable onPress={onPress} android_ripple={{ color: COLORS.ripple }} style={({ pressed }) => [styles.actionButton, buttonVariant, quiet && styles.actionQuiet, { borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12 }, CURRENT_APPEARANCE.accentGlow && !quiet ? { shadowColor: COLORS.wine, shadowOpacity: 0.25, shadowRadius: 8, elevation: 3 } : null, pressed && styles.pressedState]}>
       <Text style={styles.actionButtonText}>{label}</Text>
     </Pressable>
   );
@@ -3080,7 +3041,6 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarGroupOpen, setSidebarGroupOpen] = useState({ WORKSPACE: true, INVENTORY: true, INSIGHTS: false, TOOLS: false });
   const [inventoryActionsOpen, setInventoryActionsOpen] = useState(false);
-  const [listingActionsOpen, setListingActionsOpen] = useState(false);
   const [announcementOpen, setAnnouncementOpen] = useState(false);
   const [attentionOpen, setAttentionOpen] = useState(false);
   const [helpSearch, setHelpSearch] = useState("");
@@ -3129,6 +3089,7 @@ export default function App() {
   const [dashboardPeriod, setDashboardPeriod] = useState("month");
   const [dashboardAnchor, setDashboardAnchor] = useState(TODAY);
   const [auditFilter, setAuditFilter] = useState("All");
+  const [expandedDashboardAttention, setExpandedDashboardAttention] = useState([]);
   const [expandedIdeaStatuses, setExpandedIdeaStatuses] = useState([]);
   const [showDismissedAttention, setShowDismissedAttention] = useState(false);
   const [search, setSearch] = useState("");
@@ -3425,7 +3386,6 @@ export default function App() {
   const orderNeedsAttention = useMemo(() => db.orders.filter((order) => !order.archived && !order.refundedAt && order.status !== "Fulfilled" && order.status !== "Complete"), [db.orders]);
   const attentionInboxItems = useMemo(() => [
     ...lowStock.map((item) => ({ id: "component:" + item.id, recordId: item.id, searchTerm: item.name, icon: "◈", title: item.name + " is low", detail: "Only " + item.quantity + " " + (item.unit || "pieces") + " on hand · alert at " + item.lowStock, screen: "Components" })),
-    ...db.products.filter((item) => active(item) && Math.max(0, Number(item.inventory) || 0) === 0).map((item) => ({ id: "product:" + item.id, recordId: item.id, searchTerm: item.name || "", icon: "□", title: (item.name || "Product") + " is out of stock", detail: "No finished units are available to sell. Review the product or plan a production batch.", screen: "Products" })),
     ...orderNeedsAttention.map((item) => ({ id: "order:" + item.id, recordId: item.id, searchTerm: item.orderSku || "", icon: "▣", title: (item.orderSku || "Sale") + " needs attention", detail: (item.items || []).map((line) => line.productName + " × " + line.quantity).join(", ") + " · " + (item.status || "Status not set") + " · " + dateLabel(item.date), screen: "Orders" })),
     ...overdueTasks.map((item) => ({ id: "task:" + item.id, recordId: item.id, searchTerm: item.title, date: item.dueDate, icon: "✓", title: "Overdue: " + item.title, detail: (item.category || "Task") + " · Due " + dateLabel(item.dueDate) + (item.notes ? " · " + item.notes : ""), screen: "Calendar" })),
     ...db.listings.filter((item) => active(item) && item.needsArchive).map((item) => ({ id: "listing:" + item.id, recordId: item.id, searchTerm: item.productName || "", icon: "▤", title: (item.productName || "Listing") + " sold out", detail: (item.listingSku || "Listing SKU") + " · archive the listing or relist after making more stock", screen: "Listings" })),
@@ -5015,13 +4975,11 @@ export default function App() {
     const template = VISUAL_TEMPLATES.find((item) => item.name === templateName);
     if (!template) return;
     const savedAppearance = { ...APPEARANCE_DEFAULTS, ...(db.appearanceSettings || {}) };
-    const nextAppearance = { ...APPEARANCE_DEFAULTS, ...template.appearance, templateName: template.name, fontFamily: savedAppearance.fontFamily || "System", robotStyle: savedAppearance.robotStyle || APPEARANCE_DEFAULTS.robotStyle, assistantColor: validHexColor(savedAppearance.assistantColor) ? savedAppearance.assistantColor : APPEARANCE_DEFAULTS.assistantColor, assistantColorMode: savedAppearance.assistantColorMode || "theme", businessGlanceShape: savedAppearance.businessGlanceShape || APPEARANCE_DEFAULTS.businessGlanceShape, baseFontSize: 1, shellStyle: "sidebar", headerLayout: "minimal" };
+    const nextAppearance = { ...APPEARANCE_DEFAULTS, ...template.appearance, templateName: template.name, fontFamily: savedAppearance.fontFamily || "System", robotStyle: savedAppearance.robotStyle || APPEARANCE_DEFAULTS.robotStyle, assistantColor: validHexColor(savedAppearance.assistantColor) ? savedAppearance.assistantColor : APPEARANCE_DEFAULTS.assistantColor, businessGlanceShape: savedAppearance.businessGlanceShape || APPEARANCE_DEFAULTS.businessGlanceShape, baseFontSize: 1, shellStyle: "sidebar", headerLayout: "minimal" };
     setData((old) => ({ ...old, appearanceSettings: nextAppearance }));
   };
   const saveFontFamily = (fontFamily) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), fontFamily } }));
   const saveRobotStyle = (robotStyle) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), robotStyle } })); const saveAppearanceSetting = (key, value) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), [key]: value } }));
-  const saveAssistantColor = (color) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), assistantColor: color, assistantColorMode: "custom" } }));
-  const matchAssistantThemeColor = () => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), assistantColorMode: "theme" } }));
   const openGoalEditor = (goal) => {
     if (goal) {
       setEditingGoalId(goal.id);
@@ -5623,6 +5581,9 @@ export default function App() {
       }
       setDashboardAnchor(localDateKey(date));
     };
+    const allAttentionItems = attentionInboxItems;
+    const attentionItems = currentAttentionItems;
+    const dismissedAttentionItems = pageDismissedAttentionItems;
     const widgetContent = {
       goals: (
         <Pressable accessibilityRole="button" style={styles.dashboardGoalShortcut} onPress={() => navigateToScreen("Business Goals")}>
@@ -5678,7 +5639,7 @@ export default function App() {
           <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Order fulfillment</Text><Pressable hitSlop={8} onPress={() => navigateToScreen("Orders")}><Text style={styles.actionText}>Open orders ›</Text></Pressable></View>
         <View style={styles.fulfillmentList}>{dashboardStatuses.length ? dashboardStatuses.map((status, index) => {
             const count = db.orders.filter((order) => !order.archived && !order.refundedAt && order.status === status).length;
-            return <Pressable key={status} accessibilityRole="button" accessibilityLabel={`${status}: ${count} orders. Open products in this status.`} android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToFulfillment(status)} style={({ pressed }) => [styles.fulfillmentListRow, index === dashboardStatuses.length - 1 && styles.fulfillmentListRowLast, count === 0 && styles.fulfillmentListRowEmpty, pressed && styles.pressedState]}><Text style={styles.fulfillmentListCount}>{count}</Text><Text style={styles.fulfillmentListLabel}>{status}</Text><Text style={styles.fulfillmentListArrow}>›</Text></Pressable>;
+            return <Pressable key={status} accessibilityRole="button" accessibilityLabel={`${status}: ${count} orders. Open products in this status.`} android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToFulfillment(status)} style={({ pressed }) => [styles.fulfillmentListRow, count === 0 && styles.fulfillmentListRowEmpty, pressed && styles.pressedState]}><Text style={styles.fulfillmentListCount}>{count}</Text><Text style={styles.fulfillmentListLabel}>{status}</Text><Text style={styles.fulfillmentListArrow}>›</Text></Pressable>;
           }) : <Text style={styles.fieldHint}>No active orders need fulfillment right now.</Text>}</View>
         </>
       ),
@@ -5697,16 +5658,25 @@ export default function App() {
           </Card>
         </>
       ),
+      attention: (
+        <>
+          <View style={styles.sectionHeadingRow}><View style={styles.flex}><Text style={styles.sectionTitle}>Needs your attention</Text><Text style={styles.subtle}>{attentionItems.length} open</Text></View><View style={styles.actionRow}>{attentionItems.length > 5 ? <Action label={"See all (" + attentionItems.length + ")"} quiet onPress={() => setAttentionOpen(true)} /> : null}{attentionItems.length ? <Action label="Dismiss all" quiet onPress={() => dismissAttentionItems(attentionItems)} /> : null}</View></View>
+          {attentionItems.length === 0 ? <Card><Text style={styles.emptyTitle}>Nothing urgent right now</Text><Text style={styles.bodyText}>There are no open inventory, order, listing, or task alerts today.</Text></Card> : attentionItems.slice(0, 5).map((item) => {
+            const expanded = expandedDashboardAttention.includes(item.id);
+            return <Card key={item.id}><View style={styles.cardTop}><Pressable style={styles.flex} onPress={() => setExpandedDashboardAttention((old) => old.includes(item.id) ? [] : [item.id])}><Text style={styles.recordTitle}>{item.icon}  {item.title}</Text>{expanded ? <Text style={styles.bodyText}>{item.detail}</Text> : <Text style={styles.recordMeta}>Tap to see details</Text>}</Pressable><View style={{ alignItems: "flex-end", gap: 6 }}><Action label="Open" quiet onPress={() => navigateToScreen(item.screen)} /><Pressable onPress={() => dismissAttentionItem(item)}><Text style={styles.deleteOptionText}>Dismiss</Text></Pressable></View></View></Card>;
+          })}
+        </>
+      ),
       snapshot: (
         <>
           <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Your business snapshot</Text></View>
           <View style={styles.summaryGrid}>
-            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Components")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{db.components.filter(active).length}</Text><Text style={styles.summaryLabel}>Components</Text><Text style={styles.summarySub}>Materials on hand</Text></Pressable>
+            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Components")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{db.components.filter(active).length}</Text><Text style={styles.summaryLabel}>Components</Text><Text style={styles.summarySub}>{lowStock.length} low stock</Text></Pressable>
             <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Products")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{visibleProducts.length}</Text><Text style={styles.summaryLabel}>Products</Text><Text style={styles.summarySub}>{visibleProducts.reduce((sum, product) => sum + productAvailableUnits(product, db.listings), 0)} ready to sell</Text></Pressable>
             <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Orders")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{totals.orders}</Text><Text style={styles.summaryLabel}>Orders</Text><Text style={styles.summarySub}>{orderNeedsAttention.length} in progress</Text></Pressable>
-            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Listings")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{activeListings.length}</Text><Text style={styles.summaryLabel}>Listings</Text><Text style={styles.summarySub}>Across your sales channels</Text></Pressable>
+            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Listings")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{activeListings.length}</Text><Text style={styles.summaryLabel}>Listings</Text><Text style={styles.summarySub}>{soldListingsNeedArchive.length} sold out to archive</Text></Pressable>
             <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Reviews")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{averageStars}</Text><Text style={styles.summaryLabel}>Shop rating</Text><Text style={styles.summarySub}>{shopReviews.length} reviews saved</Text></Pressable>
-            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Calendar")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{openTasks.length}</Text><Text style={styles.summaryLabel}>Open tasks</Text><Text style={styles.summarySub}>In your calendar</Text></Pressable>
+            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToScreen("Calendar")} style={({ pressed }) => [styles.summaryTile, pressed && styles.pressedState]}><Text style={styles.summaryNumber}>{openTasks.length}</Text><Text style={styles.summaryLabel}>Open tasks</Text><Text style={styles.summarySub}>{overdueTasks.length} overdue</Text></Pressable>
           </View>
         </>
       ),
@@ -5747,7 +5717,9 @@ export default function App() {
 
       {!hiddenWidgets.includes("welcome") ? <React.Fragment key="welcome">{widgetContent.welcome}</React.Fragment> : null}
       {widgetContent.fulfillment}
-      {widgetOrder.filter((id) => id !== "welcome" && id !== "fulfillment" && id !== "goals" && id !== "attention" && !hiddenWidgets.includes(id)).map((id) => <React.Fragment key={id}>{widgetContent[id]}</React.Fragment>)}
+      {widgetOrder.filter((id) => id !== "welcome" && id !== "fulfillment" && id !== "goals" && !hiddenWidgets.includes(id)).map((id) => <React.Fragment key={id}>{widgetContent[id]}</React.Fragment>)}
+      <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Dismissed alerts</Text><View style={styles.actionRow}>{dismissedAttentionItems.length ? <Action label="Restore all" quiet onPress={() => restoreAttentionItems(dismissedAttentionItems)} /> : null}<Action label={showDismissedAttention ? "Hide dismissed" : `See dismissed (${dismissedAttentionItems.length})`} quiet onPress={() => setShowDismissedAttention(!showDismissedAttention)} /></View></View>
+        {showDismissedAttention ? dismissedAttentionItems.length ? dismissedAttentionItems.map((item) => <Card key={item.dismissed.id + item.dismissed.date}><View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{item.item ? `${item.item.icon}  ${item.item.title}` : item.dismissed.id}</Text><Text style={styles.recordMeta}>Dismissed {dateLabel(item.dismissed.date)}</Text>{item.item ? <Text style={styles.bodyText}>{item.item.detail}</Text> : null}</View><Action label="Restore alert" onPress={() => restoreAttentionItem(item.dismissed.id)} /></View></Card>) : <Text style={styles.bodyText}>There are no dismissed alerts to restore.</Text> : null}
     </>;
   };
   const renderComponents = () => {
@@ -5758,14 +5730,14 @@ export default function App() {
       parts: (product.recipe || []).filter((part) => part.componentId === component.id || (!part.componentId && String(part.sku || "").trim().toLowerCase() === String(component.sku || "").trim().toLowerCase())),
     })).filter((entry) => entry.parts.length);
     const filters = attributeFilters.components || {};
-    const list = sortRecords(records.filter((item) =>
+    const list = sortBySkuDescending(records.filter((item) =>
       (componentCategoryFilter === "All" || (item.category || "Other") === componentCategoryFilter) &&
       matchesAttributeFilter(item, "colors", filters.colors || "All") &&
       matchesAttributeFilter(item, "materials", filters.materials || "All") &&
       matchesAttributeFilter(item, "sizes", filters.sizes || "All") &&
       matchesAttributeFilter(item, "gender", filters.gender || "All") &&
       (!search || [item.name, item.sku, item.category, item.supplier, item.colors, item.materials, item.sizes, item.gender, item.notes].join(" ").toLowerCase().includes(search.toLowerCase()))
-    ), db.sortModes.components || "skuDesc");
+    ), "sku");
     const pagedComponents = pageRows("components", list);
     const history = (db.componentTransactions || []).slice().sort((a, b) => String(b.date || b.createdAt || "").localeCompare(String(a.date || a.createdAt || "")));
     const activeComponents = db.components.filter(active);
@@ -5774,21 +5746,16 @@ export default function App() {
       <>
         <Text style={styles.pageLeadText}>Materials, stock levels, and costs used across production.</Text>
         <View style={styles.metricGrid}><Metric label="Active components" value={String(activeComponents.length)} /><Metric label="Low or out of stock" value={String(lowStock.length)} /><Metric label="Stock value at cost" value={money(totalValue, db.currency)} /></View>
-        <SettingsAccordion title="Inventory tools" subtitle="Add stock and manage components" expanded={inventoryActionsOpen} onPress={() => setInventoryActionsOpen((open) => !open)}><View style={styles.inventoryToolGrid}><Action style={styles.inventoryToolButton} label="＋ Add component" onPress={() => beginAdd("component")} /><Action style={styles.inventoryToolButton} label="＋ Restock" quiet onPress={() => beginAdd("restock")} /><Action style={styles.inventoryToolButton} label={bulkDeleteMode === "components" ? "Cancel selection" : "Select to delete"} quiet onPress={() => beginBulkDelete("components")} />{bulkDeleteMode === "components" ? <Action style={styles.inventoryToolButton} label={"Delete selected · " + bulkDeleteIds.length} onPress={() => confirmBulkDelete("components")} /> : null}</View></SettingsAccordion>
-        <View style={styles.catalogToolbar}>
-          <SegmentedToggle options={[{ label: "Active", value: false }, { label: "Archived", value: true }]} value={showArchivedComponents} onChange={setShowArchivedComponents} />
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: !!expandedAttributeFilters.components }} onPress={() => toggleAttributeFilters("components")} style={styles.catalogFilterButton}><Text style={styles.catalogFilterButtonText}>Filters</Text>{componentCategoryFilter !== "All" || attributeFilterCount("components") ? <Text style={styles.catalogFilterCount}>{(componentCategoryFilter !== "All" ? 1 : 0) + attributeFilterCount("components")}</Text> : null}</Pressable>
-          <CompactSortControl value={db.sortModes.components || "skuDesc"} onChange={(value) => saveSortMode("components", value)} />
-        </View>
+        <SettingsAccordion title="Inventory tools" subtitle="Add stock and manage components" expanded={inventoryActionsOpen} onPress={() => setInventoryActionsOpen((open) => !open)}><View style={styles.actionRow}><Action label="＋ Add component" onPress={() => beginAdd("component")} /><Action label="＋ Restock" quiet onPress={() => beginAdd("restock")} /><Action label={bulkDeleteMode === "components" ? "Cancel selection" : "Select components to delete"} quiet onPress={() => beginBulkDelete("components")} />{bulkDeleteMode === "components" ? <Action label={"Delete selected (" + bulkDeleteIds.length + ")"} onPress={() => confirmBulkDelete("components")} /> : null}</View></SettingsAccordion>
+        <ChoiceChips label="Filter components" options={["All", ...categories]} value={componentCategoryFilter} onChange={setComponentCategoryFilter} />
+        <View style={styles.actionRow}><Action label={expandedAttributeFilters.components ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("components") ? " · " + attributeFilterCount("components") + " active" : "")} quiet onPress={() => toggleAttributeFilters("components")} />{attributeFilterCount("components") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("components")} /> : null}</View>
         {expandedAttributeFilters.components ? <>
-          <View style={styles.catalogFilterPanel}><View style={styles.catalogFilterPanelHeader}><Text style={styles.cardTitle}>Filter components</Text><Pressable onPress={() => { setComponentCategoryFilter("All"); clearAttributeFilters("components"); }}><Text style={styles.actionText}>Clear</Text></Pressable></View>
-            <Field field={{ label: "Category", options: ["All", ...categories] }} value={componentCategoryFilter} onChange={setComponentCategoryFilter} />
-            <Field field={{ label: "Color", options: ["All", ...attributeFilterOptions(db.components, "colors", "colors")] }} value={filters.colors || "All"} onChange={(value) => setAttributeFilter("components", "colors", value)} />
-            <Field field={{ label: "Material", options: ["All", ...attributeFilterOptions(db.components, "materials", "materials")] }} value={filters.materials || "All"} onChange={(value) => setAttributeFilter("components", "materials", value)} />
-            <Field field={{ label: "Size", options: ["All", ...attributeFilterOptions(db.components, "sizes", "sizes")] }} value={filters.sizes || "All"} onChange={(value) => setAttributeFilter("components", "sizes", value)} />
-            <Field field={{ label: "Audience", options: ["All", ...attributeFilterOptions(db.components, "genders", "gender")] }} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("components", "gender", value)} />
-          </View>
+          <ChoiceChips label="Color" options={["All", ...attributeFilterOptions(db.components, "colors", "colors")]} value={filters.colors || "All"} onChange={(value) => setAttributeFilter("components", "colors", value)} />
+          <ChoiceChips label="Material" options={["All", ...attributeFilterOptions(db.components, "materials", "materials")]} value={filters.materials || "All"} onChange={(value) => setAttributeFilter("components", "materials", value)} />
+          <ChoiceChips label="Size" options={["All", ...attributeFilterOptions(db.components, "sizes", "sizes")]} value={filters.sizes || "All"} onChange={(value) => setAttributeFilter("components", "sizes", value)} />
+          <ChoiceChips label="Audience" options={["All", ...attributeFilterOptions(db.components, "genders", "gender")]} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("components", "gender", value)} />
         </> : null}
+        <View style={styles.actionRow}><Action label={showArchivedComponents ? "Show active components" : "Show archived components (" + (db.components.length - activeComponents.length) + ")"} quiet onPress={() => setShowArchivedComponents(!showArchivedComponents)} /></View>
         {pagedComponents.length ? <View style={styles.recordTable}><View style={styles.recordTableHeader}><Text style={styles.recordHeaderPrimary}>Component</Text>{wideLayout ? <Text style={styles.recordHeaderSku}>SKU</Text> : null}<Text style={styles.recordHeaderStatus}>On hand</Text><Text style={styles.recordHeaderNumber}>Unit cost</Text></View>{pagedComponents.map((item) => {
           const low = Number(item.quantity) <= Number(item.lowStock);
           const usingProducts = productsUsingComponent(item);
@@ -5803,10 +5770,10 @@ export default function App() {
           </View>
         })}</View> : <EmptyState title="No components yet" body="Add the materials you use to make your products. Stock and costs will connect to production." action="Add a component" onPress={() => beginAdd("component")} />}
         {pagedComponents.length < list.length ? <View style={styles.actionRow}><Action label={"Show 60 more components · " + (list.length - pagedComponents.length) + " remaining"} quiet onPress={() => showMoreRows("components")} /></View> : null}
-        {history.length > 0 ? <SettingsAccordion title={"Inventory history · " + history.length} subtitle="Stock movements and adjustments" expanded={inventoryHistoryExpanded} onPress={() => setInventoryHistoryExpanded(!inventoryHistoryExpanded)}>{history.map((entry) => {
+        {history.length > 0 && <><View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Inventory history</Text><Action label={inventoryHistoryExpanded ? "Hide history" : "Show all history (" + history.length + ")"} quiet onPress={() => setInventoryHistoryExpanded(!inventoryHistoryExpanded)} /></View>{inventoryHistoryExpanded ? history.map((entry) => {
           const component = db.components.find((x) => x.id === entry.componentId);
           return <Card key={entry.id} style={styles.historyCard}><Text style={styles.recordTitle}>{entry.kind}: {component ? component.name : "Component"}</Text><Text style={styles.recordMeta}>{entry.quantity > 0 ? "+" : ""}{entry.quantity} · {dateLabel(entry.date)}</Text></Card>;
-        })}</SettingsAccordion> : null}
+        }) : null}</>}
       </>
     );
   };
@@ -5817,33 +5784,29 @@ export default function App() {
     const outOfStockProducts = activeProducts.filter((item) => Math.max(0, Number(item.inventory) || 0) === 0);
     const records = showArchivedProducts ? db.products.filter((item) => !active(item)) : activeProducts;
     const filters = attributeFilters.products || {};
-    const list = sortRecords(records.filter((item) =>
+    const list = sortBySkuDescending(records.filter((item) =>
       (productCategoryFilter === "All" || (item.category || "Other") === productCategoryFilter) &&
       matchesAttributeFilter(item, "colors", filters.colors || "All") &&
       matchesAttributeFilter(item, "materials", filters.materials || "All") &&
       matchesAttributeFilter(item, "sizes", filters.sizes || "All") &&
       matchesAttributeFilter(item, "gender", filters.gender || "All") &&
       (!search || [item.name, item.sku, item.category, item.colors, item.description, item.materials, item.sizes, item.gender, item.condition, item.notes].join(" ").toLowerCase().includes(search.toLowerCase()))
-    ), db.sortModes.products || "skuDesc");
+    ), "sku");
     const pagedProducts = pageRows("products", list);
     return (
       <>
         <Text style={styles.pageLeadText}>Finished goods ready to sell, with live listings accounted for.</Text>
         <View style={styles.metricGrid}><Metric label="Active products" value={String(activeProducts.length)} /><Metric label="Ready to sell" value={String(activeProducts.reduce((sum, item) => sum + productAvailableUnits(item, db.listings), 0))} /><Metric label="Out of stock" value={String(outOfStockProducts.length)} /></View>
-        <SettingsAccordion title="Inventory tools" subtitle="Add, edit, produce, and manage products" expanded={inventoryActionsOpen} onPress={() => setInventoryActionsOpen((open) => !open)}><View style={styles.inventoryToolGrid}><Action style={styles.inventoryToolButton} label="＋ Add product" onPress={() => beginAdd("product")} /><Action style={styles.inventoryToolButton} label="Bulk edit details" quiet onPress={() => setBulkEditType("product")} /><Action style={styles.inventoryToolButton} label="Open production" quiet onPress={() => navigateToScreen("Production")} /><Action style={styles.inventoryToolButton} label={bulkDeleteMode === "products" ? "Cancel selection" : "Select to delete"} quiet onPress={() => beginBulkDelete("products")} />{bulkDeleteMode === "products" ? <Action style={styles.inventoryToolButton} label={"Delete selected · " + bulkDeleteIds.length} onPress={() => confirmBulkDelete("products")} /> : null}{!showArchivedProducts && outOfStockProducts.length ? <Action style={styles.inventoryToolButton} label={"Archive out of stock · " + outOfStockProducts.length} quiet onPress={archiveAllOutOfStockProducts} /> : null}</View></SettingsAccordion>
-        <View style={styles.catalogToolbar}>
-          <SegmentedToggle options={[{ label: "Active", value: false }, { label: "Archived", value: true }]} value={showArchivedProducts} onChange={setShowArchivedProducts} />
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: !!expandedAttributeFilters.products }} onPress={() => toggleAttributeFilters("products")} style={styles.catalogFilterButton}><Text style={styles.catalogFilterButtonText}>Filters</Text>{productCategoryFilter !== "All" || attributeFilterCount("products") ? <Text style={styles.catalogFilterCount}>{(productCategoryFilter !== "All" ? 1 : 0) + attributeFilterCount("products")}</Text> : null}</Pressable>
-          <CompactSortControl value={db.sortModes.products || "skuDesc"} onChange={(value) => saveSortMode("products", value)} />
-        </View>
-        {expandedAttributeFilters.products ? <View style={styles.catalogFilterPanel}>
-          <View style={styles.catalogFilterPanelHeader}><Text style={styles.cardTitle}>Filter products</Text><Pressable onPress={() => { setProductCategoryFilter("All"); clearAttributeFilters("products"); }}><Text style={styles.actionText}>Clear</Text></Pressable></View>
-          <Field field={{ label: "Category", options: ["All", ...categories] }} value={productCategoryFilter} onChange={setProductCategoryFilter} />
-          <Field field={{ label: "Color", options: ["All", ...attributeFilterOptions(db.products, "colors", "colors")] }} value={filters.colors || "All"} onChange={(value) => setAttributeFilter("products", "colors", value)} />
-          <Field field={{ label: "Material", options: ["All", ...attributeFilterOptions(db.products, "materials", "materials")] }} value={filters.materials || "All"} onChange={(value) => setAttributeFilter("products", "materials", value)} />
-          <Field field={{ label: "Size", options: ["All", ...attributeFilterOptions(db.products, "sizes", "sizes")] }} value={filters.sizes || "All"} onChange={(value) => setAttributeFilter("products", "sizes", value)} />
-          <Field field={{ label: "Audience", options: ["All", ...attributeFilterOptions(db.products, "genders", "gender")] }} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("products", "gender", value)} />
-        </View> : null}
+        <SettingsAccordion title="Inventory tools" subtitle="Bulk edits, production, and stock actions" expanded={inventoryActionsOpen} onPress={() => setInventoryActionsOpen((open) => !open)}><View style={styles.actionRow}><Action label="＋ Add product" onPress={() => beginAdd("product")} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("product")} /><Action label="Open production" quiet onPress={() => navigateToScreen("Production")} /><Action label={bulkDeleteMode === "products" ? "Cancel selection" : "Select products to delete"} quiet onPress={() => beginBulkDelete("products")} />{bulkDeleteMode === "products" ? <Action label={"Delete selected (" + bulkDeleteIds.length + ")"} onPress={() => confirmBulkDelete("products")} /> : null}{!showArchivedProducts && outOfStockProducts.length ? <Action label={"Archive all out of stock · " + outOfStockProducts.length} quiet onPress={archiveAllOutOfStockProducts} /> : null}</View></SettingsAccordion>
+        <ChoiceChips label="Filter products" options={["All", ...categories]} value={productCategoryFilter} onChange={setProductCategoryFilter} />
+        <View style={styles.actionRow}><Action label={expandedAttributeFilters.products ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("products") ? " · " + attributeFilterCount("products") + " active" : "")} quiet onPress={() => toggleAttributeFilters("products")} />{attributeFilterCount("products") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("products")} /> : null}</View>
+        {expandedAttributeFilters.products ? <>
+          <ChoiceChips label="Color" options={["All", ...attributeFilterOptions(db.products, "colors", "colors")]} value={filters.colors || "All"} onChange={(value) => setAttributeFilter("products", "colors", value)} />
+          <ChoiceChips label="Material" options={["All", ...attributeFilterOptions(db.products, "materials", "materials")]} value={filters.materials || "All"} onChange={(value) => setAttributeFilter("products", "materials", value)} />
+          <ChoiceChips label="Size" options={["All", ...attributeFilterOptions(db.products, "sizes", "sizes")]} value={filters.sizes || "All"} onChange={(value) => setAttributeFilter("products", "sizes", value)} />
+          <ChoiceChips label="Audience" options={["All", ...attributeFilterOptions(db.products, "genders", "gender")]} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("products", "gender", value)} />
+        </> : null}
+        <View style={styles.actionRow}><Action label={showArchivedProducts ? "Show active products" : "Show archived products (" + (db.products.length - activeProducts.length) + ")"} quiet onPress={() => setShowArchivedProducts(!showArchivedProducts)} /></View>
         {pagedProducts.length ? <View style={styles.recordTable}><View style={styles.recordTableHeader}><Text style={styles.recordHeaderPrimary}>Product</Text>{wideLayout ? <Text style={styles.recordHeaderSku}>SKU</Text> : null}<Text style={styles.recordHeaderStatus}>Status</Text><Text style={styles.recordHeaderNumber}>Price</Text></View>{pagedProducts.map((item) => {
           const productListings = db.listings.filter((listing) => listing.productId === item.id);
           const activeProductListings = productListings.filter((listing) => listingReservesProductStock(listing, item));
@@ -5922,7 +5885,7 @@ export default function App() {
       const product = db.products.find((row) => row.id === item.productId);
       return matchesAttributeFilter({ [key]: item[key] || (product && product[key]) || "" }, key, selected);
     };
-    const list = sortRecords(
+    const list = sortBySkuDescending(
       source.filter((item) =>
         (listingStatusFilter === "All" || item.status === listingStatusFilter) &&
         (listingChannelFilter === "All" || (item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])).includes(listingChannelFilter)) &&
@@ -5932,7 +5895,7 @@ export default function App() {
         matchesListingAttribute(item, "gender", filters.gender || "All") &&
         (!search || [item.productName, item.productSku, item.listingSku, ...(item.marketplaces || (item.marketplace ? [item.marketplace] : [])), item.status, item.startDate, item.colors, item.materials, item.condition, item.notes, ...(item.discountPlans || []).flatMap((plan) => [plan.percent, plan.startDate, plan.endDate, plan.notes])].join(" ").toLowerCase().includes(search.toLowerCase()))
       ),
-      db.sortModes.listings || "productSkuDesc"
+      "listingSku"
     );
     const pagedListings = pageRows("listings", list);
     const listingDatePlans = activeListings.flatMap((listing) => [
@@ -6062,30 +6025,34 @@ export default function App() {
     });
     return (
       <>
-        <SettingsAccordion title="Listing tools" subtitle="Create, edit, promote, and manage listings" expanded={listingActionsOpen} onPress={() => setListingActionsOpen((open) => !open)}><View style={styles.inventoryToolGrid}>
-          <Action style={styles.inventoryToolButton} label="＋ Add listing" onPress={() => beginAdd("listing")} />
-          <Action style={styles.inventoryToolButton} label="Bulk create" onPress={() => setBulkCreateListingsOpen(true)} />
-          <Action style={styles.inventoryToolButton} label="Bulk edit details" quiet onPress={() => setBulkEditType("listing")} />
-          <Action style={styles.inventoryToolButton} label="Edit listing dates" quiet onPress={() => setBulkEditType("listingDates")} />
-          <Action style={styles.inventoryToolButton} label="Listing analytics" quiet onPress={() => navigateToScreen("Listing Analytics")} />
-          <Action style={styles.inventoryToolButton} label={bulkDeleteMode === "listings" ? "Cancel selection" : "Select to delete"} quiet onPress={() => beginBulkDelete("listings")} />
-          {bulkDeleteMode === "listings" ? <Action style={styles.inventoryToolButton} label={"Delete selected · " + bulkDeleteIds.length} onPress={() => confirmBulkDelete("listings")} /> : null}
-        </View></SettingsAccordion>
-        <View style={styles.metricGrid}><Metric label="Live now" value={String(actualListings)} /><Metric label="Discounts planned" value={String(scheduledDiscounts)} /><Metric label="Relists coming up" value={String(relistsDue)} /></View>
-        <View style={styles.catalogToolbar}>
-          <SegmentedToggle options={[{ label: "Active", value: false }, { label: "Archived", value: true }]} value={showArchivedListings} onChange={(showArchived) => { setShowArchivedListings(showArchived); setListingStatusFilter("All"); setListingChannelFilter("All"); }} />
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: !!expandedAttributeFilters.listings }} onPress={() => toggleAttributeFilters("listings")} style={styles.catalogFilterButton}><Text style={styles.catalogFilterButtonText}>Filters</Text>{listingStatusFilter !== "All" || listingChannelFilter !== "All" || attributeFilterCount("listings") ? <Text style={styles.catalogFilterCount}>{(listingStatusFilter !== "All" ? 1 : 0) + (listingChannelFilter !== "All" ? 1 : 0) + attributeFilterCount("listings")}</Text> : null}</Pressable>
-          <CompactSortControl value={db.sortModes.listings || "productSkuDesc"} onChange={(value) => saveSortMode("listings", value)} options={LISTING_SORT_OPTIONS} />
-        </View>
-        {expandedAttributeFilters.listings ? <View style={styles.catalogFilterPanel}>
-          <View style={styles.catalogFilterPanelHeader}><Text style={styles.cardTitle}>Filter listings</Text><Pressable onPress={() => { setListingStatusFilter("All"); setListingChannelFilter("All"); clearAttributeFilters("listings"); }}><Text style={styles.actionText}>Clear</Text></Pressable></View>
-          <Field field={{ label: "Listing status", options: ["All", ...Array.from(new Set(source.map((item) => item.status || "Draft"))).sort()] }} value={listingStatusFilter} onChange={setListingStatusFilter} />
-          <Field field={{ label: "Sales channel", options: ["All", ...Array.from(new Set(source.flatMap((item) => item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])))).filter(Boolean).sort()] }} value={listingChannelFilter} onChange={setListingChannelFilter} />
-          <Field field={{ label: "Color", options: ["All", ...attributeFilterOptions([...db.listings, ...db.products], "colors", "colors")] }} value={filters.colors || "All"} onChange={(value) => setAttributeFilter("listings", "colors", value)} />
-          <Field field={{ label: "Material", options: ["All", ...attributeFilterOptions([...db.listings, ...db.products], "materials", "materials")] }} value={filters.materials || "All"} onChange={(value) => setAttributeFilter("listings", "materials", value)} />
-          <Field field={{ label: "Size", options: ["All", ...attributeFilterOptions([...db.listings, ...db.products], "sizes", "sizes")] }} value={filters.sizes || "All"} onChange={(value) => setAttributeFilter("listings", "sizes", value)} />
-          <Field field={{ label: "Audience", options: ["All", ...attributeFilterOptions([...db.listings, ...db.products], "genders", "gender")] }} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("listings", "gender", value)} />
-        </View> : null}                <SettingsAccordion title="Listing/Relisting Calendar" subtitle={listingDatePlans.length + " upcoming date" + (listingDatePlans.length === 1 ? "" : "s")} expanded={listingPlansExpanded} onPress={() => setListingPlansExpanded((expanded) => !expanded)}>
+        <View style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Listings, promotion plans, and relists</Text><Text style={styles.infoBannerText}>Search and filter your marketplace listings. Live listings reserve the linked product’s finished stock, so it no longer shows as ready to sell. Archiving or pausing an unsold listing releases those finished units back to the product. Sold units stay deducted, and sold listings keep their sold count in history.</Text><View style={styles.actionRow}><Action label="＋ Add listing" onPress={() => beginAdd("listing")} /><Action label="Bulk create listings" onPress={() => setBulkCreateListingsOpen(true)} /><Action label="Bulk edit names & descriptions" quiet onPress={() => setBulkEditType("listing")} /><Action label="Bulk edit listing dates" quiet onPress={() => setBulkEditType("listingDates")} /><Action label="Listing analytics" quiet onPress={() => navigateToScreen("Listing Analytics")} /><Action label={bulkDeleteMode === "listings" ? "Cancel selection" : "Multi-delete"} quiet onPress={() => beginBulkDelete("listings")} />{bulkDeleteMode === "listings" ? <Action label={`Delete selected (${bulkDeleteIds.length})`} onPress={() => confirmBulkDelete("listings")} /> : null}</View></View>
+        <View style={styles.metricGrid}><Metric label="Live now" value={String(actualListings)} /><Metric label="Need archiving" value={String(needsArchive)} /><Metric label="Discounts planned" value={String(scheduledDiscounts)} /><Metric label="Relists coming up" value={String(relistsDue)} /></View>
+        <View style={styles.metricGrid}><Metric label="Sales channels" value={String(listingChannels.size)} /><Metric label="Products represented" value={String(representedProducts.size)} /><Metric label="Combined asking prices" value={money(combinedAskingPrices, db.currency)} /><Metric label="Product descriptions to review" value={String(descriptionsToReview.length)} /></View>
+        <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Listing calendar</Text><Text style={styles.subtle}>{listingCalendarItems.length} dated listing events</Text></View>
+        <Card style={styles.calendarCard}>
+          <View style={styles.monthHeader}><Pressable style={styles.monthArrow} onPress={() => changeListingsCalendarMonth(-1)}><Text style={styles.monthArrowText}>‹</Text></Pressable><Text style={styles.monthTitle}>{listingsCalendarMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</Text><Pressable style={styles.monthArrow} onPress={() => changeListingsCalendarMonth(1)}><Text style={styles.monthArrowText}>›</Text></Pressable></View>
+          <Pressable onPress={() => { const now = new Date(); setListingsCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1)); setListingsCalendarSelectedDay(TODAY); }} style={styles.todayButton}><Text style={styles.actionText}>Today</Text></Pressable>
+          <View style={styles.calendarWeek}>{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => <Text key={day} style={styles.weekDay}>{day}</Text>)}</View>
+          {Array.from({ length: 6 }, (_week, week) => <View key={week} style={styles.calendarWeek}>{listingCalendarCells.slice(week * 7, week * 7 + 7).map((cell) => <Pressable key={cell.key} onPress={() => { if (!cell.inMonth) setListingsCalendarMonth(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1)); setListingsCalendarSelectedDay(cell.key); }} style={[styles.calendarCell, cell.key === listingsCalendarSelectedDay && styles.calendarCellSelected]}><Text style={[styles.calendarDay, !cell.inMonth && styles.calendarDayOutside, cell.key === TODAY && styles.calendarDayToday, cell.key === listingsCalendarSelectedDay && styles.calendarDayPicked]}>{cell.date.getDate()}</Text><View style={[styles.calendarDot, cell.hasItems && styles.calendarDotActive]} /></Pressable>)}</View>)}
+          <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>{dateLabel(listingsCalendarSelectedDay)}</Text><Text style={styles.subtle}>{selectedListingCalendarItems.length} event{selectedListingCalendarItems.length === 1 ? "" : "s"}</Text></View>
+          {selectedListingCalendarItems.length ? selectedListingCalendarItems.map((item) => <View key={item.key} style={styles.discountPlanRow}><View style={styles.flex}><Text style={styles.recordTitle}>{item.kind} · {item.listing.productName}</Text><Text style={styles.recordMeta}>{item.listing.listingSku || "Listing"} · {(item.listing.marketplaces || []).join(", ") || item.listing.marketplace || "Marketplace not saved"}</Text></View><Action label="Open listing" quiet onPress={() => openDetails("listing", item.listing)} /></View>) : <Text style={styles.bodyText}>No listing, promotion, or relisting dates are saved for this day.</Text>}
+        </Card>
+        {descriptionsToUpdate.length ? <Card><Text style={styles.infoBannerTitle}>Product descriptions changed</Text><Text style={styles.bodyText}>{descriptionsToUpdate.length} listing{descriptionsToUpdate.length === 1 ? " has" : "s have"} a newer product description. Review the listing before copying so you can keep marketplace wording that needs to stay different.</Text>{descriptionsToUpdate.slice(0, 5).map((item) => <View key={item.id} style={styles.detailLine}><View style={styles.flex}><Text style={styles.detailLabel}>{item.productName}</Text><Text style={styles.fieldHint}>{item.marketplace || (item.marketplaces || []).join(", ") || "Marketplace not saved"}</Text></View><Action label="Update description" onPress={() => copyProductDescriptionToListing(item)} /></View>)}</Card> : null}
+         {needsArchive ? <Card><Text style={styles.cardTitle}>Listings with no available stock need attention</Text>{listingsNeedingStockReview.map((item) => {
+           const product = db.products.find((entry) => entry.id === item.productId);
+           return <View key={item.id} style={styles.soldOutListingRow}><View style={styles.soldOutListingInfo}><Text style={styles.recordTitle} numberOfLines={2}>{item.productName}</Text><Text style={styles.recordMeta}>{item.listingSku} · {item.marketplace || (item.marketplaces || []).join(", ") || "Marketplace not saved"} · {item.status === "Sold" ? (soldQuantityForListing(item, db.orders) || 1) + " sold" : "out of stock"}</Text></View><View style={styles.soldOutListingActions}><Action label="Review" quiet onPress={() => openDetails("listing", item)} />{product && Number(product.inventory) > 0 ? <Action label="Relist now" onPress={() => setRelistEditor(item)} /> : product ? <Action label="Make more" quiet onPress={() => { setProductionProduct(product.id); navigateToScreen("Production"); }} /> : null}<Action label="Archive" quiet onPress={() => archiveRecord("listings", item, "listing")} /></View></View>;
+         })}</Card> : null}
+         <ChoiceChips label="Listings" options={[{ label: `Active · ${activeListings.length}`, value: false }, { label: `Archived · ${db.listings.length - activeListings.length}`, value: true }]} value={showArchivedListings} onChange={(showArchived) => { setShowArchivedListings(showArchived); setListingStatusFilter("All"); setListingChannelFilter("All"); }} />
+         <ChoiceChips label="Listing status" options={["All", ...Array.from(new Set(source.map((item) => item.status || "Draft"))).sort()]} value={listingStatusFilter} onChange={setListingStatusFilter} />
+         <ChoiceChips label="Sales channel" options={["All", ...Array.from(new Set(source.flatMap((item) => item.marketplaces || (item.marketplace ? String(item.marketplace).split(",").map((channel) => channel.trim()) : [])))).filter(Boolean).sort()]} value={listingChannelFilter} onChange={setListingChannelFilter} />
+         <View style={styles.actionRow}><Action label={expandedAttributeFilters.listings ? "Hide attribute filters" : "Filter by color, material, size, or audience" + (attributeFilterCount("listings") ? " · " + attributeFilterCount("listings") + " active" : "")} quiet onPress={() => toggleAttributeFilters("listings")} />{attributeFilterCount("listings") ? <Action label="Clear filters" quiet onPress={() => clearAttributeFilters("listings")} /> : null}</View>
+         {expandedAttributeFilters.listings ? <>
+           <ChoiceChips label="Color" options={["All", ...attributeFilterOptions([...db.listings, ...db.products], "colors", "colors")]} value={filters.colors || "All"} onChange={(value) => setAttributeFilter("listings", "colors", value)} />
+           <ChoiceChips label="Material" options={["All", ...attributeFilterOptions([...db.listings, ...db.products], "materials", "materials")]} value={filters.materials || "All"} onChange={(value) => setAttributeFilter("listings", "materials", value)} />
+           <ChoiceChips label="Size" options={["All", ...attributeFilterOptions([...db.listings, ...db.products], "sizes", "sizes")]} value={filters.sizes || "All"} onChange={(value) => setAttributeFilter("listings", "sizes", value)} />
+           <ChoiceChips label="Audience" options={["All", ...attributeFilterOptions([...db.listings, ...db.products], "genders", "gender")]} value={filters.gender || "All"} onChange={(value) => setAttributeFilter("listings", "gender", value)} />
+         </> : null}
+                <SettingsAccordion title="Listing/Relisting Calendar" subtitle={listingDatePlans.length + " upcoming date" + (listingDatePlans.length === 1 ? "" : "s")} expanded={listingPlansExpanded} onPress={() => setListingPlansExpanded((expanded) => !expanded)}>
           {listingDatePlans.length ? listingDatePlans.map((plan) => <Card key={plan.listing.id + plan.kind} style={styles.historyCard}>
             <View style={styles.cardTop}><View style={styles.flex}><Text style={styles.recordTitle}>{plan.kind} · {plan.listing.productName}</Text><Text style={styles.recordMeta}>{dateLabel(plan.date)} · {(plan.listing.marketplaces || []).join(", ") || plan.listing.marketplace}</Text></View></View><View style={styles.actionRow}><Action label={plan.listingStart ? "Edit listing date" : "Edit relisting"} quiet onPress={() => editListing(plan.listing)} /><Action label={plan.listingStart ? "Clear listing date" : "Delete relisting"} quiet onPress={() => plan.listingStart ? beginEdit("listing", { ...plan.listing, startDate: "", price: String(plan.listing.price), marketplaces: plan.listing.marketplaces || [] }) : clearRelistDate(plan.listing)} /></View>
           </Card>) : <Text style={styles.bodyText}>No upcoming listing or relisting dates. Add dates to listings to see them here.</Text>}
@@ -6106,7 +6073,7 @@ export default function App() {
             : item.needsArchive ? item.status === "Sold" ? (soldCount || 1) + " sold · archive this listing" : "Out of stock · archive this listing"
               : noProductStock ? "Out of stock · make more or archive"
               : item.status === "Paused" ? "Paused" : item.startDate && item.startDate > TODAY ? "Planned" : item.status || "Draft";
-          return <Card key={item.id}><View style={styles.cardTop}>{bulkDeleteMode === "listings" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("listings", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle}>{item.productName}</Text>{item.listingNameOverride ? <Text style={styles.recordMeta}>Custom listing title</Text> : null}<Text style={styles.recordMeta}>{item.listingSku || "LIST SKU missing"} · {item.productSku || "Product SKU missing"}</Text><Text style={styles.recordMeta}>{characterCount(item.productName)} title characters · {characterCount(item.description)} description characters</Text><Text style={styles.recordMeta}>{item.marketplace || "Marketplace not saved"} · {item.price != null ? money(item.price, db.currency) : "Price not saved"}</Text>{soldCount > 0 ? <Text style={styles.recordMeta}>{soldCount} sold total on this listing</Text> : null}</View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={statusText} tone={item.archived || item.status === "Sold" ? "gray" : item.needsArchive || noProductStock ? "red" : item.status === "Active" ? "green" : "amber"} /><Pill text={daysListedLabel} tone={listingAgeTone(item)} /><Action label="Edit" quiet onPress={() => editListing(item)} /></View></View>
+          return <Card key={item.id}><View style={styles.cardTop}>{bulkDeleteMode === "listings" ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: bulkDeleteIds.includes(item.id) }} style={styles.bulkDeleteCheckbox} onPress={() => toggleBulkDeleteSelection("listings", item.id)}><Text style={styles.bulkDeleteCheckboxText}>{bulkDeleteIds.includes(item.id) ? "☑" : "☐"}</Text></Pressable> : null}<View style={styles.flex}><Text style={styles.recordTitle}>{item.productName}</Text>{item.listingNameOverride ? <Text style={styles.recordMeta}>Custom listing title</Text> : null}<Text style={styles.recordMeta}>{item.listingSku || "LIST SKU missing"} · {item.productSku || "Product SKU missing"}</Text><Text style={styles.recordMeta}>{characterCount(item.productName)} title characters · {characterCount(item.description)} description characters</Text><Text style={styles.recordMeta}>{item.marketplace || "Marketplace not saved"} · {item.price != null ? money(item.price, db.currency) : "Price not saved"}</Text>{soldCount > 0 ? <Text style={styles.recordMeta}>{soldCount} sold total on this listing</Text> : null}{listingDescriptionNeedsUpdate(item) ? <Text style={styles.errorText}>Product description changed · review details</Text> : null}</View><View style={{ alignItems: "flex-end", gap: 6 }}><Pill text={statusText} tone={item.archived || item.status === "Sold" ? "gray" : item.needsArchive || noProductStock ? "red" : item.status === "Active" ? "green" : "amber"} /><Pill text={daysListedLabel} tone={listingAgeTone(item)} /><Action label="Edit" quiet onPress={() => editListing(item)} /></View></View>
             <View style={styles.actionRow}><Action label={expandedListingIds.includes(item.id) ? "Hide details" : "Show details"} quiet onPress={() => setExpandedListingIds((old) => old.includes(item.id) ? [] : [item.id])} /><Action label="Copy title" quiet onPress={() => copyListingText(item, "title")} /><Action label="Copy description" quiet onPress={() => copyListingText(item, "description")} /></View>
             {expandedListingIds.includes(item.id) ? <>
             {(() => {
@@ -6864,7 +6831,7 @@ export default function App() {
     return (
     <>
       <Text style={styles.pageLeadText}>{orderStatusFilter === "All" ? "Sales and fulfillment activity, with full history saved to each order." : "Orders currently in " + orderStatusFilter + "."}</Text>
-      <View style={styles.metricGrid}><Metric label="Orders" value={String(orderScope.length)} /><Metric label="Gross sales" value={money(orderScope.reduce((sum, order) => sum + totalOrder(order), 0), db.currency)} /><Metric label="In progress" value={String(orderNeedsAttention.filter((order) => scopedOrderIds.has(order.id)).length)} /></View>
+      <View style={styles.metricGrid}><Metric label="Orders" value={String(orderScope.length)} /><Metric label="Gross sales" value={money(orderScope.reduce((sum, order) => sum + totalOrder(order), 0), db.currency)} /><Metric label="Need attention" value={String(orderNeedsAttention.filter((order) => scopedOrderIds.has(order.id)).length)} /></View>
       <ChoiceChips label="Fulfillment status" options={statusOptions} value={orderStatusFilter} onChange={setOrderStatusFilter} />
       <ChoiceChips label="Order list" options={[{ label: `Active (${activeOrders.length})`, value: false }, { label: `Archived (${db.orders.filter((order) => order.archived).length})`, value: true }]} value={showArchivedOrders} onChange={(value) => { setShowArchivedOrders(value); setOrderStatusFilter("All"); }} />
       <SortControl value={db.sortModes.orders} onChange={(value) => saveSortMode("orders", value)} />
@@ -7631,10 +7598,9 @@ export default function App() {
           <ChoiceChips label="Business at a glance shape" options={[{ label: "Square corners", value: "square" }, { label: "Standard panel", value: "panel" }, { label: "Rounded panel", value: "rounded" }]} value={appearance.businessGlanceShape} onChange={(value) => saveAppearanceSetting("businessGlanceShape", value)} />
         </SettingsAccordion>
         <Field field={{ key: "appearanceFont", label: "Font family", searchable: true, searchPlaceholder: "Find a font", options: FONT_FAMILY_OPTIONS.map((font) => ({ label: font, value: font })), hint: "This typeface applies throughout the tracker. Font choices use browser-safe fallback families." }} value={appearance.fontFamily} onChange={saveFontFamily} />
-        <SettingsAccordion title="Business Assistant" subtitle="A friendly robot that moves with your theme" expanded={settingsSections.robot} onPress={() => toggleSection("robot")}>
-          <View style={styles.assistantDesignPreview}><AssistantRobot /><View style={styles.flex}><Text style={styles.recordTitle}>Orbit</Text><Text style={styles.bodyText}>Orbit follows the app’s accent color and gently waves while you work. Choose a custom color anytime.</Text></View></View>
-          <CustomColorSetting label="Robot color" value={appearance.assistantColorMode === "custom" ? appearance.assistantColor : COLORS.wine} isOpen={assistantColorOpen} onToggle={() => setAssistantColorOpen((open) => !open)} onChange={saveAssistantColor} onPick={saveAssistantColor} />
-          {appearance.assistantColorMode === "custom" ? <View style={styles.actionRow}><Action label="Match app theme" quiet onPress={matchAssistantThemeColor} /></View> : <Text style={styles.fieldHint}>Robot color follows the selected theme.</Text>}
+        <SettingsAccordion title="Business Assistant" subtitle="One floating robot, in your chosen color" expanded={settingsSections.robot} onPress={() => toggleSection("robot")}>
+          <View style={styles.assistantDesignPreview}><AssistantRobot /><View style={styles.flex}><Text style={styles.recordTitle}>Orbit</Text><Text style={styles.bodyText}>A simple rectangular robot with rosy cheeks. Its shell uses the color you choose.</Text></View></View>
+          <CustomColorSetting label="Assistant color" value={appearance.assistantColor} isOpen={assistantColorOpen} onToggle={() => setAssistantColorOpen((open) => !open)} onChange={(value) => saveAppearanceSetting("assistantColor", value)} onPick={(value) => saveAppearanceSetting("assistantColor", value)} />
         </SettingsAccordion>
         <SettingsAccordion title="Customize individual colors" subtitle="Optional fine-tuning for your saved custom palette" expanded={customThemeSections.open} onPress={() => setCustomThemeSections((old) => ({ ...old, open: !old.open }))}>
           <ChoiceChips label="Custom palette mode" options={[{ label: "Light", value: "light" }, { label: "Dark", value: "dark" }]} value={(db.customTheme || DEFAULT_CUSTOM_THEME).mode || "dark"} onChange={(value) => saveCustomThemeColor("mode", value)} />
@@ -7950,19 +7916,17 @@ export default function App() {
       <View style={styles.actionRow}><Action label={done ? "Undo" : "Done"} quiet onPress={onDone} /><Action label="Edit" quiet onPress={() => beginEdit(type === "work block" ? "workPlan" : type, item)} /></View>
     </View>;
     const motionStyle = { opacity: assistantAnswerMotion, transform: [{ translateY: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [15, 0] }) }, { scale: assistantAnswerMotion.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }) }] };
-          const userChoice = assistantAnswer && BUSINESS_ASSISTANT_GROUPS.flatMap((group) => group.choices).find(([id]) => id === assistantAnswer.id);
+    const userChoice = assistantAnswer && BUSINESS_ASSISTANT_GROUPS.flatMap((group) => group.choices).find(([id]) => id === assistantAnswer.id);
     const updateRangeMode = (mode) => { setAssistantRangeMode(mode); if (mode === "range") setAssistantEndDate(day); };
     const closePlannerAndGoToCalendar = () => { setAssistantPlannerOpen(false); setAssistantDockOpen(false); navigateToScreen("Calendar"); };
     return <View style={styles.assistantPage}>
       <View style={styles.assistantPageHeader}>
         {docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Assistant</Text></View> : !wideLayout ? <Pressable accessibilityRole="button" accessibilityLabel="Open workspace navigation" style={styles.menuButton} onPress={() => setMobileNavOpen(true)}><AppIcon name="menu" size={19} color={COLORS.ink} /></Pressable> : <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.assistantBackButton} onPress={() => navigationStack.length > 1 ? navigateBack() : navigateRoot("Dashboard")}><Text style={styles.assistantBackArrow}>‹</Text><Text style={styles.assistantBackText}>Back</Text></Pressable>}
         {!docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Business Assistant</Text></View> : null}
-        <View style={styles.recordDrawerHeaderActions}><Pressable accessibilityRole="button" accessibilityLabel={"Open Business Assistant mailbox" + (pageAttentionItems.length ? ", " + pageAttentionItems.length + " open items" : "")} style={styles.assistantMailboxButton} onPress={() => setAttentionOpen(true)}><AppIcon name="mail" size={18} color={COLORS.ink} />{pageAttentionItems.length ? <View style={styles.mailCountBadge}><Text style={styles.mailCountText}>{pageAttentionItems.length > 99 ? "99+" : pageAttentionItems.length}</Text></View> : null}</Pressable><Pressable accessibilityRole="button" accessibilityLabel="Open your schedule and notes" style={styles.assistantPlannerButton} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.assistantPlannerButtonText}>Plan</Text></Pressable>{docked ? <Pressable accessibilityRole="button" onPress={() => setAssistantDockOpen(false)} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable> : null}</View>
+        <View style={styles.recordDrawerHeaderActions}><Pressable accessibilityRole="button" accessibilityLabel="Open your schedule and notes" style={styles.assistantPlannerButton} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.assistantPlannerButtonText}>Plan</Text></Pressable>{docked ? <Pressable accessibilityRole="button" onPress={() => setAssistantDockOpen(false)} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable> : null}</View>
       </View>
       {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
       {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
-      <View style={styles.assistantConversationFrame}>
-      <View style={styles.assistantConversationHeader}><View style={styles.assistantConversationTitleRow}><Text style={styles.assistantConversationName}>Orbit</Text><View style={styles.assistantOnlineDot} /></View><Text style={styles.assistantConversationStatus}>Business records</Text></View>
       <View style={[styles.assistantDatePanel, phoneLayout && styles.assistantDatePanelPhone]}>
         <View style={styles.assistantDatePanelTop}><Text style={styles.assistantSectionLabel}>REPORT PERIOD</Text><View style={styles.assistantRangeSwitch}>
           {[{ label: "One day", value: "day" }, { label: "Date range", value: "range" }].map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: assistantRangeMode === option.value }} onPress={() => updateRangeMode(option.value)} style={[styles.assistantRangeOption, assistantRangeMode === option.value && styles.assistantRangeOptionSelected]}><Text style={[styles.assistantRangeOptionText, assistantRangeMode === option.value && styles.assistantRangeOptionTextSelected]}>{option.label}</Text></Pressable>)}
@@ -7980,11 +7944,11 @@ export default function App() {
               <View style={styles.assistantAnswerList}>{assistantAnswer.rows.map((row, index) => <View key={assistantAnswer.id + "-" + index} style={styles.assistantAnswerRow}><Text style={styles.assistantBullet}>•</Text><View style={styles.flex}><Text style={styles.assistantAnswerRowTitle}>{row.title}</Text>{row.detail ? <Text style={styles.assistantAnswerRowText}>{row.detail}</Text> : null}</View></View>)}</View>
               <Text style={styles.fieldHint}>{assistantAnswer.note}</Text>
             </Card></View>
-          </Animated.View> : <View style={styles.assistantReplyRow}><AssistantRobot /><Card style={styles.assistantWelcomeBubble}><Text style={styles.assistantHeroTitle}>Hi, I’m Orbit.</Text><Text style={styles.assistantAnswerSummary}>What would you like to check in your business today?</Text><Text style={styles.fieldHint}>Choose a date if you want a specific day or range.</Text></Card></View>}
+          </Animated.View> : <View style={styles.assistantReplyRow}><AssistantRobot /><Card style={styles.assistantWelcomeBubble}><Text style={styles.assistantHeroTitle}>Hey, I’m {ASSISTANT_ROBOTS.find((robot) => robot.id === CURRENT_APPEARANCE.robotStyle)?.name || "Orbit"}.</Text><Text style={styles.assistantAnswerSummary}>Pick a report and I’ll pull the matching numbers and records from your tracker. Each result is shown as its own readable list.</Text><Text style={styles.fieldHint}>Choose a date or date range above, then tap a report below.</Text></Card></View>}
         </ScrollView>
       </View>
       <View style={[styles.assistantReportPicker, phoneLayout && styles.assistantReportPickerPhone]}>
-        <View style={styles.assistantPickerHeading}><Text style={styles.assistantSectionLabel}>ASK ORBIT</Text><Text style={styles.fieldHint}>Choose a question</Text></View>
+        <View style={styles.assistantPickerHeading}><Text style={styles.assistantSectionLabel}>CHOOSE A REPORT</Text><Text style={styles.fieldHint}>{selectedGroup.choices.length} choices · no question typing</Text></View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.assistantGroupChoices}>{BUSINESS_ASSISTANT_GROUPS.map((group) => <Pressable key={group.label} accessibilityRole="button" accessibilityState={{ selected: selectedGroup.label === group.label }} onPress={() => setAssistantExpandedGroup(group.label)} style={[styles.assistantGroupChip, selectedGroup.label === group.label && styles.assistantGroupChipSelected]}><Text style={[styles.assistantGroupChipText, selectedGroup.label === group.label && styles.assistantGroupChipTextSelected]}>{group.label}</Text></Pressable>)}</ScrollView>
         <ScrollView nestedScrollEnabled style={styles.assistantReportChoicesScroll} contentContainerStyle={styles.assistantChoiceGrid} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
           {selectedGroup.choices.map(([id, label]) => <Pressable key={id} accessibilityRole="button" disabled={!validRange} style={({ pressed }) => [styles.assistantChoice, !validRange && styles.disabledButton, pressed && validRange && styles.pressedState]} onPress={() => answerBusinessAssistantChoice(id)}><Text style={styles.assistantChoiceText}>{label}</Text><Text style={styles.assistantChoiceArrow}>›</Text></Pressable>)}
@@ -7993,7 +7957,6 @@ export default function App() {
       <View style={styles.assistantActionDock}>
         <Pressable accessibilityRole="button" style={[styles.assistantDockAction, styles.assistantDockActionTask]} onPress={() => beginAdd("task", { dueDate: day })}><AppIcon name="plus" size={15} color={COLORS.wine} /><Text style={styles.assistantDockActionText}>New task</Text></Pressable>
         <Pressable accessibilityRole="button" style={[styles.assistantDockAction, styles.assistantDockPlan]} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={15} color={COLORS.onAccent} /><Text style={[styles.assistantDockActionText, styles.assistantDockPlanText]}>Plan & notes</Text><Text style={[styles.assistantDockCount, styles.assistantDockPlanText]}>{openTaskCount + events.filter((item) => !item.done).length + plans.filter((item) => !item.done).length}</Text></Pressable>
-      </View>
       </View>
       <Modal visible={assistantPlannerOpen} transparent animationType="slide" onRequestClose={() => setAssistantPlannerOpen(false)}>
         <View style={styles.assistantPlannerOverlay}><Pressable style={styles.assistantPlannerScrim} accessibilityLabel="Close schedule and notes" onPress={() => setAssistantPlannerOpen(false)} /><SafeAreaView style={styles.assistantPlannerPanel}>
@@ -8098,9 +8061,9 @@ export default function App() {
         <View style={styles.topActions}>
           <Pressable accessibilityRole="button" accessibilityLabel="Search or jump to a page, Command K" style={styles.globalSearchButton} onPress={() => { setGlobalSearchOpen(true); setGlobalSearchQuery(""); }}><AppIcon name="search" size={17} color={COLORS.ink} />{wideLayout ? <><Text style={styles.globalSearchButtonText}>Search</Text><Text style={styles.globalSearchShortcut}>⌘ K</Text></> : null}</Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Open Business Assistant" style={styles.assistantDockButton} onPress={() => setAssistantDockOpen(true)}><View style={styles.assistantDockRobot}><AssistantRobot compact /></View></Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel={"Open " + screenTitle + " mailbox" + (pageAttentionItems.length ? ", " + pageAttentionItems.length + " open items" : "")} style={styles.mailboxButton} onPress={() => setAttentionOpen(true)}>
+          <Pressable accessibilityRole="button" accessibilityLabel={"What's new" + (unreadAnnouncementCount ? ", " + unreadAnnouncementCount + " unread" : "")} style={styles.mailboxButton} onPress={() => setAnnouncementOpen(true)}>
             <AppIcon name="mail" size={19} color={COLORS.ink} />
-            {pageAttentionItems.length ? <View style={styles.mailCountBadge}><Text style={styles.mailCountText}>{pageAttentionItems.length > 99 ? "99+" : pageAttentionItems.length}</Text></View> : null}
+            {unreadAnnouncementCount ? <View style={styles.mailCountBadge}><Text style={styles.mailCountText}>{unreadAnnouncementCount > 9 ? "9+" : unreadAnnouncementCount}</Text></View> : null}
           </Pressable>
           {wideLayout ? <Pressable onPress={saveError ? retrySave : undefined} accessibilityLabel={saveError || (saving ? "Saving tracker data" : lastSavedAt ? "Tracker saved" : "Tracker ready")}><Text style={[styles.saveState, saveError && { color: COLORS.red, fontWeight: "700" }]}>{saveError || (saving ? "Saving…" : lastSavedAt ? `Saved ${lastSavedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "Ready")}</Text></Pressable> : null}
           <Pressable accessibilityRole="button" accessibilityLabel="Add a business record" style={[styles.addCircle, wideLayout && styles.newButton]} onPress={() => setAddChooserOpen(true)}>{wideLayout ? <Text style={styles.newButtonText}>＋ New</Text> : <AppIcon name="plus" size={19} color={COLORS.onAccent} />}</Pressable>
@@ -8149,18 +8112,17 @@ export default function App() {
       </Modal>
       <Modal visible={attentionOpen} transparent animationType="fade" onRequestClose={() => setAttentionOpen(false)}>
         <View style={styles.announcementOverlay}>
-          <Pressable style={styles.announcementScrim} onPress={() => setAttentionOpen(false)} accessibilityLabel="Close mailbox" />
+          <Pressable style={styles.announcementScrim} onPress={() => setAttentionOpen(false)} accessibilityLabel="Close needs attention" />
           <SafeAreaView style={styles.announcementPanel}>
             <View style={styles.announcementHeader}>
               <View style={styles.flex}>
-                <Text style={styles.announcementTitle}>Mailbox</Text>
-                <Text style={styles.announcementSubtitle}>{pageAttentionItems.length ? pageAttentionItems.length + " open item" + (pageAttentionItems.length === 1 ? "" : "s") + " · " + (screen === "Dashboard" ? "all pages" : attentionScopeScreen) : "No open items on " + (screen === "Dashboard" ? "any page" : attentionScopeScreen)}</Text>
+                <Text style={styles.announcementTitle}>Needs attention</Text>
+                <Text style={styles.announcementSubtitle}>{pageAttentionItems.length ? pageAttentionItems.length + " open on " + (screen === "Dashboard" ? "all pages" : attentionScopeScreen) : "No open items on " + (screen === "Dashboard" ? "any page" : attentionScopeScreen)}</Text>
               </View>
               <Pressable accessibilityRole="button" onPress={() => setAttentionOpen(false)} style={styles.announcementClose}><Text style={styles.modalCancel}>Close</Text></Pressable>
             </View>
             <ScrollView style={styles.announcementList} contentContainerStyle={styles.announcementListContent}>
               <View style={styles.actionRow}>
-                <Action label={"What’s new" + (unreadAnnouncementCount ? " · " + unreadAnnouncementCount : "")} quiet onPress={() => { setAttentionOpen(false); setAnnouncementOpen(true); }} />
                 {pageAttentionItems.length ? <Action label={screen === "Dashboard" ? "Dismiss all" : "Dismiss all on this page"} quiet onPress={() => dismissAttentionItems(pageAttentionItems)} /> : null}
                 {pageDismissedAttentionItems.length ? <Action label="Restore all dismissed" quiet onPress={() => restoreAttentionItems(pageDismissedAttentionItems)} /> : null}
               </View>
@@ -8400,33 +8362,6 @@ function makeStyles() { return StyleSheet.create({
   screenSummary: { marginBottom: 10 },
   screenSummaryDescription: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginBottom: 8 },
   pageLeadText: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginBottom: 10 },
-  catalogToolbar: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, marginBottom: 9, width: "100%" },
-  catalogSegmented: { flex: 1, minWidth: 116, minHeight: 38, flexDirection: "row", alignItems: "center", gap: 3, padding: 3, borderRadius: 11, backgroundColor: COLORS.soft },
-  catalogSegment: { flex: 1, minWidth: 0, minHeight: 32, alignItems: "center", justifyContent: "center", paddingHorizontal: 5, borderRadius: 8 },
-  catalogSegmentSelected: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line },
-  catalogSegmentText: { color: COLORS.muted, fontSize: 9, fontWeight: "700" },
-  catalogSegmentTextSelected: { color: COLORS.wine, fontWeight: "800" },
-  catalogFilterButton: { minWidth: 63, height: 38, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingHorizontal: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.card },
-  catalogFilterButtonText: { color: COLORS.ink, fontSize: 10, fontWeight: "700" },
-  catalogFilterCount: { minWidth: 17, height: 17, textAlign: "center", overflow: "hidden", paddingHorizontal: 4, paddingTop: 2, borderRadius: 9, backgroundColor: COLORS.soft, color: COLORS.wine, fontSize: 9, lineHeight: 12, fontWeight: "800" },
-  catalogToolbarButton: { minWidth: 83, maxWidth: 105, height: 38, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingHorizontal: 7, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.card },
-  catalogToolbarGlyph: { color: COLORS.wine, fontSize: 16, lineHeight: 19, fontWeight: "800" },
-  catalogToolbarButtonLabel: { color: COLORS.muted, fontSize: 8, lineHeight: 10, fontWeight: "700" },
-  catalogToolbarButtonValue: { maxWidth: 73, color: COLORS.ink, fontSize: 9, lineHeight: 11, fontWeight: "700" },
-  catalogFilterPanel: { marginBottom: 9, padding: 10, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, backgroundColor: COLORS.card },
-  catalogFilterPanelHeader: { minHeight: 30, flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
-  inventoryToolGrid: { width: "100%", flexDirection: "row", flexWrap: "wrap", alignItems: "stretch", gap: 7 },
-  inventoryToolButton: { width: "48%", flexGrow: 1, minWidth: 116, minHeight: 39, paddingHorizontal: 7 },
-  catalogSheetBackdrop: { flex: 1, justifyContent: "flex-end" },
-  catalogSheetScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(20,18,20,0.42)" },
-  catalogSortSheet: { maxHeight: "76%", backgroundColor: COLORS.card, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderWidth: 1, borderColor: COLORS.line, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10 },
-  catalogSheetHeader: { minHeight: 54, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderBottomWidth: 1, borderBottomColor: COLORS.line, marginBottom: 4 },
-  catalogSortOptions: { maxHeight: 460 },
-  catalogSortOption: { minHeight: 43, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line },
-  catalogSortOptionSelected: { backgroundColor: COLORS.soft },
-  catalogSortOptionText: { color: COLORS.ink, fontSize: 12, fontWeight: "600" },
-  catalogSortOptionTextSelected: { color: COLORS.wine, fontWeight: "800" },
-  catalogSortCheck: { color: COLORS.wine, fontSize: 16, fontWeight: "800" },
   workspaceTabs: { flexDirection: "row", alignItems: "center", gap: 4, borderBottomWidth: 1, borderBottomColor: COLORS.line, marginBottom: 14 },
   workspaceTab: { minHeight: 38, alignItems: "center", justifyContent: "center", paddingHorizontal: 14, borderBottomWidth: 2, borderBottomColor: "transparent" },
   workspaceTabSelected: { borderBottomColor: COLORS.wine },
@@ -8605,11 +8540,10 @@ function makeStyles() { return StyleSheet.create({
   fulfillmentTile: { width: "31%", flexGrow: 1, minHeight: 82, padding: 10, borderRadius: 13, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, elevation: 1, shadowColor: COLORS.ink, shadowOpacity: 0.04, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } },
   fulfillmentCount: { color: COLORS.wine, fontSize: 20, fontWeight: "800" },
   fulfillmentLabel: { color: COLORS.muted, fontSize: 10, lineHeight: 13, marginTop: 3 },
-  fulfillmentList: { flexDirection: "column", marginBottom: 12, paddingHorizontal: 12, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, backgroundColor: COLORS.card },
-  fulfillmentListRow: { width: "100%", minHeight: 43, flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingHorizontal: 2, gap: 10 },
-  fulfillmentListRowLast: { borderBottomWidth: 0 },
+  fulfillmentList: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
+  fulfillmentListRow: { width: "48%", flexGrow: 1, minWidth: 132, minHeight: 62, flexDirection: "row", alignItems: "center", backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 10, gap: 8 },
   fulfillmentListRowEmpty: { backgroundColor: COLORS.soft },
-  fulfillmentListCount: { color: COLORS.wine, fontSize: 14, fontWeight: "800", width: 27, textAlign: "center" },
+  fulfillmentListCount: { color: COLORS.wine, fontSize: 18, fontWeight: "800", width: 28, textAlign: "center" },
   fulfillmentListLabel: { color: COLORS.ink, fontSize: 11, lineHeight: 14, fontWeight: "600", flex: 1 },
   fulfillmentListArrow: { color: COLORS.muted, fontSize: 22, paddingHorizontal: 2 },
   card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, padding: CURRENT_APPEARANCE.density === "Compact" ? 8 : CURRENT_APPEARANCE.density === "Spacious" ? 15 : 10, marginBottom: 10 },
@@ -9052,32 +8986,21 @@ function makeStyles() { return StyleSheet.create({
   globalSearchInput: { minHeight: 46, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, color: COLORS.ink, backgroundColor: COLORS.card, marginTop: 13, fontSize: 13 },
   globalSearchResults: { maxHeight: 500, marginTop: 9 },
   globalSearchResult: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 8 },
-  robotWrap: { width: 76, height: 94, alignItems: "center", justifyContent: "flex-start", position: "relative", paddingTop: 3 },
-  robotWrapCompact: { width: 40, height: 40, paddingTop: 0 },
-  robotHead: { width: 61, height: 49, borderWidth: 1.2, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  robotHeadCompact: { width: 28, height: 22, borderWidth: 1, borderRadius: 7 },
-  robotFace: { width: "74%", height: "63%", alignItems: "center", justifyContent: "space-between", paddingVertical: 3 },
-  robotFaceCompact: { width: "76%", height: "70%", paddingVertical: 0 },
-  robotEyes: { width: "62%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  robotEye: { width: 5, height: 6, borderRadius: 5 },
-  robotSmileRow: { width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  robotCheek: { width: 8, height: 5, borderRadius: 6, backgroundColor: "#F38391", opacity: 0.95 },
-  robotCheekCompact: { width: 3, height: 2 },
-  robotSmile: { width: 8, height: 4, borderBottomWidth: 1.5, borderLeftWidth: 0.8, borderRightWidth: 0.8, borderBottomLeftRadius: 7, borderBottomRightRadius: 7 },
-  robotLower: { width: 52, height: 23, alignItems: "center", justifyContent: "center", marginTop: 1 },
-  robotLowerCompact: { width: 25, height: 8, marginTop: 0 },
-  robotTorso: { width: 36, height: 20, alignItems: "center", justifyContent: "center", borderWidth: 1.2, borderRadius: 8 },
-  robotTorsoCompact: { width: 17, height: 7, borderWidth: 0.8, borderRadius: 4 },
-  robotTorsoDot: { width: 5, height: 5, borderRadius: 3, opacity: 0.85 },
-  robotTorsoDotCompact: { width: 3, height: 3 },
-  robotArm: { position: "absolute", top: 4, width: 7, height: 16, borderRadius: 6 },
-  robotArmCompact: { top: 1, width: 4, height: 7, borderRadius: 3 },
-  robotArmLeft: { left: 2, transform: [{ rotate: "-8deg" }] },
-  robotArmRight: { right: 2, transform: [{ rotate: "8deg" }] },
-  robotFeet: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 0 },
-  robotFeetCompact: { gap: 6, marginTop: 0 },
-  robotFoot: { width: 12, height: 6, borderRadius: 5 },
-  robotFootCompact: { width: 7, height: 4, borderRadius: 3 },
+  robotWrap: { width: 78, height: 94, alignItems: "center", justifyContent: "center", position: "relative" },
+  robotWrapCompact: { width: 40, height: 40 },
+  robotShell: { width: 66, height: 57, padding: 6, borderWidth: 2, borderColor: COLORS.ink, borderRadius: 12, alignItems: "center", justifyContent: "center", elevation: 2 },
+  robotShellCompact: { width: 37, height: 34, padding: 3, borderWidth: 1.5, borderRadius: 8 },
+  robotFaceWindow: { width: "100%", height: "100%", borderRadius: 6, backgroundColor: "rgba(255,255,255,0.88)", alignItems: "center", justifyContent: "center", gap: 6 },
+  robotFaceWindowCompact: { borderRadius: 4, gap: 3 },
+  robotEyes: { width: "53%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  robotEyesCompact: { width: "52%" },
+  robotMouthRow: { width: "82%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  robotMouthRowCompact: { width: "88%" },
+  robotBlush: { width: 8, height: 5, borderRadius: 5, backgroundColor: "#F18A98" },
+  robotBlushCompact: { width: 5, height: 3, borderRadius: 3 },
+  robotNeck: { width: 10, height: 5, backgroundColor: COLORS.softLine, marginTop: 1 },
+  robotBody: { width: 48, height: 20, borderRadius: 7, borderWidth: 1.5, borderColor: COLORS.ink, alignItems: "center", justifyContent: "center" },
+  robotBodyDot: { width: 7, height: 4, borderRadius: 3, backgroundColor: COLORS.card },
   robotEyeNew: { width: 6, height: 8, borderRadius: 4, backgroundColor: COLORS.onAccent },
   robotEyeNewCompact: { width: 4, height: 5 },
   robotFaceLine: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 },
@@ -9126,23 +9049,16 @@ function makeStyles() { return StyleSheet.create({
   starSparkleOne: { position: "absolute", right: 0, top: 9, color: COLORS.wine, fontSize: 15 },
   starSparkleTwo: { position: "absolute", left: 6, top: 18, color: COLORS.green, fontSize: 20 },
   assistantPage: { flex: 1, minHeight: 0, gap: 7 },
-  assistantConversationFrame: { flex: 1, minHeight: 0, gap: 6, padding: 9, borderWidth: 1, borderColor: COLORS.line, borderRadius: 15, backgroundColor: COLORS.card, overflow: "hidden" },
-  assistantConversationHeader: { minHeight: 29, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingBottom: 5 },
-  assistantConversationTitleRow: { flexDirection: "row", alignItems: "center", gap: 7 },
-  assistantConversationName: { color: COLORS.ink, fontSize: 13, fontWeight: "800" },
-  assistantOnlineDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.green },
-  assistantConversationStatus: { color: COLORS.muted, fontSize: 9, fontWeight: "600" },
   assistantPageHeader: { minHeight: 46, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 2 },
   assistantBackButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, minWidth: 68, height: 36, paddingHorizontal: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line },
   assistantBackArrow: { color: COLORS.wine, fontSize: 24, lineHeight: 25 },
   assistantBackText: { color: COLORS.ink, fontSize: 11, fontWeight: "700" },
   assistantTitleBlock: { flex: 1 },
   assistantPageTitle: { color: COLORS.ink, fontSize: 20, lineHeight: 25, fontWeight: "800" },
-  assistantMailboxButton: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, alignItems: "center", justifyContent: "center", position: "relative" },
-  assistantPlannerButton: { height: 36, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, borderRadius: CURRENT_APPEARANCE.buttonRoundness, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
+  assistantPlannerButton: { height: 36, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, borderRadius: CURRENT_APPEARANCE.buttonRoundness, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
   assistantPlannerButtonText: { color: COLORS.wine, fontSize: 11, fontWeight: "800" },
-  assistantDatePanel: { paddingHorizontal: 1, paddingTop: 1, paddingBottom: 0, backgroundColor: "transparent", borderWidth: 0, zIndex: 1 },
-  assistantDatePanelPhone: { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 },
+  assistantDatePanel: { paddingHorizontal: 11, paddingTop: 8, paddingBottom: 5, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, zIndex: 1 },
+  assistantDatePanelPhone: { paddingHorizontal: 9, paddingTop: 7, paddingBottom: 4 },
   assistantDatePanelTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   assistantSectionLabel: { color: COLORS.muted, fontSize: 9, letterSpacing: 1.2, fontWeight: "800" },
   assistantRangeSwitch: { flexDirection: "row", padding: 2, borderRadius: 10, backgroundColor: COLORS.soft, gap: 2 },
@@ -9153,19 +9069,19 @@ function makeStyles() { return StyleSheet.create({
   assistantDateFields: { flexDirection: "row", gap: 11, alignItems: "flex-end" },
   assistantDateFieldsPhone: { gap: 6 },
   assistantPeriodHint: { flex: 1, minHeight: 40, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 8 },
-  assistantChatPanel: { flex: 1, minHeight: 82, backgroundColor: "transparent", borderRadius: 0, borderWidth: 0, overflow: "hidden" },
+  assistantChatPanel: { flex: 1, minHeight: 92, backgroundColor: COLORS.soft, borderRadius: CURRENT_APPEARANCE.cardRadius, borderWidth: 1, borderColor: COLORS.softLine, overflow: "hidden" },
   assistantMessagesScroll: { flex: 1, minHeight: 0 },
   assistantMessagesContent: { flexGrow: 1, justifyContent: "flex-end", padding: 12 },
-  assistantReportPicker: { backgroundColor: "transparent", borderWidth: 0, borderRadius: 0, paddingHorizontal: 0, paddingVertical: 2, maxHeight: 188 },
-  assistantReportPickerPhone: { maxHeight: 148, paddingHorizontal: 0, paddingVertical: 1 },
+  assistantReportPicker: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, paddingHorizontal: 10, paddingVertical: 8, maxHeight: 235 },
+  assistantReportPickerPhone: { maxHeight: 170, paddingHorizontal: 8, paddingVertical: 6 },
   assistantPickerHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   assistantGroupChoices: { gap: 6, paddingVertical: 4, alignItems: "center" },
   assistantGroupChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.soft },
   assistantGroupChipSelected: { backgroundColor: COLORS.wine, borderColor: COLORS.wine },
   assistantGroupChipText: { color: COLORS.muted, fontSize: 10, fontWeight: "700" },
   assistantGroupChipTextSelected: { color: COLORS.onAccent },
-  assistantReportChoicesScroll: { maxHeight: 91 },
-  assistantChoiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingTop: 3, paddingBottom: 3 },
+  assistantReportChoicesScroll: { maxHeight: 116 },
+  assistantChoiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 7, paddingTop: 4, paddingBottom: 3 },
   assistantActionDock: { minHeight: 40, flexDirection: "row", alignItems: "center", gap: 7, paddingTop: 1 },
   assistantDockAction: { flex: 1, minWidth: 0, minHeight: 39, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingHorizontal: 9, borderRadius: CURRENT_APPEARANCE.buttonRoundness, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
   assistantDockActionTask: { flex: 0.8 },
@@ -9201,7 +9117,7 @@ function makeStyles() { return StyleSheet.create({
   assistantChoiceGroup: { marginTop: 14 },
   assistantGroupTitle: { color: COLORS.wine, fontSize: 12, fontWeight: "800", marginBottom: 7 },
   assistantChoiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
-  assistantChoice: { width: "48%", flexGrow: 1, minWidth: 118, minHeight: 39, paddingHorizontal: 9, paddingVertical: 7, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, borderRadius: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 },
+  assistantChoice: { width: "48%", flexGrow: 1, minHeight: 47, paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 7 },
   assistantChoiceText: { flex: 1, color: COLORS.ink, fontSize: 11, lineHeight: 15, fontWeight: "700" },
   assistantChoiceArrow: { color: COLORS.wine, fontSize: 21, lineHeight: 23 },
   assistantAnswerCard: { flex: 1, marginTop: 0, marginBottom: 0, borderColor: COLORS.wine, borderWidth: 1.5, padding: 12 },
