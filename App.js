@@ -3164,10 +3164,7 @@ export default function App() {
   const activeShiftId = db.activeShift ? db.activeShift.id : null;
   const activeTimerId = db.activeTimer ? db.activeTimer.id : null;
   useEffect(() => {
-    setExpandedComponentIds([]);
-    setExpandedProductIds([]);
     setExpandedListingIds([]);
-    setExpandedOrderIds([]);
     setExpandedDashboardAttention([]);
     setExpandedIdeaStatuses(screen === "Ideas" ? ["Ideas"] : []);
     setInventoryHistoryExpanded(false);
@@ -5469,7 +5466,6 @@ export default function App() {
       setActivityEditor(null);
       setHelpOpen(false);
       setTutorialOpen(false);
-      setExpandedOrderIds([]);
       setSearch("");
       setProductionProduct("");
       setProductionQty("1");
