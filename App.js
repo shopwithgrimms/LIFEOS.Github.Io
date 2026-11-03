@@ -71,17 +71,18 @@ const ASSISTANT_ROBOTS = [
   { id: "starling", name: "Starling", detail: "A bright little star guide" },
 ];
 const APPEARANCE_DEFAULTS = {
-  templateName: "Art Studio", fontFamily: "System", baseFontSize: 1,
-  headingWeight: "700", cardRadius: 16, density: "Comfortable", headerLayout: "editorial",
-  shadowIntensity: 0.18, buttonRoundness: 12, tableRowHeight: 48, accentGlow: false,
-  dividerOpacity: 0.7, scrollbarStyle: "Auto", cardStyle: "artsy", shellStyle: "gallery",
-  buttonStyle: "studio", iconStyle: "framed", motif: "studio", robotStyle: "orbit",
+  templateName: "Modern Ledger", fontFamily: "System", baseFontSize: 1,
+  headingWeight: "700", cardRadius: 14, density: "Comfortable", headerLayout: "minimal",
+  shadowIntensity: 0.05, buttonRoundness: 10, tableRowHeight: 48, accentGlow: false,
+  dividerOpacity: 0.8, scrollbarStyle: "Auto", cardStyle: "soft", shellStyle: "sidebar",
+  buttonStyle: "minimal", iconStyle: "outlined", motif: "none", robotStyle: "orbit",
+  assistantColor: "#3157C8", businessGlanceShape: "panel",
 };
 let CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS };
 const setAppearanceSettings = (settings) => {
   const saved = settings || {};
   const template = VISUAL_TEMPLATES.find((item) => item.name === saved.templateName);
-  CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS, ...(template ? template.appearance : {}), ...saved };
+  CURRENT_APPEARANCE = { ...APPEARANCE_DEFAULTS, ...(template ? template.appearance : {}), ...saved, shellStyle: "sidebar", headerLayout: "minimal" };
 };
 const fontFamilyFor = (name) => {
   const stacks = {
@@ -112,13 +113,17 @@ function TextInput({ style, ...props }) {
   return <NativeTextInput {...props} style={[family ? { fontFamily: family } : null, flattened.fontSize ? { fontSize: Math.round(flattened.fontSize * Number(CURRENT_APPEARANCE.baseFontSize || 1)) } : null, style]} />;
 }
 
-function Pressable({ onPress, ...props }) {
+function Pressable({ onPress, style, ...props }) {
   const playButtonSound = useContext(ButtonSoundContext);
   const handlePress = onPress ? (event) => {
     if (playButtonSound) playButtonSound();
     return onPress(event);
   } : undefined;
-  return <NativePressable {...props} onPress={handlePress} />;
+  const interactiveStyle = (state) => [
+    typeof style === "function" ? style(state) : style,
+    state.pressed ? { opacity: 0.88 } : null,
+  ];
+  return <NativePressable {...props} style={interactiveStyle} onPress={handlePress} />;
 }
 
 const STORAGE_KEY = "grimms-business-tracker-v1";
@@ -241,25 +246,12 @@ const THEMES = THEME_SPECS.flatMap((spec) => [
   { name: spec[0] + " — Dark Mode", mode: "dark", colors: makeThemeColors(spec, true) },
 ]).concat([{ name: CUSTOM_THEME_NAME, mode: "dark", colors: makeCustomThemeColors(DEFAULT_CUSTOM_THEME) }]);
 const VISUAL_TEMPLATES = [
-  { name: "Art Studio", description: "An artist’s portfolio workspace with an editorial title, picture-frame cards, and a studio tool strip.", appearance: { shellStyle: "gallery", cardStyle: "artsy", headerLayout: "editorial", buttonStyle: "studio", iconStyle: "framed", motif: "studio", cardRadius: 16, density: "Comfortable", shadowIntensity: 0.18, buttonRoundness: 10, tableRowHeight: 48, headingWeight: "800", dividerOpacity: 0.8 } },
-  { name: "Cloud Garden", description: "A sky-like workspace with a floating top menu, cloud cards, and soft pill-shaped controls.", appearance: { shellStyle: "topnav", cardStyle: "cloud", headerLayout: "floating", buttonStyle: "puffy", iconStyle: "soft", motif: "cloud", cardRadius: 27, density: "Spacious", shadowIntensity: 0.4, buttonRoundness: 24, tableRowHeight: 50, headingWeight: "800", dividerOpacity: 0.45 } },
-  { name: "Lo-fi Paper Desk", description: "A notebook-inspired desk with ruled panels, section tabs, and stamped paper buttons.", appearance: { shellStyle: "sidebar", cardStyle: "paper", headerLayout: "journal", buttonStyle: "stamped", iconStyle: "ink", motif: "ruled", cardRadius: 8, density: "Comfortable", shadowIntensity: 0.08, buttonRoundness: 6, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.75 } },
-  { name: "Botanical Journal", description: "A field journal with a leafy side rail, layered sections, and organic rounded panels.", appearance: { shellStyle: "rail", cardStyle: "garden", headerLayout: "journal", buttonStyle: "leaf", iconStyle: "botanical", motif: "leaves", cardRadius: 20, density: "Comfortable", shadowIntensity: 0.2, buttonRoundness: 18, tableRowHeight: 49, headingWeight: "700", dividerOpacity: 0.65 } },
-  { name: "Modern Gallery", description: "A clean exhibition layout with a narrow icon rail, oversized page titles, and framed data.", appearance: { shellStyle: "rail", cardStyle: "gallery", headerLayout: "gallery", buttonStyle: "square", iconStyle: "outlined", motif: "gallery", cardRadius: 3, density: "Spacious", shadowIntensity: 0, buttonRoundness: 3, tableRowHeight: 52, headingWeight: "900", dividerOpacity: 1 } },
-  { name: "Bubblegum Pop", description: "A playful mobile-first layout with bottom navigation, puffy cards, and big friendly buttons.", appearance: { shellStyle: "bottomnav", cardStyle: "bubble", headerLayout: "centered", buttonStyle: "puffy", iconStyle: "sticker", motif: "sparkles", cardRadius: 26, density: "Spacious", shadowIntensity: 0.28, buttonRoundness: 24, tableRowHeight: 50, headingWeight: "800", dividerOpacity: 0.4 } },
-  { name: "Vintage Ledger", description: "A shopkeeper’s ledger with compact rows, a labeled side menu, and ruled transaction panels.", appearance: { shellStyle: "sidebar", cardStyle: "ledger", headerLayout: "compact", buttonStyle: "ledger", iconStyle: "ink", motif: "ruled", cardRadius: 3, density: "Compact", shadowIntensity: 0, buttonRoundness: 4, tableRowHeight: 40, headingWeight: "800", dividerOpacity: 1 } },
-  { name: "Floating Glass", description: "A translucent-feeling control room with a floating icon rail and lifted glass-like surfaces.", appearance: { shellStyle: "rail", cardStyle: "floating", headerLayout: "floating", buttonStyle: "glass", iconStyle: "glow", motif: "orbs", cardRadius: 21, density: "Spacious", shadowIntensity: 0.55, buttonRoundness: 18, tableRowHeight: 49, headingWeight: "700", dividerOpacity: 0.35, accentGlow: true } },
-  { name: "Minimal Canvas", description: "A quiet wide canvas with a top menu, open page sections, and understated controls.", appearance: { shellStyle: "topnav", cardStyle: "minimal", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "plain", motif: "none", cardRadius: 1, density: "Spacious", shadowIntensity: 0, buttonRoundness: 3, tableRowHeight: 52, headingWeight: "700", dividerOpacity: 0.55 } },
-  { name: "Color Block Studio", description: "A bold magazine layout with a color-block masthead, top menu, and graphic button shapes.", appearance: { shellStyle: "topnav", cardStyle: "colorBlock", headerLayout: "block", buttonStyle: "block", iconStyle: "solid", motif: "blocks", cardRadius: 3, density: "Comfortable", shadowIntensity: 0.1, buttonRoundness: 4, tableRowHeight: 46, headingWeight: "900", dividerOpacity: 1 } },
-  { name: "Cozy Cafe", description: "A cafe-menu style tracker with bottom navigation, rounded menu cards, and warm illustrated badges.", appearance: { shellStyle: "bottomnav", cardStyle: "cafe", headerLayout: "cafe", buttonStyle: "menu", iconStyle: "sticker", motif: "steam", cardRadius: 18, density: "Comfortable", shadowIntensity: 0.22, buttonRoundness: 15, tableRowHeight: 47, headingWeight: "700", dividerOpacity: 0.55 } },
-  { name: "Craft Scrapbook", description: "A craft-table layout with a side menu, layered notes, taped details, and cut-paper controls.", appearance: { shellStyle: "sidebar", cardStyle: "scrapbook", headerLayout: "journal", buttonStyle: "cutout", iconStyle: "sticker", motif: "confetti", cardRadius: 13, density: "Comfortable", shadowIntensity: 0.32, buttonRoundness: 10, tableRowHeight: 46, headingWeight: "800", dividerOpacity: 0.55 } },
-  { name: "Midnight Arcade", description: "A compact neon control deck with a narrow side rail, pixel icons, and crisp game-like panels.", appearance: { shellStyle: "rail", cardStyle: "arcade", headerLayout: "arcade", buttonStyle: "arcade", iconStyle: "pixel", motif: "grid", cardRadius: 5, density: "Compact", shadowIntensity: 0.45, buttonRoundness: 4, tableRowHeight: 42, headingWeight: "900", dividerOpacity: 0.9, accentGlow: true } },
-  { name: "Sakura Dream", description: "A gentle illustrated planner with floating bottom navigation, petal-shaped details, and soft panels.", appearance: { shellStyle: "bottomnav", cardStyle: "sakura", headerLayout: "centered", buttonStyle: "petal", iconStyle: "sticker", motif: "petals", cardRadius: 22, density: "Spacious", shadowIntensity: 0.18, buttonRoundness: 20, tableRowHeight: 50, headingWeight: "700", dividerOpacity: 0.4 } },
-  { name: "Noir Atelier", description: "A dramatic editorial workbench with a vertical icon rail, gallery frames, and precise controls.", appearance: { shellStyle: "rail", cardStyle: "gallery", headerLayout: "editorial", buttonStyle: "square", iconStyle: "outlined", motif: "gallery", cardRadius: 5, density: "Comfortable", shadowIntensity: 0.28, buttonRoundness: 5, tableRowHeight: 46, headingWeight: "900", dividerOpacity: 0.8 } },
-  { name: "Ocean Postcards", description: "A travel-journal layout with top navigation, postcard panels, and wave-like visual details.", appearance: { shellStyle: "topnav", cardStyle: "postcard", headerLayout: "postcard", buttonStyle: "postcard", iconStyle: "outlined", motif: "wave", cardRadius: 12, density: "Spacious", shadowIntensity: 0.25, buttonRoundness: 10, tableRowHeight: 49, headingWeight: "800", dividerOpacity: 0.65 } },
-  { name: "Blueprint Workshop", description: "A technical maker’s bench with a side rail, grid details, strong labels, and squared-off tools.", appearance: { shellStyle: "rail", cardStyle: "outlined", headerLayout: "block", buttonStyle: "block", iconStyle: "outlined", motif: "grid", cardRadius: 6, density: "Compact", shadowIntensity: 0.06, buttonRoundness: 5, tableRowHeight: 43, headingWeight: "800", dividerOpacity: 0.95 } },
-  { name: "Playful Clay", description: "A tactile, sculpted interface with bottom navigation, soft dimensional tiles, and rounded controls.", appearance: { shellStyle: "bottomnav", cardStyle: "bubble", headerLayout: "floating", buttonStyle: "puffy", iconStyle: "soft", motif: "orbs", cardRadius: 25, density: "Spacious", shadowIntensity: 0.42, buttonRoundness: 22, tableRowHeight: 50, headingWeight: "800", dividerOpacity: 0.35 } },
-  { name: "Retro Desktop", description: "A compact computer-inspired workspace with top navigation, inset panels, and pixel-like controls.", appearance: { shellStyle: "topnav", cardStyle: "outlined", headerLayout: "compact", buttonStyle: "arcade", iconStyle: "pixel", motif: "grid", cardRadius: 2, density: "Compact", shadowIntensity: 0, buttonRoundness: 2, tableRowHeight: 41, headingWeight: "800", dividerOpacity: 1 } },
+  { name: "Modern Ledger", description: "A clear business workspace with quiet borders, balanced spacing, and a calm blue accent.", appearance: { shellStyle: "sidebar", cardStyle: "soft", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 14, density: "Comfortable", shadowIntensity: 0.05, buttonRoundness: 10, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.8 } },
+  { name: "Commerce Clean", description: "A focused shop dashboard with crisp outlines and a strong, consistent hierarchy.", appearance: { shellStyle: "sidebar", cardStyle: "outlined", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0.04, buttonRoundness: 9, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.85 } },
+  { name: "Square Console", description: "A modular, square-corner look for a compact, information-first workspace.", appearance: { shellStyle: "sidebar", cardStyle: "gallery", headerLayout: "minimal", buttonStyle: "square", iconStyle: "outlined", motif: "none", cardRadius: 6, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 6, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.9 } },
+  { name: "Warm Neutral", description: "Soft stone surfaces with a restrained accent and a comfortable amount of whitespace.", appearance: { shellStyle: "sidebar", cardStyle: "colorBlock", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "soft", motif: "none", cardRadius: 16, density: "Comfortable", shadowIntensity: 0.04, buttonRoundness: 10, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.75 } },
+  { name: "Executive Flat", description: "A lightweight, low-distraction style with clean dividers and almost no shadow.", appearance: { shellStyle: "sidebar", cardStyle: "minimal", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 12, density: "Comfortable", shadowIntensity: 0, buttonRoundness: 8, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.9 } },
+  { name: "Sage Ledger", description: "An understated ledger treatment with a slim accent edge and calm green details.", appearance: { shellStyle: "sidebar", cardStyle: "ledger", headerLayout: "minimal", buttonStyle: "minimal", iconStyle: "outlined", motif: "none", cardRadius: 14, density: "Comfortable", shadowIntensity: 0.03, buttonRoundness: 9, tableRowHeight: 48, headingWeight: "700", dividerOpacity: 0.8 } },
 ];
 const GOAL_METRICS = [
   { key: "grossRevenue", label: "Gross revenue", kind: "money", help: "Item subtotal: quantity × unit price, before fees, refunds, and shipping." },
@@ -438,8 +430,9 @@ function AppIcon({ name, size = 18, color = COLORS.muted, strokeWidth = 1.8 }) {
   }, (ICON_PATHS[name] || ICON_PATHS.dashboard).map((d, index) => React.createElement("path", { key: index, d })));
 }
 
+const DEFAULT_HIDDEN_DASHBOARD_WIDGETS = ["assistant", "time", "snapshot", "connections", "quickAdd", "goals"];
 const EMPTY_DB = {
-  version: 13,
+  version: 14,
   currency: "USD",
   defaultLowStock: 3,
   monthlySalesGoal: 0,
@@ -454,7 +447,7 @@ const EMPTY_DB = {
   customTheme: { ...DEFAULT_CUSTOM_THEME },
   sortModes: {},
   dashboardWidgetOrder: DEFAULT_DASHBOARD_WIDGET_ORDER,
-  hiddenDashboardWidgets: ["assistant"],
+  hiddenDashboardWidgets: DEFAULT_HIDDEN_DASHBOARD_WIDGETS.slice(),
   dashboardDismissedAttention: [],
   marketplaceFeeRules: {},
   defaultTaskPriority: "Normal",
@@ -828,7 +821,7 @@ const normalizeDatabase = (saved) => {
   const validWidgetIds = DEFAULT_DASHBOARD_WIDGET_ORDER;
   const savedWidgetOrder = Array.isArray(source.dashboardWidgetOrder) ? source.dashboardWidgetOrder : validWidgetIds;
   const dashboardWidgetOrder = Array.from(new Set(savedWidgetOrder.filter((id) => validWidgetIds.includes(id)).concat(validWidgetIds)));
-  const hiddenDashboardWidgets = Array.from(new Set((Array.isArray(source.hiddenDashboardWidgets) ? source.hiddenDashboardWidgets : []).filter((id) => validWidgetIds.includes(id)).concat(savedVersion < 12 ? ["assistant"] : [])));
+  const hiddenDashboardWidgets = Array.from(new Set((Array.isArray(source.hiddenDashboardWidgets) ? source.hiddenDashboardWidgets : DEFAULT_HIDDEN_DASHBOARD_WIDGETS).filter((id) => validWidgetIds.includes(id)).concat(savedVersion < 14 ? DEFAULT_HIDDEN_DASHBOARD_WIDGETS : []).concat(savedVersion < 12 ? ["assistant"] : [])));
   const sortModes = source.sortModes && typeof source.sortModes === "object" ? source.sortModes : {};
   const savedAppearance = source.appearanceSettings && typeof source.appearanceSettings === "object" ? source.appearanceSettings : {};
   const matchedTemplate = VISUAL_TEMPLATES.find((template) => template.name === savedAppearance.templateName) || VISUAL_TEMPLATES[0];
@@ -838,6 +831,12 @@ const normalizeDatabase = (saved) => {
     templateName: matchedTemplate.name,
     fontFamily: FONT_FAMILY_OPTIONS.includes(savedAppearance.fontFamily) ? savedAppearance.fontFamily : APPEARANCE_DEFAULTS.fontFamily,
     robotStyle: ASSISTANT_ROBOTS.some((robot) => robot.id === savedAppearance.robotStyle) ? savedAppearance.robotStyle : APPEARANCE_DEFAULTS.robotStyle,
+    cardRadius: Number.isFinite(Number(savedAppearance.cardRadius)) ? Math.min(32, Math.max(4, Number(savedAppearance.cardRadius))) : matchedTemplate.appearance.cardRadius,
+    cardStyle: ["soft", "outlined", "minimal", "gallery", "colorBlock", "ledger"].includes(savedAppearance.cardStyle) ? savedAppearance.cardStyle : matchedTemplate.appearance.cardStyle,
+    assistantColor: validHexColor(savedAppearance.assistantColor) ? savedAppearance.assistantColor : APPEARANCE_DEFAULTS.assistantColor,
+    businessGlanceShape: ["square", "panel", "rounded"].includes(savedAppearance.businessGlanceShape) ? savedAppearance.businessGlanceShape : APPEARANCE_DEFAULTS.businessGlanceShape,
+    shellStyle: "sidebar",
+    headerLayout: "minimal",
   };
   const normalizedThemeName = themeName;
   const reportSettings = { ...EMPTY_DB.reportSettings, ...(source.reportSettings && typeof source.reportSettings === "object" ? source.reportSettings : {}) };
@@ -2878,44 +2877,45 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
   </Modal>;
 }
 
-function AssistantRobot({ motion, compact, robotStyle }) {
+function AssistantRobot({ compact, robotStyle }) {
   const selectedRobot = ASSISTANT_ROBOTS.some((robot) => robot.id === robotStyle) ? robotStyle : CURRENT_APPEARANCE.robotStyle;
-  const float = motion ? motion.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) : 0;
-  const tilt = motion ? motion.interpolate({ inputRange: [0, 1], outputRange: ["-2deg", "2deg"] }) : "0deg";
-  const eyeStyle = [styles.robotEyeNew, compact && styles.robotEyeNewCompact];
-  const mouthStyle = [styles.robotMouthNew, compact && styles.robotMouthNewCompact];
+
+  const assistantColor = validHexColor(CURRENT_APPEARANCE.assistantColor) ? CURRENT_APPEARANCE.assistantColor : COLORS.wine;
+  const assistantInk = contrastText(assistantColor);
+  const eyeStyle = [styles.robotEyeNew, compact && styles.robotEyeNewCompact, { backgroundColor: assistantInk }];
+  const mouthStyle = [styles.robotMouthNew, compact && styles.robotMouthNewCompact, { borderColor: assistantInk }];
   let character;
   if (selectedRobot === "sprout") character = <>
     <View style={styles.sproutLeafLeft} /><View style={styles.sproutLeafRight} /><View style={[styles.sproutStem, compact && styles.robotCompactStem]} />
-    <View style={[styles.sproutPot, compact && styles.robotCompactPot]}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View>
+    <View style={[styles.sproutPot, compact && styles.robotCompactPot, { backgroundColor: assistantColor }]}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View>
     {!compact ? <View style={styles.sproutFeet}><View /><View /></View> : null}
   </>;
   else if (selectedRobot === "pixel") character = <>
     <View style={[styles.pixelEar, styles.pixelEarLeft]} /><View style={[styles.pixelEar, styles.pixelEarRight]} />
-    <View style={[styles.pixelShell, compact && styles.robotCompactPixel]}><View style={styles.pixelFace}><View style={styles.robotFaceLine}><View style={[eyeStyle, styles.pixelEye]} /><View style={[eyeStyle, styles.pixelEye]} /></View><View style={[mouthStyle, styles.pixelMouth]} /></View>
+    <View style={[styles.pixelShell, compact && styles.robotCompactPixel, { backgroundColor: assistantColor }]}><View style={styles.pixelFace}><View style={styles.robotFaceLine}><View style={[eyeStyle, styles.pixelEye]} /><View style={[eyeStyle, styles.pixelEye]} /></View><View style={[mouthStyle, styles.pixelMouth]} /></View>
       {!compact ? <View style={styles.pixelButtons}><View /><View /><View /></View> : null}
     </View>
     {!compact ? <View style={styles.pixelFeet}><View /><View /></View> : null}
   </>;
   else if (selectedRobot === "cloudlet") character = <>
     <View style={[styles.cloudBody, compact && styles.robotCompactCloud]}>
-      <View style={styles.cloudPuffOne} /><View style={styles.cloudPuffTwo} /><View style={styles.cloudPuffThree} />
+      <View style={[styles.cloudPuffOne, { backgroundColor: assistantColor, borderColor: assistantColor }]} /><View style={[styles.cloudPuffTwo, { backgroundColor: assistantColor, borderColor: assistantColor }]} /><View style={[styles.cloudPuffThree, { backgroundColor: assistantColor, borderColor: assistantColor }]} />
       <View style={styles.cloudFace}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View>
     </View>
     {!compact ? <><View style={styles.cloudSparkleOne}>✦</View><View style={styles.cloudSparkleTwo}>✧</View></> : null}
   </>;
   else if (selectedRobot === "starling") character = <>
-    <View style={[styles.starBody, compact && styles.robotCompactStar]}><Text style={styles.robotStarGlyph}>✦</Text><View style={[styles.starFace, compact && styles.robotCompactStarFace]}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View></View>
+    <View style={[styles.starBody, compact && styles.robotCompactStar]}><Text style={[styles.robotStarGlyph, { color: assistantColor }]}>✦</Text><View style={[styles.starFace, compact && styles.robotCompactStarFace, { backgroundColor: assistantColor }]}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View></View>
     {!compact ? <><View style={styles.starSparkleOne}>✧</View><View style={styles.starSparkleTwo}>·</View></> : null}
   </>;
   else character = <>
-    <View style={[styles.orbitWing, styles.orbitWingLeft, compact && styles.robotCompactWing]}><View style={styles.orbitWingLight} /></View>
-    <View style={[styles.orbitWing, styles.orbitWingRight, compact && styles.robotCompactWing]}><View style={styles.orbitWingLight} /></View>
-    <View style={[styles.orbitKite, compact && styles.robotCompactKite]}><View style={styles.orbitFace}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View></View>
+    <View style={[styles.orbitWing, styles.orbitWingLeft, compact && styles.robotCompactWing, { borderColor: assistantColor }]}><View style={styles.orbitWingLight} /></View>
+    <View style={[styles.orbitWing, styles.orbitWingRight, compact && styles.robotCompactWing, { borderColor: assistantColor }]}><View style={styles.orbitWingLight} /></View>
+    <View style={[styles.orbitKite, compact && styles.robotCompactKite, { backgroundColor: assistantColor }]}><View style={styles.orbitFace}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View></View>
     {!compact ? <><View style={styles.orbitFloatDot} /><View style={styles.orbitHoverRing} /></> : null}
   </>;
   const robotName = ASSISTANT_ROBOTS.find((robot) => robot.id === selectedRobot)?.name || "Orbit";
-  return <Animated.View accessibilityLabel={robotName + ", Business Assistant robot"} style={[styles.robotWrap, compact && styles.robotWrapCompact, { transform: [{ translateY: float }, { rotate: tilt }] }]}>{character}</Animated.View>;
+  return <View accessibilityLabel={robotName + ", Business Assistant robot"} style={[styles.robotWrap, compact && styles.robotWrapCompact]}>{character}</View>;
 }
 
 function ThemeBackdrop() {
@@ -3032,7 +3032,7 @@ export default function App() {
     setAppearanceRevision((revision) => revision + 1);
   }, [db.appearanceSettings]);
   const [ready, setReady] = useState(false);
-  const [screen, setScreen] = useState("Dashboard");
+  const [screen, setScreen] = useState("Dashboard"); const screenFade = useRef(new Animated.Value(1)).current; useEffect(() => { const reduceMotion = Platform.OS === "web" && typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches; if (reduceMotion) { screenFade.setValue(1); return undefined; } screenFade.setValue(0); const animation = Animated.timing(screenFade, { toValue: 1, duration: 170, useNativeDriver: true }); animation.start(); return () => animation.stop(); }, [screen, screenFade]);
   const [navigationStack, setNavigationStack] = useState(["Dashboard"]);
   const [modalType, setModalType] = useState("");
   const [bulkEditType, setBulkEditType] = useState("");
@@ -3053,16 +3053,8 @@ export default function App() {
   const [goalEndDateInput, setGoalEndDateInput] = useState("");
   const [goalTargetsInput, setGoalTargetsInput] = useState({});
   const [bulkDeleteMode, setBulkDeleteMode] = useState("");
-  const assistantBotMotion = useRef(new Animated.Value(0)).current;
   const assistantAnswerMotion = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const animation = Animated.loop(Animated.sequence([
-      Animated.timing(assistantBotMotion, { toValue: 1, duration: 1050, useNativeDriver: true }),
-      Animated.timing(assistantBotMotion, { toValue: 0, duration: 1050, useNativeDriver: true }),
-    ]));
-    animation.start();
-    return () => animation.stop();
-  }, [assistantBotMotion]);
+
   useEffect(() => {
     if (!assistantAnswer) return undefined;
     assistantAnswerMotion.setValue(0);
@@ -3144,7 +3136,7 @@ export default function App() {
   const [customColorPicker, setCustomColorPicker] = useState("");
   const [customThemeSections, setCustomThemeSections] = useState({ surfaces: false, typography: false, accents: false, borders: false });
   const [customPresetChoice, setCustomPresetChoice] = useState(DEFAULT_THEME_NAME);
-  const [themePickerOpen, setThemePickerOpen] = useState(false);
+  const [themePickerOpen, setThemePickerOpen] = useState(false); const [cardOptionsOpen, setCardOptionsOpen] = useState(false); const [assistantColorOpen, setAssistantColorOpen] = useState(false);
   const [settingsSections, setSettingsSections] = useState({ profile: true, appearance: true, robot: false, goals: false, marketplaces: true, fees: false, widgets: false, options: false, data: false, archive: false, announcements: false, summaries: false });
   const [backupOpen, setBackupOpen] = useState(false);
   const [pendingRecordConfirmation, setPendingRecordConfirmation] = useState(null);
@@ -5018,11 +5010,11 @@ export default function App() {
     const template = VISUAL_TEMPLATES.find((item) => item.name === templateName);
     if (!template) return;
     const savedAppearance = { ...APPEARANCE_DEFAULTS, ...(db.appearanceSettings || {}) };
-    const nextAppearance = { ...APPEARANCE_DEFAULTS, ...template.appearance, templateName: template.name, fontFamily: savedAppearance.fontFamily || "System", robotStyle: savedAppearance.robotStyle || APPEARANCE_DEFAULTS.robotStyle, baseFontSize: 1 };
+    const nextAppearance = { ...APPEARANCE_DEFAULTS, ...template.appearance, templateName: template.name, fontFamily: savedAppearance.fontFamily || "System", robotStyle: savedAppearance.robotStyle || APPEARANCE_DEFAULTS.robotStyle, assistantColor: validHexColor(savedAppearance.assistantColor) ? savedAppearance.assistantColor : APPEARANCE_DEFAULTS.assistantColor, businessGlanceShape: savedAppearance.businessGlanceShape || APPEARANCE_DEFAULTS.businessGlanceShape, baseFontSize: 1, shellStyle: "sidebar", headerLayout: "minimal" };
     setData((old) => ({ ...old, appearanceSettings: nextAppearance }));
   };
   const saveFontFamily = (fontFamily) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), fontFamily } }));
-  const saveRobotStyle = (robotStyle) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), robotStyle } }));
+  const saveRobotStyle = (robotStyle) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), robotStyle } })); const saveAppearanceSetting = (key, value) => setData((old) => ({ ...old, appearanceSettings: { ...APPEARANCE_DEFAULTS, ...(old.appearanceSettings || {}), [key]: value } }));
   const openGoalEditor = (goal) => {
     if (goal) {
       setEditingGoalId(goal.id);
@@ -5162,7 +5154,7 @@ export default function App() {
   const resetDashboardWidgets = () => setData((old) => ({
     ...old,
     dashboardWidgetOrder: DEFAULT_DASHBOARD_WIDGET_ORDER.slice(),
-    hiddenDashboardWidgets: [],
+    hiddenDashboardWidgets: DEFAULT_HIDDEN_DASHBOARD_WIDGETS.slice(),
   }));
 
   const showBackup = () => {
@@ -5635,21 +5627,21 @@ export default function App() {
       ),
       assistant: (
         <Pressable accessibilityRole="button" style={styles.dashboardGoalShortcut} onPress={() => navigateToScreen("Business Assistant")}>
-          <View style={styles.dashboardGoalIcon}><AssistantRobot motion={assistantBotMotion} compact /></View>
+          <View style={styles.dashboardGoalIcon}><AssistantRobot compact /></View>
           <View style={styles.flex}><Text style={styles.dashboardGoalTitle}>Business Assistant</Text><Text style={styles.dashboardGoalSubtitle}>Open reports, your schedule, and notes</Text></View><Text style={styles.assistantChoiceArrow}>›</Text>
         </Pressable>
       ),
       welcome: (
-        <View style={styles.welcomeBox}>
-          <View pointerEvents="none" style={styles.heroOrbOne} /><View pointerEvents="none" style={styles.heroOrbTwo} />
-          <View style={styles.heroTopline}><Text style={styles.eyebrow}>YOUR BUSINESS, AT A GLANCE</Text><Text style={styles.heroDate}>{dateLabel(TODAY)}</Text></View>
-          <Text style={styles.welcomeTitle}>{db.businessName ? "Welcome back, " + db.businessName : "A calmer way to run your business"}</Text>
-          <Text style={styles.welcomeText}>Keep your next move clear. Here’s what’s happening across your shop.</Text>
+        <View style={[styles.welcomeBox, { borderRadius: CURRENT_APPEARANCE.businessGlanceShape === "square" ? 7 : CURRENT_APPEARANCE.businessGlanceShape === "rounded" ? 24 : 14 }]}>
+          
+          <View style={styles.heroTopline}><Text style={styles.heroEyebrow}>YOUR BUSINESS, AT A GLANCE</Text><Text style={styles.heroDate}>{dateLabel(TODAY)}</Text></View>
+          <Text style={styles.welcomeTitle}>{db.businessName ? "Welcome back, " + db.businessName : "Business overview"}</Text>
+          <Text style={styles.welcomeText}>A clear view of today’s activity, open work, and next steps.</Text>
           {db.businessStartDate
-            ? <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 12, lineHeight: 17, marginTop: 5 }}>Business started {dateLabel(db.businessStartDate)} · {businessDurationLabel(db.businessStartDate)}</Text>
-            : <Pressable onPress={() => navigateToScreen("Settings")} style={{ alignSelf: "flex-start", marginTop: 5 }}><Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 12, textDecorationLine: "underline" }}>Add your business start date in Settings</Text></Pressable>}
+            ? <Text style={styles.welcomeMeta}>Business started {dateLabel(db.businessStartDate)} · {businessDurationLabel(db.businessStartDate)}</Text>
+            : <Pressable onPress={() => navigateToScreen("Settings")} style={{ alignSelf: "flex-start", marginTop: 5 }}><Text style={styles.welcomeMetaLink}>Add your business start date in Settings</Text></Pressable>}
           <View style={styles.heroStats}>
-            <Pressable android_ripple={{ color: "rgba(255,255,255,0.14)" }} onPress={() => navigateToFulfillment("Need to pack", "phase")} style={styles.heroStat}><Text style={styles.heroStatValue}>{readyToShip}</Text><Text style={styles.heroStatLabel}>need to pack</Text></Pressable>
+            <Pressable android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToFulfillment("Need to pack", "phase")} style={styles.heroStat}><Text style={styles.heroStatValue}>{readyToShip}</Text><Text style={styles.heroStatLabel}>need to pack</Text></Pressable>
             <View style={styles.heroDivider} />
             <Pressable android_ripple={{ color: "rgba(255,255,255,0.14)" }} onPress={() => navigateToFulfillment("Shipped")} style={styles.heroStat}><Text style={styles.heroStatValue}>{shippedOrders}</Text><Text style={styles.heroStatLabel}>shipped</Text></Pressable>
             <View style={styles.heroDivider} />
@@ -7654,7 +7646,7 @@ export default function App() {
       </SettingsAccordion>
       </SettingsAccordion>
       <SettingsAccordion title="App appearance" subtitle="Choose a whole-app look, then adjust the palette and font" expanded={settingsSections.appearance} onPress={() => toggleSection("appearance")}>
-        <Text style={styles.bodyText}>Choose a complete look first. You can then change the color palette and font independently. Each look changes card shapes, page framing, buttons, spacing, and headings.</Text>
+        <Text style={styles.bodyText}>Choose a polished look, then fine-tune colors, card shapes, and type. Every look keeps the same navigation and page structure.</Text>
         <Field field={{ key: "appearancePalette", label: "Color palette", searchable: true, searchPlaceholder: "Find colors", options: THEMES.map((theme) => ({ label: theme.name, value: theme.name })) }} value={db.themeName} onChange={chooseTheme} />
         <View style={styles.paletteSampleRow}>{[selectedTheme.colors.paper, selectedTheme.colors.card, selectedTheme.colors.soft, selectedTheme.colors.wine, selectedTheme.colors.ink].map((color, index) => <View key={index} style={[styles.paletteSample, { backgroundColor: color, borderColor: selectedTheme.colors.line }]} />)}</View>
         <View style={styles.actionRow}><Action label="Choose from all colors" quiet onPress={() => setThemePickerOpen(true)} /></View>
@@ -7680,9 +7672,14 @@ export default function App() {
             {selected ? <Pill text="Selected" tone="green" /> : null}
           </Pressable>;
         })}</View>
+        <SettingsAccordion title="Card shapes and surfaces" subtitle="Set a consistent card style and adjust the dashboard summary shape" expanded={cardOptionsOpen} onPress={() => setCardOptionsOpen((open) => !open)}>
+          <ChoiceChips label="Card surface" options={[{ label: "Clean", value: "soft" }, { label: "Outlined", value: "outlined" }, { label: "Flat", value: "minimal" }, { label: "Framed", value: "gallery" }]} value={appearance.cardStyle} onChange={(value) => saveAppearanceSetting("cardStyle", value)} />
+          <ChoiceChips label="Card corners" options={[{ label: "Square", value: 6 }, { label: "Soft", value: 12 }, { label: "Classic", value: 14 }, { label: "Roomy", value: 16 }, { label: "Rounded", value: 20 }, { label: "Extra round", value: 28 }]} value={Number(appearance.cardRadius) || 14} onChange={(value) => saveAppearanceSetting("cardRadius", Number(value))} />
+          <ChoiceChips label="Business at a glance shape" options={[{ label: "Square corners", value: "square" }, { label: "Standard panel", value: "panel" }, { label: "Rounded panel", value: "rounded" }]} value={appearance.businessGlanceShape} onChange={(value) => saveAppearanceSetting("businessGlanceShape", value)} />
+        </SettingsAccordion>
         <Field field={{ key: "appearanceFont", label: "Font family", searchable: true, searchPlaceholder: "Find a font", options: FONT_FAMILY_OPTIONS.map((font) => ({ label: font, value: font })), hint: "This typeface applies throughout the tracker. Font choices use browser-safe fallback families." }} value={appearance.fontFamily} onChange={saveFontFamily} />
         <SettingsAccordion title="Business Assistant character" subtitle="Choose a different robot anytime" expanded={settingsSections.robot} onPress={() => toggleSection("robot")}>
-          <Text style={styles.bodyText}>Pick the little companion that appears on the Assistant page and floats over your other pages. This choice is saved separately from the app look.</Text>
+          <Text style={styles.bodyText}>Choose the companion shown in the Assistant workspace. Set its color independently from the rest of the app.</Text>
           <View style={styles.robotChoiceGrid}>{ASSISTANT_ROBOTS.map((robot) => {
             const selected = appearance.robotStyle === robot.id;
             return <Pressable key={robot.id} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => saveRobotStyle(robot.id)} style={[styles.robotChoiceTile, selected && styles.robotChoiceTileSelected]}>
@@ -7691,6 +7688,7 @@ export default function App() {
               {selected ? <Pill text="Selected" tone="green" /> : null}
             </Pressable>;
           })}</View>
+          <CustomColorSetting label="Assistant color" value={appearance.assistantColor} isOpen={assistantColorOpen} onToggle={() => setAssistantColorOpen((open) => !open)} onChange={(value) => saveAppearanceSetting("assistantColor", value)} onPick={(value) => saveAppearanceSetting("assistantColor", value)} />
         </SettingsAccordion>
         <SettingsAccordion title="Customize individual colors" subtitle="Optional fine-tuning for your saved custom palette" expanded={customThemeSections.open} onPress={() => setCustomThemeSections((old) => ({ ...old, open: !old.open }))}>
           <ChoiceChips label="Custom palette mode" options={[{ label: "Light", value: "light" }, { label: "Dark", value: "dark" }]} value={(db.customTheme || DEFAULT_CUSTOM_THEME).mode || "dark"} onChange={(value) => saveCustomThemeColor("mode", value)} />
@@ -8018,13 +8016,13 @@ export default function App() {
         <ScrollView ref={assistantMessagesRef} style={styles.assistantMessagesScroll} contentContainerStyle={styles.assistantMessagesContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
           {assistantAnswer ? <Animated.View style={motionStyle}>
             {userChoice ? <View style={styles.assistantUserBubble}><Text style={styles.assistantUserText}>{userChoice[1]}</Text></View> : null}
-            <View style={styles.assistantReplyRow}><AssistantRobot motion={assistantBotMotion} compact /><Card style={styles.assistantAnswerCard}>
+            <View style={styles.assistantReplyRow}><AssistantRobot compact /><Card style={styles.assistantAnswerCard}>
               <Text style={styles.assistantEyebrow}>{assistantAnswer.periodLabel || dateLabel(assistantAnswer.day)}</Text><Text style={styles.assistantAnswerTitle}>{assistantAnswer.title}</Text>
               <Text style={styles.assistantAnswerSummary}>{assistantAnswer.summary}</Text>
               <View style={styles.assistantAnswerList}>{assistantAnswer.rows.map((row, index) => <View key={assistantAnswer.id + "-" + index} style={styles.assistantAnswerRow}><Text style={styles.assistantBullet}>•</Text><View style={styles.flex}><Text style={styles.assistantAnswerRowTitle}>{row.title}</Text>{row.detail ? <Text style={styles.assistantAnswerRowText}>{row.detail}</Text> : null}</View></View>)}</View>
               <Text style={styles.fieldHint}>{assistantAnswer.note}</Text>
             </Card></View>
-          </Animated.View> : <View style={styles.assistantReplyRow}><AssistantRobot motion={assistantBotMotion} /><Card style={styles.assistantWelcomeBubble}><Text style={styles.assistantHeroTitle}>Hey, I’m {ASSISTANT_ROBOTS.find((robot) => robot.id === CURRENT_APPEARANCE.robotStyle)?.name || "Orbit"}.</Text><Text style={styles.assistantAnswerSummary}>Pick a report and I’ll pull the matching numbers and records from your tracker. Each result is shown as its own readable list.</Text><Text style={styles.fieldHint}>Choose a date or date range above, then tap a report below.</Text></Card></View>}
+          </Animated.View> : <View style={styles.assistantReplyRow}><AssistantRobot /><Card style={styles.assistantWelcomeBubble}><Text style={styles.assistantHeroTitle}>Hey, I’m {ASSISTANT_ROBOTS.find((robot) => robot.id === CURRENT_APPEARANCE.robotStyle)?.name || "Orbit"}.</Text><Text style={styles.assistantAnswerSummary}>Pick a report and I’ll pull the matching numbers and records from your tracker. Each result is shown as its own readable list.</Text><Text style={styles.fieldHint}>Choose a date or date range above, then tap a report below.</Text></Card></View>}
         </ScrollView>
       </View>
       <View style={styles.assistantReportPicker}>
@@ -8122,7 +8120,7 @@ export default function App() {
       {!assistantActive ? <View style={styles.topBar}>
         <View style={styles.topBarStart}>
           {!wideLayout && !topNavLayout && !bottomNavLayout ? <Pressable accessibilityRole="button" accessibilityLabel="Open all pages" style={styles.menuButton} onPress={() => setMobileNavOpen(true)}><AppIcon name="menu" size={19} color={COLORS.ink} /></Pressable> : null}
-          <Pressable style={styles.brand} onPress={() => navigateRoot("Dashboard")}><View style={styles.brandMark}><View style={{ transform: [{ scale: 0.7 }] }}><AssistantRobot motion={assistantBotMotion} compact /></View></View><View><Text style={styles.brandName}>GRIMMS</Text><Text style={styles.brandSub}>BUSINESS TRACKER</Text></View></Pressable>
+          <Pressable style={styles.brand} onPress={() => navigateRoot("Dashboard")}><View style={styles.brandMark}><Text style={styles.brandMarkText}>G</Text></View><View><Text style={styles.brandName}>GRIMMS</Text><Text style={styles.brandSub}>BUSINESS TRACKER</Text></View></Pressable>
         </View>
         <View style={styles.topActions}>
           <Pressable accessibilityRole="button" accessibilityLabel="Search SKU, order number, product, or barcode" style={styles.globalSearchButton} onPress={() => setGlobalSearchOpen(true)}><AppIcon name="search" size={17} color={COLORS.ink} />{wideLayout ? <Text style={styles.globalSearchButtonText}>SKU / order search</Text> : null}</Pressable>
@@ -8155,7 +8153,7 @@ export default function App() {
         {assistantActive ? <View style={[styles.assistantPageHost, styles.flex]}>{renderBusinessAssistant()}</View> : <ScrollView ref={mainScrollRef} style={styles.mainScroll} contentContainerStyle={[styles.pageContent, wideLayout && styles.pageContentWide]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
           {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
           {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
-          {contentForScreen()}
+          <Animated.View style={{ opacity: screenFade, transform: [{ translateY: screenFade.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }) }] }}>{contentForScreen()}</Animated.View>
           <View style={styles.bottomNote}><Text style={styles.bottomNoteText}>GRIMMS · Keep your business moving, one step at a time.</Text></View>
         </ScrollView>}
       </KeyboardAvoidingView>
@@ -8369,9 +8367,7 @@ export default function App() {
           </View>
         </View>
       </Modal>
-      {screen !== "Business Assistant" ? <Pressable accessibilityRole="button" accessibilityLabel="Open Business Assistant" style={styles.assistantFab} onPress={() => navigateToScreen("Business Assistant")}>
-        <Animated.View style={{ transform: [{ translateY: assistantBotMotion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}><AssistantRobot motion={assistantBotMotion} compact /></Animated.View>
-      </Pressable> : null}
+
       <Modal visible={goalEditorOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setGoalEditorOpen(false)}>
         <SafeAreaView style={styles.modalSafe}>
           <View style={styles.modalHeader}><Pressable onPress={() => setGoalEditorOpen(false)}><Text style={styles.modalCancel}>Cancel</Text></Pressable><Text style={styles.modalTitle}>{editingGoalId ? "Edit business goal" : "Create business goal"}</Text><View style={styles.modalHeaderSpacer} /></View>
@@ -8460,7 +8456,7 @@ function makeStyles() { return StyleSheet.create({
   topBar: { height: ["compact", "arcade"].includes(CURRENT_APPEARANCE.headerLayout) ? 46 : ["editorial", "gallery", "block"].includes(CURRENT_APPEARANCE.headerLayout) ? 64 : 56, marginHorizontal: ["floating", "cafe"].includes(CURRENT_APPEARANCE.headerLayout) ? 8 : 0, marginTop: ["floating", "cafe"].includes(CURRENT_APPEARANCE.headerLayout) ? 7 : 0, paddingHorizontal: ["editorial", "gallery"].includes(CURRENT_APPEARANCE.headerLayout) ? 20 : 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: CURRENT_APPEARANCE.headerLayout === "floating" ? 18 : CURRENT_APPEARANCE.headerLayout === "cafe" ? 20 : 0, borderBottomColor: mixHex(COLORS.line, COLORS.card, 1 - Math.max(0.15, Math.min(1, Number(CURRENT_APPEARANCE.dividerOpacity) || 1))), borderBottomWidth: ["minimal", "floating"].includes(CURRENT_APPEARANCE.headerLayout) ? 0 : StyleSheet.hairlineWidth, backgroundColor: ["journal", "compact"].includes(CURRENT_APPEARANCE.headerLayout) ? COLORS.soft : COLORS.card, elevation: CURRENT_APPEARANCE.headerLayout === "floating" ? 3 : 0 },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
   brandMark: { width: 38, height: 38, borderRadius: CURRENT_APPEARANCE.iconStyle === "pixel" ? 7 : CURRENT_APPEARANCE.iconStyle === "sticker" ? 16 : 12, backgroundColor: COLORS.soft, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  brandMarkText: { color: COLORS.onAccent, fontSize: 21, fontWeight: "800", fontFamily: Platform.OS === "ios" ? "Georgia" : "serif" },
+  brandMarkText: { color: COLORS.wine, fontSize: 20, fontWeight: "800", fontFamily: Platform.OS === "ios" ? "Georgia" : "serif" },
   brandName: { fontSize: 13, letterSpacing: 2.2, fontWeight: "800", color: COLORS.ink },
   brandSub: { fontSize: 8, letterSpacing: 1.5, color: COLORS.muted, marginTop: 2 },
   topActions: { flexDirection: "row", alignItems: "center", gap: 9 },
@@ -8494,22 +8490,22 @@ function makeStyles() { return StyleSheet.create({
   headerAdd: { backgroundColor: COLORS.wine, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 12 },
   headerAddText: { color: COLORS.onAccent, fontSize: 13, fontWeight: "700" },
   mainScroll: { flex: 1 },
-  pageContent: { paddingHorizontal: CURRENT_APPEARANCE.density === "Compact" ? 9 : CURRENT_APPEARANCE.density === "Spacious" ? 21 : 13, paddingTop: CURRENT_APPEARANCE.headerLayout === "editorial" ? 13 : 4, paddingBottom: 18, maxWidth: ["gallery", "postcard"].includes(CURRENT_APPEARANCE.headerLayout) ? 1160 : ["minimal", "centered"].includes(CURRENT_APPEARANCE.headerLayout) ? 1320 : 1440, width: "100%", alignSelf: "center" },
-  pageContentWide: { paddingHorizontal: ["editorial", "gallery"].includes(CURRENT_APPEARANCE.headerLayout) ? 27 : 16 },
-  welcomeBox: { backgroundColor: COLORS.wine, padding: 15, borderRadius: 16, marginBottom: 12, overflow: "hidden" },
-  welcomeBoxCompact: { backgroundColor: COLORS.wine, padding: 14, borderRadius: 15, marginBottom: 11 },
-  heroOrbOne: { position: "absolute", width: 150, height: 150, borderRadius: 75, backgroundColor: "rgba(255,255,255,0.055)", right: -48, top: 4 },
-  heroOrbTwo: { position: "absolute", width: 92, height: 92, borderRadius: 46, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", right: 29, top: 38 },
-  heroTopline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  heroDate: { color: COLORS.onAccent, fontSize: 10, fontWeight: "700" },
-  heroStats: { flexDirection: "row", alignItems: "center", marginTop: 17, paddingVertical: 11, paddingHorizontal: 8, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.09)" },
-  heroStat: { flex: 1, alignItems: "center", paddingVertical: 3, borderRadius: 9 },
-  heroStatValue: { color: COLORS.onAccent, fontSize: 20, fontWeight: "800" },
-  heroStatLabel: { color: COLORS.onAccent, fontSize: 9, marginTop: 2 },
-  heroDivider: { width: 1, height: 30, backgroundColor: "rgba(255,255,255,0.2)" },
-  eyebrow: { color: COLORS.onAccent, fontSize: 9, letterSpacing: 1.8, fontWeight: "700" },
-  welcomeTitle: { color: COLORS.onAccent, fontSize: 23, fontWeight: "700", lineHeight: 29, marginTop: 9 },
-  welcomeText: { color: COLORS.onAccent, fontSize: 13, lineHeight: 19, marginTop: 7, maxWidth: 330 },
+  pageContent: { paddingHorizontal: CURRENT_APPEARANCE.density === "Compact" ? 12 : 16, paddingTop: 12, paddingBottom: 24, maxWidth: 1240, width: "100%", alignSelf: "center" },
+  pageContentWide: { paddingHorizontal: 24 },
+  welcomeBox: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, padding: 18, borderRadius: 14, marginBottom: 12, overflow: "hidden" },
+  welcomeBoxCompact: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, padding: 16, borderRadius: 14, marginBottom: 11 },
+  heroTopline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  heroDate: { color: COLORS.muted, fontSize: 10, fontWeight: "700" },
+  heroEyebrow: { color: COLORS.wine, fontSize: 9, letterSpacing: 1.4, fontWeight: "800" },
+  welcomeMeta: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginTop: 5 },
+  welcomeMetaLink: { color: COLORS.wine, fontSize: 12, textDecorationLine: "underline" },
+  heroStats: { flexDirection: "row", alignItems: "center", marginTop: 15, paddingVertical: 10, paddingHorizontal: 6, borderRadius: 12, backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line },
+  heroStat: { flex: 1, minWidth: 0, alignItems: "center", paddingVertical: 4, borderRadius: 9 },
+  heroStatValue: { color: COLORS.ink, fontSize: 20, fontWeight: "800" },
+  heroStatLabel: { color: COLORS.muted, fontSize: 9, marginTop: 2, textAlign: "center" },
+  heroDivider: { width: 1, height: 30, backgroundColor: COLORS.line },
+  welcomeTitle: { color: COLORS.ink, fontSize: 22, fontWeight: "700", lineHeight: 28, marginTop: 8 },
+  welcomeText: { color: COLORS.muted, fontSize: 13, lineHeight: 19, marginTop: 6, maxWidth: 440 },
   primaryButton: { alignSelf: "flex-start", backgroundColor: COLORS.rose, borderWidth: CURRENT_APPEARANCE.buttonStyle === "minimal" ? 0 : 1, borderColor: COLORS.line, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 12, paddingVertical: 10, paddingHorizontal: 14, marginTop: 15, elevation: CURRENT_APPEARANCE.buttonStyle === "puffy" ? 2 : 0 },
   primaryButtonText: { color: COLORS.wineDark, fontWeight: "700", fontSize: 13, textAlign: "center" },
   primaryButtonFull: { backgroundColor: COLORS.wine, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 13, padding: 14, marginTop: 16, borderWidth: CURRENT_APPEARANCE.buttonStyle === "block" ? 2 : 0, borderColor: COLORS.ink, elevation: CURRENT_APPEARANCE.buttonStyle === "puffy" ? 3 : 0 },
@@ -8558,7 +8554,7 @@ function makeStyles() { return StyleSheet.create({
   fulfillmentListCount: { color: COLORS.wine, fontSize: 16, fontWeight: "800", width: 30, textAlign: "center" },
   fulfillmentListLabel: { color: COLORS.ink, fontSize: 12, fontWeight: "600", flex: 1 },
   fulfillmentListArrow: { color: COLORS.muted, fontSize: 22, paddingHorizontal: 2 },
-  card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, padding: CURRENT_APPEARANCE.density === "Compact" ? 8 : CURRENT_APPEARANCE.density === "Spacious" ? 15 : 10, marginBottom: 6 },
+  card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, padding: CURRENT_APPEARANCE.density === "Compact" ? 8 : CURRENT_APPEARANCE.density === "Spacious" ? 15 : 10, marginBottom: 10 },
   cardSoft: { backgroundColor: COLORS.card, borderColor: COLORS.line },
   cardFloating: { backgroundColor: COLORS.card, borderColor: COLORS.softLine, shadowColor: COLORS.ink, shadowOpacity: 0.1, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   cardOutlined: { backgroundColor: COLORS.card, borderWidth: 2, borderColor: COLORS.wine },
@@ -8986,7 +8982,6 @@ function makeStyles() { return StyleSheet.create({
   globalSearchInput: { minHeight: 46, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, color: COLORS.ink, backgroundColor: COLORS.card, marginTop: 13, fontSize: 13 },
   globalSearchResults: { maxHeight: 420, marginTop: 9 },
   globalSearchResult: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 8 },
-  assistantFab: { position: "absolute", right: 15, bottom: 16, width: 70, height: 70, borderRadius: CURRENT_APPEARANCE.iconStyle === "pixel" ? 17 : CURRENT_APPEARANCE.iconStyle === "sticker" ? 23 : 25, backgroundColor: COLORS.card, borderWidth: 1.5, borderColor: COLORS.line, alignItems: "center", justifyContent: "center", elevation: 8, shadowColor: COLORS.wine, shadowOpacity: 0.22, shadowRadius: 9, zIndex: 20 },
   robotWrap: { width: 78, height: 76, alignItems: "center", justifyContent: "center", position: "relative" },
   robotWrapCompact: { width: 48, height: 48 },
   robotEyeNew: { width: 6, height: 8, borderRadius: 4, backgroundColor: COLORS.onAccent },
