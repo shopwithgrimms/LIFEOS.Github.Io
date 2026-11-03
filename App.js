@@ -64,11 +64,7 @@ const ButtonSoundContext = createContext(null);
 // cursive fallback made the old Comic Sans choice look like a different font.
 const FONT_FAMILY_OPTIONS = ["System", "Arial", "Trebuchet MS", "Verdana", "Georgia", "Palatino Linotype", "Times New Roman", "Courier New", "Consolas", "Tahoma"];
 const ASSISTANT_ROBOTS = [
-  { id: "orbit", name: "Orbit", detail: "A little kite shaped space helper" },
-  { id: "sprout", name: "Sprout", detail: "A leafy desk companion" },
-  { id: "pixel", name: "Pixel", detail: "A crisp retro workshop bot" },
-  { id: "cloudlet", name: "Cloudlet", detail: "A soft floating cloud friend" },
-  { id: "starling", name: "Starling", detail: "A bright little star guide" },
+  { id: "orbit", name: "Orbit", detail: "Your friendly business robot" },
 ];
 const APPEARANCE_DEFAULTS = {
   templateName: "Modern Ledger", fontFamily: "System", baseFontSize: 1,
@@ -574,13 +570,19 @@ const MORE_ITEMS = [
 
 const CORE_NAV_ITEMS = [
   { label: "Dashboard", target: "Dashboard", icon: "dashboard" },
-  { label: "Inventory", target: "Products", icon: "products" },
+  { label: "Inventory", target: "Components", icon: "products" },
   { label: "Orders", target: "Orders", icon: "orders" },
+  { label: "Business Assistant", target: "Business Assistant", icon: "assistant" },
   { label: "Analytics", target: "Business Overview", icon: "analytics" },
   { label: "More", target: "More", icon: "menu" },
   { label: "Settings", target: "Settings", icon: "settings" },
 ];
-const SIDEBAR_GROUPS = [{ label: "WORKSPACE", pages: CORE_NAV_ITEMS.slice(0, 5).map((item) => item.label) }];
+const SIDEBAR_GROUPS = [
+  { label: "WORKSPACE", pages: ["Dashboard", "Business Assistant", "Orders"] },
+  { label: "INVENTORY", pages: ["Components", "Products", "Listings", "Production"] },
+  { label: "INSIGHTS", pages: ["Business Goals", "Business Overview", "Listing Analytics", "Finances"] },
+  { label: "TOOLS", pages: ["Calendar", "Time", "Reviews", "Ideas", "Notes", "Audit", "Suppliers", "Help & FAQ", "More"] },
+];
 
 const localDateKey = (date) => {
   const d = date instanceof Date ? date : new Date(date || Date.now());
@@ -1584,24 +1586,15 @@ function Field({ field, value, onChange, onManageOptions }) {
         </View>
       ) : field.date ? (
         <View>
-          <View style={styles.dateInputRow}>
-            <TextInput
-              value={formatDateInput(value)}
-              onChangeText={onChange}
-              placeholder={field.placeholder || CURRENT_DATE_FORMAT + " (or YYYY-MM-DD)"}
-              placeholderTextColor={COLORS.placeholder}
-              keyboardType="numbers-and-punctuation"
-              style={[styles.input, styles.dateTextInput]}
-              selectTextOnFocus={field.selectTextOnFocus}
-              accessibilityLabel={field.label + " typed date"}
-            />
-            <Pressable style={styles.dateCalendarButton} onPress={openDatePicker} accessibilityRole="button" accessibilityLabel={"Choose " + field.label + " from calendar"}>
-              <AppIcon name="calendar" size={18} color={COLORS.wine} />
-            </Pressable>
-          </View>
-          <Modal visible={datePickerOpen} transparent animationType="fade" onRequestClose={() => setDatePickerOpen(false)}>
+          <Pressable style={styles.dateChooseControl} onPress={openDatePicker} accessibilityRole="button" accessibilityLabel={"Choose " + field.label + " from calendar"}>
+            <View style={styles.flex}><Text style={[styles.dateChooseValue, !value && styles.placeholder]}>{value ? formatDateInput(value) : "Choose date"}</Text><Text style={styles.dateChooseHint}>Open calendar</Text></View>
+            <AppIcon name="calendar" size={19} color={COLORS.wine} />
+          </Pressable>
+          <Modal visible={datePickerOpen} transparent animationType="slide" onRequestClose={() => setDatePickerOpen(false)}>
             <View style={styles.chooserBackdrop}>
+              <Pressable style={styles.datePickerBackdropTap} onPress={() => setDatePickerOpen(false)} accessibilityLabel="Close date picker" />
               <View style={styles.datePickerCard}>
+                <View style={styles.datePickerHeading}><View style={styles.flex}><Text style={styles.cardTitle}>Choose {String(field.label || "date").toLowerCase()}</Text><Text style={styles.fieldHint}>Select a day from the calendar.</Text></View><Pressable accessibilityRole="button" onPress={() => setDatePickerOpen(false)} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
                 <View style={styles.monthHeader}>
                   <Pressable style={styles.monthArrow} onPress={() => setDatePickerMonth(new Date(datePickerMonth.getFullYear(), datePickerMonth.getMonth() - 1, 1))}><Text style={styles.monthArrowText}>‹</Text></Pressable>
                   <Text style={styles.monthTitle}>{datePickerMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</Text>
@@ -1617,15 +1610,14 @@ function Field({ field, value, onChange, onManageOptions }) {
                     </Pressable>;
                   })}
                 </View>
-                <View style={styles.actionRow}>
+                <View style={styles.datePickerActions}>
                   <Action label="Clear date" quiet onPress={() => { onChange(""); setDatePickerOpen(false); }} />
                   <Action label="Today" onPress={() => { onChange(localDateKey(new Date())); setDatePickerOpen(false); }} />
-                  <Action label="Close" quiet onPress={() => setDatePickerOpen(false)} />
                 </View>
               </View>
             </View>
           </Modal>
-          <Text style={styles.fieldHint}>Type a date or select the calendar button. Your date format is set in Settings.</Text>
+          <Text style={styles.fieldHint}>Your date format is set in Settings.</Text>
         </View>
       ) : field.time ? (
         <TimeInput value={value} onChange={onChange} placeholder={field.placeholder} />
@@ -2841,7 +2833,7 @@ function WelcomeBackModal({ visible, db, onContinue, onRestoreBackup }) {
   </Modal>;
 }
 
-function RecordDetailModal({ visible, type, record, currency, inventoryHistory = [], onClose, onEdit, actions }) {
+function RecordDetailModal({ visible, type, record, currency, inventoryHistory = [], onClose, onEdit, actions, wideLayout }) {
   if (!record) return null;
   const title = type === "order" ? (record.items || []).map((item) => item.productName).join(", ") || "Sale" : record.name || record.productName || record.title || "Record";
   const details = [
@@ -2857,7 +2849,7 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
   ].filter(([, value]) => value);
   return <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
     <View style={styles.recordDrawerOverlay}><Pressable style={styles.recordDrawerScrim} onPress={onClose} accessibilityLabel="Close record details" />
-      <SafeAreaView style={styles.recordDrawerPanel}>
+      <SafeAreaView style={[styles.recordDrawerPanel, !wideLayout && styles.recordDrawerPanelPhone]}>
         <View style={styles.recordDrawerHeader}><View style={styles.flex}><Text style={styles.recordDrawerEyebrow}>{type.toUpperCase()} DETAILS</Text><Text style={styles.recordDrawerTitle} numberOfLines={2}>{title}</Text></View>
           <View style={styles.recordDrawerHeaderActions}>{type !== "order" || (!record.refundedAt && !(Number(record.refundAmount) > 0)) ? <Pressable accessibilityRole="button" onPress={onEdit} style={styles.drawerEditButton}><Text style={styles.drawerEditText}>Edit</Text></Pressable> : null}<Pressable accessibilityRole="button" onPress={onClose} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
         </View>
@@ -2875,45 +2867,19 @@ function RecordDetailModal({ visible, type, record, currency, inventoryHistory =
   </Modal>;
 }
 
-function AssistantRobot({ compact, robotStyle }) {
-  const selectedRobot = ASSISTANT_ROBOTS.some((robot) => robot.id === robotStyle) ? robotStyle : CURRENT_APPEARANCE.robotStyle;
-
+function AssistantRobot({ compact }) {
   const assistantColor = validHexColor(CURRENT_APPEARANCE.assistantColor) ? CURRENT_APPEARANCE.assistantColor : COLORS.wine;
   const assistantInk = contrastText(assistantColor);
   const eyeStyle = [styles.robotEyeNew, compact && styles.robotEyeNewCompact, { backgroundColor: assistantInk }];
-  const mouthStyle = [styles.robotMouthNew, compact && styles.robotMouthNewCompact, { borderColor: assistantInk }];
-  let character;
-  if (selectedRobot === "sprout") character = <>
-    <View style={styles.sproutLeafLeft} /><View style={styles.sproutLeafRight} /><View style={[styles.sproutStem, compact && styles.robotCompactStem]} />
-    <View style={[styles.sproutPot, compact && styles.robotCompactPot, { backgroundColor: assistantColor }]}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View>
-    {!compact ? <View style={styles.sproutFeet}><View /><View /></View> : null}
-  </>;
-  else if (selectedRobot === "pixel") character = <>
-    <View style={[styles.pixelEar, styles.pixelEarLeft]} /><View style={[styles.pixelEar, styles.pixelEarRight]} />
-    <View style={[styles.pixelShell, compact && styles.robotCompactPixel, { backgroundColor: assistantColor }]}><View style={styles.pixelFace}><View style={styles.robotFaceLine}><View style={[eyeStyle, styles.pixelEye]} /><View style={[eyeStyle, styles.pixelEye]} /></View><View style={[mouthStyle, styles.pixelMouth]} /></View>
-      {!compact ? <View style={styles.pixelButtons}><View /><View /><View /></View> : null}
+  return <View accessibilityLabel="Orbit, Business Assistant robot" style={[styles.robotWrap, compact && styles.robotWrapCompact]}>
+    <View style={[styles.robotShell, compact && styles.robotShellCompact, { backgroundColor: assistantColor }]}>
+      <View style={[styles.robotFaceWindow, compact && styles.robotFaceWindowCompact]}>
+        <View style={[styles.robotEyes, compact && styles.robotEyesCompact]}><View style={eyeStyle} /><View style={eyeStyle} /></View>
+        <View style={[styles.robotMouthRow, compact && styles.robotMouthRowCompact]}><View style={[styles.robotBlush, compact && styles.robotBlushCompact]} /><View style={[styles.robotMouthNew, compact && styles.robotMouthNewCompact, { borderColor: assistantInk }]} /><View style={[styles.robotBlush, compact && styles.robotBlushCompact]} /></View>
+      </View>
     </View>
-    {!compact ? <View style={styles.pixelFeet}><View /><View /></View> : null}
-  </>;
-  else if (selectedRobot === "cloudlet") character = <>
-    <View style={[styles.cloudBody, compact && styles.robotCompactCloud]}>
-      <View style={[styles.cloudPuffOne, { backgroundColor: assistantColor, borderColor: assistantColor }]} /><View style={[styles.cloudPuffTwo, { backgroundColor: assistantColor, borderColor: assistantColor }]} /><View style={[styles.cloudPuffThree, { backgroundColor: assistantColor, borderColor: assistantColor }]} />
-      <View style={styles.cloudFace}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View>
-    </View>
-    {!compact ? <><View style={styles.cloudSparkleOne}>✦</View><View style={styles.cloudSparkleTwo}>✧</View></> : null}
-  </>;
-  else if (selectedRobot === "starling") character = <>
-    <View style={[styles.starBody, compact && styles.robotCompactStar]}><Text style={[styles.robotStarGlyph, { color: assistantColor }]}>✦</Text><View style={[styles.starFace, compact && styles.robotCompactStarFace, { backgroundColor: assistantColor }]}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View></View>
-    {!compact ? <><View style={styles.starSparkleOne}>✧</View><View style={styles.starSparkleTwo}>·</View></> : null}
-  </>;
-  else character = <>
-    <View style={[styles.orbitWing, styles.orbitWingLeft, compact && styles.robotCompactWing, { borderColor: assistantColor }]}><View style={styles.orbitWingLight} /></View>
-    <View style={[styles.orbitWing, styles.orbitWingRight, compact && styles.robotCompactWing, { borderColor: assistantColor }]}><View style={styles.orbitWingLight} /></View>
-    <View style={[styles.orbitKite, compact && styles.robotCompactKite, { backgroundColor: assistantColor }]}><View style={styles.orbitFace}><View style={styles.robotFaceLine}><View style={eyeStyle} /><View style={eyeStyle} /></View><View style={mouthStyle} /></View></View>
-    {!compact ? <><View style={styles.orbitFloatDot} /><View style={styles.orbitHoverRing} /></> : null}
-  </>;
-  const robotName = ASSISTANT_ROBOTS.find((robot) => robot.id === selectedRobot)?.name || "Orbit";
-  return <View accessibilityLabel={robotName + ", Business Assistant robot"} style={[styles.robotWrap, compact && styles.robotWrapCompact]}>{character}</View>;
+    {!compact ? <><View style={styles.robotNeck} /><View style={[styles.robotBody, { backgroundColor: assistantColor }]}><View style={styles.robotBodyDot} /></View></> : null}
+  </View>;
 }
 
 function ThemeBackdrop() {
@@ -3073,6 +3039,7 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarGroupOpen, setSidebarGroupOpen] = useState({ WORKSPACE: true, INVENTORY: true, INSIGHTS: false, TOOLS: false });
   const [inventoryActionsOpen, setInventoryActionsOpen] = useState(false);
   const [announcementOpen, setAnnouncementOpen] = useState(false);
   const [attentionOpen, setAttentionOpen] = useState(false);
@@ -5597,7 +5564,9 @@ export default function App() {
     });
     const shopReviews = db.reviews || [];
     const averageStars = shopReviews.length ? (shopReviews.reduce((sum, item) => sum + (Number(item.stars) || 0), 0) / shopReviews.length).toFixed(1) : "—";
-    const dashboardStatuses = Array.from(new Set([...(fulfillmentStatuses || []), ...db.orders.map((order) => order.status).filter(Boolean)])).filter((status) => db.orders.some((order) => !order.archived && !order.refundedAt && order.status === status));
+    const fulfillmentFlow = ["Awaiting Payment", "Needs Packaging", "Packaging", "Ready to Ship", "Shipped", "In Transit", "Delivered to Customer", "Awaiting Review", "Fulfilled"];
+    const configuredStatuses = Array.from(new Set([...(fulfillmentStatuses || []), ...db.orders.map((order) => order.status).filter(Boolean)]));
+    const dashboardStatuses = [...fulfillmentFlow, ...configuredStatuses.filter((status) => !fulfillmentFlow.includes(status))];
     const shiftDashboardPeriod = (delta) => {
       const date = new Date(dashboardAnchor + "T12:00:00");
       if (dashboardPeriod === "day") date.setDate(date.getDate() + delta);
@@ -5670,7 +5639,7 @@ export default function App() {
           <View style={styles.sectionHeadingRow}><Text style={styles.sectionTitle}>Order fulfillment</Text><Pressable hitSlop={8} onPress={() => navigateToScreen("Orders")}><Text style={styles.actionText}>Open orders ›</Text></Pressable></View>
         <View style={styles.fulfillmentList}>{dashboardStatuses.length ? dashboardStatuses.map((status, index) => {
             const count = db.orders.filter((order) => !order.archived && !order.refundedAt && order.status === status).length;
-            return <Pressable key={status} accessibilityRole="button" accessibilityLabel={`${status}: ${count} orders. Open products in this status.`} android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToFulfillment(status)} style={({ pressed }) => [styles.fulfillmentListRow, index === dashboardStatuses.length - 1 && styles.fulfillmentListRowLast, pressed && styles.pressedState]}><Text style={styles.fulfillmentListCount}>{count}</Text><Text style={styles.fulfillmentListLabel}>{status}</Text><Text style={styles.fulfillmentListArrow}>›</Text></Pressable>;
+            return <Pressable key={status} accessibilityRole="button" accessibilityLabel={`${status}: ${count} orders. Open products in this status.`} android_ripple={{ color: COLORS.ripple }} onPress={() => navigateToFulfillment(status)} style={({ pressed }) => [styles.fulfillmentListRow, count === 0 && styles.fulfillmentListRowEmpty, pressed && styles.pressedState]}><Text style={styles.fulfillmentListCount}>{count}</Text><Text style={styles.fulfillmentListLabel}>{status}</Text><Text style={styles.fulfillmentListArrow}>›</Text></Pressable>;
           }) : <Text style={styles.fieldHint}>No active orders need fulfillment right now.</Text>}</View>
         </>
       ),
@@ -7629,16 +7598,8 @@ export default function App() {
           <ChoiceChips label="Business at a glance shape" options={[{ label: "Square corners", value: "square" }, { label: "Standard panel", value: "panel" }, { label: "Rounded panel", value: "rounded" }]} value={appearance.businessGlanceShape} onChange={(value) => saveAppearanceSetting("businessGlanceShape", value)} />
         </SettingsAccordion>
         <Field field={{ key: "appearanceFont", label: "Font family", searchable: true, searchPlaceholder: "Find a font", options: FONT_FAMILY_OPTIONS.map((font) => ({ label: font, value: font })), hint: "This typeface applies throughout the tracker. Font choices use browser-safe fallback families." }} value={appearance.fontFamily} onChange={saveFontFamily} />
-        <SettingsAccordion title="Business Assistant character" subtitle="Choose a different robot anytime" expanded={settingsSections.robot} onPress={() => toggleSection("robot")}>
-          <Text style={styles.bodyText}>Choose the companion shown in the Assistant workspace. Set its color independently from the rest of the app.</Text>
-          <View style={styles.robotChoiceGrid}>{ASSISTANT_ROBOTS.map((robot) => {
-            const selected = appearance.robotStyle === robot.id;
-            return <Pressable key={robot.id} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => saveRobotStyle(robot.id)} style={[styles.robotChoiceTile, selected && styles.robotChoiceTileSelected]}>
-              <View style={styles.robotChoicePreview}><AssistantRobot compact robotStyle={robot.id} /></View>
-              <Text style={styles.templateName}>{robot.name}</Text><Text style={styles.templateDescription}>{robot.detail}</Text>
-              {selected ? <Pill text="Selected" tone="green" /> : null}
-            </Pressable>;
-          })}</View>
+        <SettingsAccordion title="Business Assistant" subtitle="One floating robot, in your chosen color" expanded={settingsSections.robot} onPress={() => toggleSection("robot")}>
+          <View style={styles.assistantDesignPreview}><AssistantRobot /><View style={styles.flex}><Text style={styles.recordTitle}>Orbit</Text><Text style={styles.bodyText}>A simple rectangular robot with rosy cheeks. Its shell uses the color you choose.</Text></View></View>
           <CustomColorSetting label="Assistant color" value={appearance.assistantColor} isOpen={assistantColorOpen} onToggle={() => setAssistantColorOpen((open) => !open)} onChange={(value) => saveAppearanceSetting("assistantColor", value)} onPick={(value) => saveAppearanceSetting("assistantColor", value)} />
         </SettingsAccordion>
         <SettingsAccordion title="Customize individual colors" subtitle="Optional fine-tuning for your saved custom palette" expanded={customThemeSections.open} onPress={() => setCustomThemeSections((old) => ({ ...old, open: !old.open }))}>
@@ -7733,7 +7694,7 @@ export default function App() {
   const fulfillmentRouteMatch = screen.match(/^Fulfillment:(status|phase):(.*)$/);
   const isFulfillmentPage = !!fulfillmentRouteMatch;
   const fulfillmentPageTitle = fulfillmentRouteMatch ? fulfillmentRouteMatch[2] : "";
-  const isInventoryPage = screen === "Products" || screen === "Components";
+  const isInventoryPage = ["Products", "Components", "Listings"].includes(screen);
   const isAnalyticsPage = ["Business Overview", "Listing Analytics", "Finances"].includes(screen);
   const contentForScreen = () => {
     if (fulfillmentRouteMatch) return renderFulfillmentStatus(fulfillmentRouteMatch[1], fulfillmentRouteMatch[2]);
@@ -7938,6 +7899,7 @@ export default function App() {
     setTimeout(() => assistantMessagesRef.current?.scrollToEnd?.({ animated: true }), 120);
   };
   const renderBusinessAssistant = (docked = false) => {
+    const phoneLayout = viewportWidth < 600;
     const day = parseDateInput(assistantDay) || TODAY;
     const endDay = assistantRangeMode === "range" ? (parseDateInput(assistantEndDate) || day) : day;
     const rangeLabel = day === endDay ? dateLabel(day) : dateLabel(day) + " – " + dateLabel(endDay);
@@ -7959,17 +7921,17 @@ export default function App() {
     const closePlannerAndGoToCalendar = () => { setAssistantPlannerOpen(false); setAssistantDockOpen(false); navigateToScreen("Calendar"); };
     return <View style={styles.assistantPage}>
       <View style={styles.assistantPageHeader}>
-        {docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Assistant</Text></View> : <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.assistantBackButton} onPress={() => navigationStack.length > 1 ? navigateBack() : navigateRoot("Dashboard")}><Text style={styles.assistantBackArrow}>‹</Text><Text style={styles.assistantBackText}>Back</Text></Pressable>}
+        {docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Assistant</Text></View> : !wideLayout ? <Pressable accessibilityRole="button" accessibilityLabel="Open workspace navigation" style={styles.menuButton} onPress={() => setMobileNavOpen(true)}><AppIcon name="menu" size={19} color={COLORS.ink} /></Pressable> : <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.assistantBackButton} onPress={() => navigationStack.length > 1 ? navigateBack() : navigateRoot("Dashboard")}><Text style={styles.assistantBackArrow}>‹</Text><Text style={styles.assistantBackText}>Back</Text></Pressable>}
         {!docked ? <View style={styles.assistantTitleBlock}><Text style={styles.assistantEyebrow}>GRIMMS WORKSPACE</Text><Text style={styles.assistantPageTitle}>Business Assistant</Text></View> : null}
         <View style={styles.recordDrawerHeaderActions}><Pressable accessibilityRole="button" accessibilityLabel="Open your schedule and notes" style={styles.assistantPlannerButton} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.assistantPlannerButtonText}>Plan</Text></Pressable>{docked ? <Pressable accessibilityRole="button" onPress={() => setAssistantDockOpen(false)} style={styles.drawerCloseButton}><Text style={styles.modalCancel}>Close</Text></Pressable> : null}</View>
       </View>
       {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
       {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
-      <View style={styles.assistantDatePanel}>
+      <View style={[styles.assistantDatePanel, phoneLayout && styles.assistantDatePanelPhone]}>
         <View style={styles.assistantDatePanelTop}><Text style={styles.assistantSectionLabel}>REPORT PERIOD</Text><View style={styles.assistantRangeSwitch}>
           {[{ label: "One day", value: "day" }, { label: "Date range", value: "range" }].map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: assistantRangeMode === option.value }} onPress={() => updateRangeMode(option.value)} style={[styles.assistantRangeOption, assistantRangeMode === option.value && styles.assistantRangeOptionSelected]}><Text style={[styles.assistantRangeOptionText, assistantRangeMode === option.value && styles.assistantRangeOptionTextSelected]}>{option.label}</Text></Pressable>)}
         </View></View>
-        <View style={styles.assistantDateFields}><View style={styles.flex}><Field field={{ key: "assistantStartDate", label: assistantRangeMode === "range" ? "Start date" : "Date", date: true }} value={assistantDay} onChange={(value) => setAssistantDay(parseDateInput(value) || value)} /></View>{assistantRangeMode === "range" ? <View style={styles.flex}><Field field={{ key: "assistantEndDate", label: "End date", date: true }} value={assistantEndDate} onChange={(value) => setAssistantEndDate(parseDateInput(value) || value)} /></View> : <View style={styles.assistantPeriodHint}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.fieldHint}>Reports use saved records for {dateLabel(day)}.</Text></View>}</View>
+        <View style={[styles.assistantDateFields, phoneLayout && styles.assistantDateFieldsPhone]}><View style={styles.flex}><Field field={{ key: "assistantStartDate", label: assistantRangeMode === "range" ? "Start date" : "Date", date: true }} value={assistantDay} onChange={(value) => setAssistantDay(parseDateInput(value) || value)} /></View>{assistantRangeMode === "range" ? <View style={styles.flex}><Field field={{ key: "assistantEndDate", label: "End date", date: true }} value={assistantEndDate} onChange={(value) => setAssistantEndDate(parseDateInput(value) || value)} /></View> : !phoneLayout ? <View style={styles.assistantPeriodHint}><AppIcon name="calendar" size={16} color={COLORS.wine} /><Text style={styles.fieldHint}>Reports use saved records for {dateLabel(day)}.</Text></View> : null}</View>
         {!validRange ? <Text style={styles.assistantRangeError}>Choose an end date on or after the start date.</Text> : null}
       </View>
       <View style={styles.assistantChatPanel}>
@@ -7985,7 +7947,7 @@ export default function App() {
           </Animated.View> : <View style={styles.assistantReplyRow}><AssistantRobot /><Card style={styles.assistantWelcomeBubble}><Text style={styles.assistantHeroTitle}>Hey, I’m {ASSISTANT_ROBOTS.find((robot) => robot.id === CURRENT_APPEARANCE.robotStyle)?.name || "Orbit"}.</Text><Text style={styles.assistantAnswerSummary}>Pick a report and I’ll pull the matching numbers and records from your tracker. Each result is shown as its own readable list.</Text><Text style={styles.fieldHint}>Choose a date or date range above, then tap a report below.</Text></Card></View>}
         </ScrollView>
       </View>
-      <View style={styles.assistantReportPicker}>
+      <View style={[styles.assistantReportPicker, phoneLayout && styles.assistantReportPickerPhone]}>
         <View style={styles.assistantPickerHeading}><Text style={styles.assistantSectionLabel}>CHOOSE A REPORT</Text><Text style={styles.fieldHint}>{selectedGroup.choices.length} choices · no question typing</Text></View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.assistantGroupChoices}>{BUSINESS_ASSISTANT_GROUPS.map((group) => <Pressable key={group.label} accessibilityRole="button" accessibilityState={{ selected: selectedGroup.label === group.label }} onPress={() => setAssistantExpandedGroup(group.label)} style={[styles.assistantGroupChip, selectedGroup.label === group.label && styles.assistantGroupChipSelected]}><Text style={[styles.assistantGroupChipText, selectedGroup.label === group.label && styles.assistantGroupChipTextSelected]}>{group.label}</Text></Pressable>)}</ScrollView>
         <ScrollView nestedScrollEnabled style={styles.assistantReportChoicesScroll} contentContainerStyle={styles.assistantChoiceGrid} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={CURRENT_APPEARANCE.scrollbarStyle === "Visible"}>
@@ -7993,16 +7955,19 @@ export default function App() {
         </ScrollView>
       </View>
       <View style={styles.assistantActionDock}>
-        <Pressable accessibilityRole="button" style={styles.assistantDockAction} onPress={() => beginAdd("task", { dueDate: day })}><AppIcon name="plus" size={15} color={COLORS.wine} /><Text style={styles.assistantDockActionText}>Task</Text></Pressable>
-        <Pressable accessibilityRole="button" style={styles.assistantDockAction} onPress={() => beginAdd("event", { date: day })}><AppIcon name="calendar" size={15} color={COLORS.wine} /><Text style={styles.assistantDockActionText}>Event</Text></Pressable>
-        <Pressable accessibilityRole="button" style={styles.assistantDockAction} onPress={() => beginAdd("workPlan", { date: day })}><AppIcon name="time" size={15} color={COLORS.wine} /><Text style={styles.assistantDockActionText}>Work block</Text></Pressable>
-        <Pressable accessibilityRole="button" style={styles.assistantDockAction} onPress={() => beginAdd("note", { date: day })}><AppIcon name="notes" size={15} color={COLORS.wine} /><Text style={styles.assistantDockActionText}>Note</Text></Pressable>
-        <Pressable accessibilityRole="button" style={[styles.assistantDockAction, styles.assistantDockPlan]} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={15} color={COLORS.onAccent} /><Text style={[styles.assistantDockActionText, styles.assistantDockPlanText]}>Schedule & notes</Text><Text style={[styles.assistantDockCount, styles.assistantDockPlanText]}>{openTaskCount + events.filter((item) => !item.done).length + plans.filter((item) => !item.done).length}</Text></Pressable>
+        <Pressable accessibilityRole="button" style={[styles.assistantDockAction, styles.assistantDockActionTask]} onPress={() => beginAdd("task", { dueDate: day })}><AppIcon name="plus" size={15} color={COLORS.wine} /><Text style={styles.assistantDockActionText}>New task</Text></Pressable>
+        <Pressable accessibilityRole="button" style={[styles.assistantDockAction, styles.assistantDockPlan]} onPress={() => setAssistantPlannerOpen(true)}><AppIcon name="calendar" size={15} color={COLORS.onAccent} /><Text style={[styles.assistantDockActionText, styles.assistantDockPlanText]}>Plan & notes</Text><Text style={[styles.assistantDockCount, styles.assistantDockPlanText]}>{openTaskCount + events.filter((item) => !item.done).length + plans.filter((item) => !item.done).length}</Text></Pressable>
       </View>
       <Modal visible={assistantPlannerOpen} transparent animationType="slide" onRequestClose={() => setAssistantPlannerOpen(false)}>
         <View style={styles.assistantPlannerOverlay}><Pressable style={styles.assistantPlannerScrim} accessibilityLabel="Close schedule and notes" onPress={() => setAssistantPlannerOpen(false)} /><SafeAreaView style={styles.assistantPlannerPanel}>
           <View style={styles.assistantPlannerHeader}><View style={styles.flex}><Text style={styles.assistantPlannerTitle}>Plan & notes</Text><Text style={styles.fieldHint}>{rangeLabel} · your day-by-day workspace</Text></View><Pressable accessibilityRole="button" onPress={() => setAssistantPlannerOpen(false)} style={styles.announcementClose}><Text style={styles.modalCancel}>Close</Text></Pressable></View>
-          <View style={styles.assistantPlannerActions}><Action label="＋ Task" onPress={() => beginAdd("task", { dueDate: day })} /><Action label="＋ Event" quiet onPress={() => beginAdd("event", { date: day })} /><Action label="＋ Work block" quiet onPress={() => beginAdd("workPlan", { date: day })} /><Action label="＋ Note" quiet onPress={() => beginAdd("note", { date: day })} /><Action label="Open calendar" quiet onPress={closePlannerAndGoToCalendar} /></View>
+          <View style={styles.assistantPlannerActions}>
+            <Pressable accessibilityRole="button" style={styles.assistantPlannerAction} onPress={() => beginAdd("task", { dueDate: day })}><Text style={styles.assistantPlannerActionText}>＋ Task</Text></Pressable>
+            <Pressable accessibilityRole="button" style={styles.assistantPlannerAction} onPress={() => beginAdd("event", { date: day })}><Text style={styles.assistantPlannerActionText}>＋ Event</Text></Pressable>
+            <Pressable accessibilityRole="button" style={styles.assistantPlannerAction} onPress={() => beginAdd("workPlan", { date: day })}><Text style={styles.assistantPlannerActionText}>＋ Work block</Text></Pressable>
+            <Pressable accessibilityRole="button" style={styles.assistantPlannerAction} onPress={() => beginAdd("note", { date: day })}><Text style={styles.assistantPlannerActionText}>＋ Note</Text></Pressable>
+            <Pressable accessibilityRole="button" style={[styles.assistantPlannerAction, styles.assistantPlannerActionWide]} onPress={closePlannerAndGoToCalendar}><Text style={styles.assistantPlannerActionText}>Open calendar</Text></Pressable>
+          </View>
           <ScrollView style={styles.assistantPlannerList} contentContainerStyle={styles.assistantPlannerListContent} keyboardShouldPersistTaps="handled">
             <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Tasks</Text>{tasks.length ? tasks.map((task) => renderScheduleRow("task", task, task.done, () => completeTask(task))) : <Text style={styles.fieldHint}>No task is scheduled in this period.</Text>}</View>
             <View style={styles.assistantAgendaSection}><Text style={styles.fieldLabel}>Calendar events</Text>{events.length ? events.map((event) => renderScheduleRow("event", event, event.done, () => completeEvent(event))) : <Text style={styles.fieldHint}>No event is scheduled in this period.</Text>}</View>
@@ -8023,19 +7988,19 @@ export default function App() {
     </Pressable>;
   };
   const navigationTargetFor = (page) => {
-    if (page === "Inventory") return screen === "Components" ? "Components" : "Products";
+    if (page === "Inventory") return ["Components", "Products", "Listings"].includes(screen) ? screen : "Components";
     if (page === "Analytics") return ["Listing Analytics", "Finances"].includes(screen) ? screen : "Business Overview";
     return (CORE_NAV_ITEMS.find((item) => item.label === page) || {}).target || page;
   };
   const navigationSelected = (page) => {
     if (page === "Inventory") return isInventoryPage;
     if (page === "Analytics") return isAnalyticsPage;
-    if (page === "More") return screen === "More" || (!isInventoryPage && !isAnalyticsPage && !["Dashboard", "Orders", "Settings"].includes(screen) && !isFulfillmentPage);
+    if (page === "More") return screen === "More" || (!isInventoryPage && !isAnalyticsPage && !["Dashboard", "Business Assistant", "Orders", "Settings"].includes(screen) && !isFulfillmentPage);
     return screen === page || (isFulfillmentPage && page === "Orders");
   };
   const renderNavigationLinks = () => SIDEBAR_GROUPS.map((group) => <View key={group.label} style={styles.sidebarGroup}>
-    {!(wideLayout && railLayout) ? <Text style={styles.sidebarGroupTitle}>{group.label}</Text> : null}
-    {group.pages.map((page) => {
+    {!(wideLayout && railLayout) ? <Pressable accessibilityRole="button" accessibilityLabel={(sidebarGroupOpen[group.label] ? "Collapse " : "Expand ") + group.label.toLowerCase() + " navigation"} accessibilityState={{ expanded: !!sidebarGroupOpen[group.label] }} onPress={() => setSidebarGroupOpen((old) => ({ ...old, [group.label]: !old[group.label] }))} style={styles.sidebarGroupTitleRow}><Text style={styles.sidebarGroupTitle}>{group.label}</Text><Text style={styles.sidebarGroupChevron}>{sidebarGroupOpen[group.label] ? "⌄" : "›"}</Text></Pressable> : null}
+    {(wideLayout && railLayout) || sidebarGroupOpen[group.label] ? group.pages.map((page) => {
       const selected = navigationSelected(page);
       const icon = (CORE_NAV_ITEMS.find((item) => item.label === page) || {}).icon || PAGE_ICON_NAMES[page] || "dashboard";
       return <Pressable key={page} accessibilityRole="button" accessibilityLabel={page} accessibilityState={{ selected }} onPress={() => { navigateRoot(navigationTargetFor(page)); setSearch(""); setMobileNavOpen(false); }} style={[styles.sidebarLink, selected && styles.sidebarLinkSelected]}>
@@ -8043,7 +8008,7 @@ export default function App() {
         {!(wideLayout && railLayout) ? <Text style={[styles.sidebarLinkText, selected && styles.sidebarLinkTextSelected]}>{page}</Text> : null}
         {selected ? <View style={styles.sidebarActiveMark} /> : null}
       </Pressable>;
-    })}
+    }) : null}
   </View>);
   const renderTopNavigationLinks = () => <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.themeNavigationContent}>
     {CORE_NAV_ITEMS.map((item) => {
@@ -8105,7 +8070,7 @@ export default function App() {
         </View>
       </View> : null}
       <View style={[styles.appBody, wideLayout && styles.appBodyWide]}>
-      {wideLayout && !topNavLayout && !bottomNavLayout && !assistantActive ? <View style={[styles.sidebar, railLayout && styles.sidebarRail]}><Pressable accessibilityRole="button" accessibilityLabel={railLayout ? "Expand sidebar" : "Collapse sidebar"} onPress={() => setSidebarCollapsed((collapsed) => !collapsed)} style={[styles.sidebarCollapseButton, railLayout && styles.sidebarCollapseButtonRail]}><AppIcon name="menu" size={17} color={COLORS.muted} />{!railLayout ? <Text style={styles.sidebarCollapseLabel}>Collapse menu</Text> : null}</Pressable><ScrollView style={styles.sidebarScroll} contentContainerStyle={[styles.sidebarContent, railLayout && styles.sidebarContentRail]} showsVerticalScrollIndicator={false}>{renderNavigationLinks()}</ScrollView>{!railLayout ? <View style={styles.sidebarFooter}>{renderSettingsShortcut()}</View> : <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => navigateRoot("Settings")} style={[styles.railSettings, screen === "Settings" && styles.sidebarLinkSelected]}><AppIcon name="settings" size={18} color={screen === "Settings" ? COLORS.wine : COLORS.muted} /></Pressable>}</View> : null}
+      {wideLayout && ((!topNavLayout && !bottomNavLayout) || assistantActive) ? <View style={[styles.sidebar, railLayout && styles.sidebarRail]}><Pressable accessibilityRole="button" accessibilityLabel={railLayout ? "Expand sidebar" : "Collapse sidebar"} onPress={() => setSidebarCollapsed((collapsed) => !collapsed)} style={[styles.sidebarCollapseButton, railLayout && styles.sidebarCollapseButtonRail]}><AppIcon name="menu" size={17} color={COLORS.muted} />{!railLayout ? <Text style={styles.sidebarCollapseLabel}>Collapse menu</Text> : null}</Pressable><ScrollView style={styles.sidebarScroll} contentContainerStyle={[styles.sidebarContent, railLayout && styles.sidebarContentRail]} showsVerticalScrollIndicator={false}>{renderNavigationLinks()}</ScrollView>{!railLayout ? <View style={styles.sidebarFooter}>{renderSettingsShortcut()}</View> : <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => navigateRoot("Settings")} style={[styles.railSettings, screen === "Settings" && styles.sidebarLinkSelected]}><AppIcon name="settings" size={18} color={screen === "Settings" ? COLORS.wine : COLORS.muted} /></Pressable>}</View> : null}
       <View style={styles.contentPane}>
       {topNavLayout && !assistantActive ? <View style={styles.themeNavigationBar}>{renderTopNavigationLinks()}</View> : null}
       {!assistantActive && screen !== "More" && screen !== "Dashboard" && screen !== "Settings" && screen !== "Help & FAQ" && screen !== "Business Overview" && screen !== "Business Goals" && (
@@ -8118,7 +8083,7 @@ export default function App() {
           {screen === "Components" ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("component")}><Text style={styles.headerAddText}>＋ Component</Text></Pressable> : null}
           {screen === "Orders" || isFulfillmentPage ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("order")}><Text style={styles.headerAddText}>＋ Sale</Text></Pressable> : null}
           {screen === "Listings" ? <Pressable accessibilityRole="button" style={styles.headerAdd} onPress={() => beginAdd("listing")}><Text style={styles.headerAddText}>＋ Listing</Text></Pressable> : null}
-          {navigationStack.length > 1 && !["Dashboard", "Products", "Components", "Orders", "Business Overview", "Listing Analytics", "Finances", "More", "Settings"].includes(screen) ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.headerBackButton} onPress={navigateBack}><Text style={styles.headerBackText}>‹ Back</Text></Pressable> : null}
+          {navigationStack.length > 1 && !["Dashboard", "Products", "Components", "Listings", "Orders", "Business Overview", "Listing Analytics", "Finances", "More", "Settings"].includes(screen) ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" style={styles.headerBackButton} onPress={navigateBack}><Text style={styles.headerBackText}>‹ Back</Text></Pressable> : null}
         </View>
       </View> : null}
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -8126,7 +8091,7 @@ export default function App() {
           {storageLoadNotice ? <Pressable onPress={() => setStorageLoadNotice("")} style={styles.infoBanner}><Text style={styles.infoBannerTitle}>Saved data status</Text><Text style={styles.infoBannerText}>{storageLoadNotice} Tap to dismiss.</Text></Pressable> : null}
           {recordActionNotice ? <View accessibilityLiveRegion="polite" style={styles.recordActionNotice}><Text style={styles.recordActionNoticeTitle}>Change applied</Text><Text style={styles.recordActionNoticeText}>{recordActionNotice}</Text></View> : null}
           {isInventoryPage || isAnalyticsPage ? <View style={styles.workspaceTabs}>
-            {(isInventoryPage ? [{ label: "Products", target: "Products" }, { label: "Components", target: "Components" }] : [{ label: "Overview", target: "Business Overview" }, { label: "Listings", target: "Listing Analytics" }, { label: "Finances", target: "Finances" }]).map((tab) => <Pressable key={tab.target} accessibilityRole="tab" accessibilityState={{ selected: screen === tab.target }} onPress={() => navigateRoot(tab.target)} style={[styles.workspaceTab, screen === tab.target && styles.workspaceTabSelected]}><Text style={[styles.workspaceTabText, screen === tab.target && styles.workspaceTabTextSelected]}>{tab.label}</Text></Pressable>)}
+            {(isInventoryPage ? [{ label: "Components", target: "Components" }, { label: "Products", target: "Products" }, { label: "Listings", target: "Listings" }] : [{ label: "Overview", target: "Business Overview" }, { label: "Listings", target: "Listing Analytics" }, { label: "Finances", target: "Finances" }]).map((tab) => <Pressable key={tab.target} accessibilityRole="tab" accessibilityState={{ selected: screen === tab.target }} onPress={() => navigateRoot(tab.target)} style={[styles.workspaceTab, screen === tab.target && styles.workspaceTabSelected]}><Text style={[styles.workspaceTabText, screen === tab.target && styles.workspaceTabTextSelected]}>{tab.label}</Text></Pressable>)}
           </View> : null}
           <Animated.View style={{ opacity: screenFade, transform: [{ translateY: screenFade.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }) }] }}>{contentForScreen()}</Animated.View>
           <View style={styles.bottomNote}><Text style={styles.bottomNoteText}>GRIMMS · Keep your business moving, one step at a time.</Text></View>
@@ -8135,7 +8100,7 @@ export default function App() {
       </View>
       </View>
       {bottomNavLayout && !assistantActive ? renderBottomNavigation() : null}
-      <Modal visible={!wideLayout && mobileNavOpen} animationType="fade" transparent onRequestClose={() => setMobileNavOpen(false)}>
+      <Modal visible={!wideLayout && mobileNavOpen} animationType="slide" transparent onRequestClose={() => setMobileNavOpen(false)}>
         <View style={styles.mobileNavOverlay}>
           <Pressable style={styles.mobileNavScrim} onPress={() => setMobileNavOpen(false)} accessibilityLabel="Close pages menu" />
           <SafeAreaView style={styles.mobileNavDrawer}>
@@ -8229,9 +8194,9 @@ export default function App() {
       <WelcomeSetupModal visible={welcomeOpen} db={db} onFinish={finishWelcomeSetup} onSkip={skipWelcomeSetup} onRestoreBackup={openSavedBackupRestore} />
       <WelcomeBackModal visible={welcomeBackOpen && !welcomeOpen} db={db} onContinue={() => setWelcomeBackOpen(false)} onRestoreBackup={openSavedBackupRestore} />
       <Modal visible={assistantDockOpen && !assistantActive} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setAssistantDockOpen(false)}>
-        <View style={styles.recordDrawerOverlay}><Pressable style={styles.recordDrawerScrim} onPress={() => setAssistantDockOpen(false)} accessibilityLabel="Close Business Assistant" /><SafeAreaView style={styles.assistantDrawerPanel}><View style={styles.assistantDrawerContent}>{renderBusinessAssistant(true)}</View></SafeAreaView></View>
+        <View style={styles.recordDrawerOverlay}><Pressable style={styles.recordDrawerScrim} onPress={() => setAssistantDockOpen(false)} accessibilityLabel="Close Business Assistant" /><SafeAreaView style={[styles.assistantDrawerPanel, !wideLayout && styles.assistantDrawerPanelPhone]}><View style={styles.assistantDrawerContent}>{renderBusinessAssistant(true)}</View></SafeAreaView></View>
       </Modal>
-      <RecordDetailModal visible={!!detailSelection} type={detailSelection && detailSelection.type} record={detailRecord} currency={db.currency} inventoryHistory={detailSelection && detailSelection.type === "component" ? (db.componentTransactions || []).filter((entry) => entry.componentId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : detailSelection && detailSelection.type === "product" ? (db.productTransactions || []).filter((entry) => entry.productId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : []} onClose={() => setDetailSelection(null)} onEdit={() => { beginEdit(detailSelection.type, detailRecord); setDetailSelection(null); }} actions={detailSelection && detailRecord ? <View style={styles.actionRow}>
+      <RecordDetailModal visible={!!detailSelection} type={detailSelection && detailSelection.type} record={detailRecord} currency={db.currency} wideLayout={wideLayout} inventoryHistory={detailSelection && detailSelection.type === "component" ? (db.componentTransactions || []).filter((entry) => entry.componentId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : detailSelection && detailSelection.type === "product" ? (db.productTransactions || []).filter((entry) => entry.productId === detailSelection.id).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 20) : []} onClose={() => setDetailSelection(null)} onEdit={() => { beginEdit(detailSelection.type, detailRecord); setDetailSelection(null); }} actions={detailSelection && detailRecord ? <View style={styles.actionRow}>
         {detailSelection.type === "product" ? <><Action label="Duplicate" quiet onPress={() => { duplicateRecord("product", detailRecord); setDetailSelection(null); }} />{!detailRecord.archived && (detailRecord.recipe || []).length ? <Action label="Make" quiet onPress={() => { setProductionProduct(detailRecord.id); navigateToScreen("Production"); setDetailSelection(null); }} /> : null}{detailRecord.archived ? <Action label="Restore" onPress={() => { restoreRecord("products", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive" quiet onPress={() => { archiveRecord("products", detailRecord, "product"); setDetailSelection(null); }} />}<Action label="Delete" quiet onPress={() => { permanentlyDeleteRecord("products", detailRecord, "product"); setDetailSelection(null); }} /></> : null}
         {detailSelection.type === "component" ? <>{!detailRecord.archived ? <Action label="Restock" onPress={() => { beginAdd("restock", { componentId: detailRecord.id }); setDetailSelection(null); }} /> : null}<Action label="Duplicate" quiet onPress={() => { duplicateRecord("component", detailRecord); setDetailSelection(null); }} />{detailRecord.archived ? <Action label="Restore" onPress={() => { restoreRecord("components", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive" quiet onPress={() => { archiveRecord("components", detailRecord, "component"); setDetailSelection(null); }} />}<Action label="Delete" quiet onPress={() => { permanentlyDeleteRecord("components", detailRecord, "component"); setDetailSelection(null); }} /></> : null}
         {detailSelection.type === "listing" ? <>{detailRecord.archived ? <Action label="Restore" onPress={() => { restoreRecord("listings", detailRecord); setDetailSelection(null); }} /> : <Action label="Archive" quiet onPress={() => { archiveRecord("listings", detailRecord, "listing"); setDetailSelection(null); }} />}<Action label="Delete" quiet onPress={() => { permanentlyDeleteRecord("listings", detailRecord, "listing"); setDetailSelection(null); }} /></> : null}
@@ -8417,33 +8382,37 @@ function makeStyles() { return StyleSheet.create({
   recordDrawerOverlay: { flex: 1, flexDirection: "row", justifyContent: "flex-end" },
   recordDrawerScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(18,24,33,0.34)" },
   recordDrawerPanel: { width: Platform.OS === "web" ? "42%" : "100%", maxWidth: 540, height: "100%", marginLeft: "auto", backgroundColor: COLORS.card, borderLeftWidth: 1, borderLeftColor: COLORS.line, elevation: 14 },
+  recordDrawerPanelPhone: { width: "100%", maxWidth: "100%", borderLeftWidth: 0 },
   recordDrawerHeader: { minHeight: 76, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.line, backgroundColor: COLORS.card },
   recordDrawerHeaderActions: { flexDirection: "row", alignItems: "center", gap: 8 },
   recordDrawerEyebrow: { color: COLORS.muted, fontSize: 9, letterSpacing: 1.1, fontWeight: "800", marginBottom: 3 },
   recordDrawerTitle: { color: COLORS.ink, fontSize: 18, fontWeight: "700", lineHeight: 23 },
-  drawerEditButton: { minHeight: 34, justifyContent: "center", paddingHorizontal: 12, borderRadius: 8, backgroundColor: COLORS.wine },
+  drawerEditButton: { minHeight: 40, justifyContent: "center", paddingHorizontal: 12, borderRadius: 8, backgroundColor: COLORS.wine },
   drawerEditText: { color: COLORS.onAccent, fontSize: 12, fontWeight: "700" },
-  drawerCloseButton: { minHeight: 34, justifyContent: "center", paddingHorizontal: 8 },
+  drawerCloseButton: { minHeight: 40, minWidth: 54, alignItems: "center", justifyContent: "center", paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
   recordDrawerContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28 },
   recordDrawerActions: { marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: COLORS.line },
   assistantDrawerPanel: { width: Platform.OS === "web" ? "46%" : "100%", maxWidth: 600, height: "100%", marginLeft: "auto", backgroundColor: COLORS.paper, borderLeftWidth: 1, borderLeftColor: COLORS.line, elevation: 14 },
+  assistantDrawerPanelPhone: { width: "100%", maxWidth: "100%", borderLeftWidth: 0 },
   assistantDrawerContent: { flex: 1, minHeight: 0 },
   assistantPageHost: { flex: 1, minHeight: 0, paddingHorizontal: 14, paddingTop: 8, paddingBottom: 10, width: "100%", maxWidth: 1100, alignSelf: "center" },
-  sidebar: { width: 218, backgroundColor: CURRENT_APPEARANCE.cardStyle === "paper" || CURRENT_APPEARANCE.cardStyle === "ledger" ? COLORS.soft : COLORS.card, borderRightWidth: CURRENT_APPEARANCE.cardStyle === "minimal" ? 0 : 1, borderRightColor: COLORS.line },
-  sidebarRail: { width: 76, alignItems: "center", backgroundColor: COLORS.card, borderRightColor: COLORS.line },
+  sidebar: { width: 198, backgroundColor: CURRENT_APPEARANCE.cardStyle === "paper" || CURRENT_APPEARANCE.cardStyle === "ledger" ? COLORS.soft : COLORS.card, borderRightWidth: CURRENT_APPEARANCE.cardStyle === "minimal" ? 0 : 1, borderRightColor: COLORS.line },
+  sidebarRail: { width: 58, alignItems: "center", backgroundColor: COLORS.card, borderRightColor: COLORS.line },
   sidebarScroll: { flex: 1 },
   sidebarCollapseButton: { minHeight: 40, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 15, borderBottomWidth: 1, borderBottomColor: COLORS.line },
   sidebarCollapseButtonRail: { justifyContent: "center", paddingHorizontal: 0 },
   sidebarCollapseLabel: { color: COLORS.muted, fontSize: 10, fontWeight: "600" },
   sidebarContent: { paddingHorizontal: 10, paddingTop: 12, paddingBottom: 8 },
   sidebarContentRail: { width: "100%", paddingHorizontal: 8, alignItems: "center" },
-  sidebarGroup: { marginBottom: 8 },
+  sidebarGroup: { marginBottom: 6 },
+  sidebarGroupTitleRow: { minHeight: 32, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 7 },
   sidebarGroupTitle: { color: COLORS.muted, fontSize: 9, letterSpacing: 1.05, fontWeight: "800", paddingHorizontal: 8, paddingBottom: 4 },
-  sidebarLink: { minHeight: 35, borderRadius: CURRENT_APPEARANCE.cardStyle === "cloud" || CURRENT_APPEARANCE.cardStyle === "bubble" ? 18 : CURRENT_APPEARANCE.cardStyle === "gallery" || CURRENT_APPEARANCE.cardStyle === "arcade" ? 4 : 8, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 8, marginBottom: 1 },
+  sidebarGroupChevron: { color: COLORS.muted, fontSize: 17, paddingHorizontal: 6, paddingBottom: 2 },
+  sidebarLink: { minHeight: 40, borderRadius: CURRENT_APPEARANCE.cardStyle === "cloud" || CURRENT_APPEARANCE.cardStyle === "bubble" ? 18 : CURRENT_APPEARANCE.cardStyle === "gallery" || CURRENT_APPEARANCE.cardStyle === "arcade" ? 4 : 8, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 8, marginBottom: 1 },
   sidebarSettingsLink: { minHeight: 40 },
   sidebarLinkSelected: { backgroundColor: COLORS.soft },
   sidebarIcon: { width: 25, height: 25, borderRadius: 7, backgroundColor: COLORS.softAlt, alignItems: "center", justifyContent: "center" },
-  sidebarIconRail: { width: 42, height: 42, borderRadius: CURRENT_APPEARANCE.iconStyle === "pixel" ? 8 : CURRENT_APPEARANCE.iconStyle === "sticker" ? 15 : 12 },
+  sidebarIconRail: { width: 36, height: 36, borderRadius: CURRENT_APPEARANCE.iconStyle === "pixel" ? 8 : CURRENT_APPEARANCE.iconStyle === "sticker" ? 15 : 12 },
   sidebarIconSelected: { backgroundColor: COLORS.wine },
   sidebarLinkText: { flex: 1, color: COLORS.ink, fontSize: 12, fontWeight: "600" },
   sidebarLinkTextSelected: { color: COLORS.wine, fontWeight: "800" },
@@ -8467,7 +8436,7 @@ function makeStyles() { return StyleSheet.create({
   menuLine: { width: 15, height: 2, borderRadius: 1, backgroundColor: COLORS.ink },
   mobileNavOverlay: { flex: 1, flexDirection: "row" },
   mobileNavScrim: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(20,18,20,0.42)" },
-  mobileNavDrawer: { width: 300, maxWidth: "86%", height: "100%", backgroundColor: COLORS.card, borderRightWidth: 1, borderRightColor: COLORS.line },
+  mobileNavDrawer: { width: 272, maxWidth: "78%", height: "100%", backgroundColor: COLORS.card, borderRightWidth: 1, borderRightColor: COLORS.line },
   mobileNavHeader: { minHeight: 62, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: COLORS.line, paddingHorizontal: 17 },
   mobileNavTitle: { color: COLORS.ink, fontSize: 17, fontWeight: "800" },
   mobileNavSubtitle: { color: COLORS.muted, fontSize: 10, marginTop: 2 },
@@ -8492,7 +8461,7 @@ function makeStyles() { return StyleSheet.create({
   searchHandle: { position: "absolute", width: 6, height: 1.5, borderRadius: 1, backgroundColor: COLORS.muted, left: 10, top: 12, transform: [{ rotate: "45deg" }] },
   searchInput: { flex: 1, color: COLORS.ink, fontSize: 14, paddingVertical: 8 },
   searchClear: { color: COLORS.muted, fontSize: 22, paddingHorizontal: 4 },
-  screenHeading: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 5, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  screenHeading: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 5, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   screenHeading_editorial: { paddingHorizontal: 25, paddingTop: 18, paddingBottom: 13, borderBottomWidth: 1, borderBottomColor: COLORS.line },
   screenHeading_floating: { paddingHorizontal: 20, paddingTop: 13, paddingBottom: 10 },
   screenHeading_journal: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 10, borderLeftWidth: 4, borderLeftColor: COLORS.wine, marginLeft: 9 },
@@ -8513,7 +8482,7 @@ function makeStyles() { return StyleSheet.create({
   headerAdd: { backgroundColor: COLORS.wine, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 12 },
   headerAddText: { color: COLORS.onAccent, fontSize: 13, fontWeight: "700" },
   mainScroll: { flex: 1 },
-  pageContent: { paddingHorizontal: CURRENT_APPEARANCE.density === "Compact" ? 12 : 18, paddingTop: 10, paddingBottom: 28, maxWidth: 1240, width: "100%", alignSelf: "center" },
+  pageContent: { paddingHorizontal: CURRENT_APPEARANCE.density === "Compact" ? 10 : 12, paddingTop: 9, paddingBottom: 24, maxWidth: 1240, width: "100%", alignSelf: "center" },
   pageContentWide: { paddingHorizontal: 28 },
   welcomeBox: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, padding: 18, borderRadius: 14, marginBottom: 12, overflow: "hidden" },
   welcomeBoxCompact: { backgroundColor: COLORS.card, borderColor: COLORS.line, borderWidth: 1, padding: 16, borderRadius: 14, marginBottom: 11 },
@@ -8571,11 +8540,11 @@ function makeStyles() { return StyleSheet.create({
   fulfillmentTile: { width: "31%", flexGrow: 1, minHeight: 82, padding: 10, borderRadius: 13, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card, elevation: 1, shadowColor: COLORS.ink, shadowOpacity: 0.04, shadowRadius: 3, shadowOffset: { width: 0, height: 2 } },
   fulfillmentCount: { color: COLORS.wine, fontSize: 20, fontWeight: "800" },
   fulfillmentLabel: { color: COLORS.muted, fontSize: 10, lineHeight: 13, marginTop: 3 },
-  fulfillmentList: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 15, paddingHorizontal: 13, marginBottom: 12, overflow: "hidden" },
-  fulfillmentListRow: { minHeight: 44, flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, gap: 11 },
-  fulfillmentListRowLast: { borderBottomWidth: 0 },
-  fulfillmentListCount: { color: COLORS.wine, fontSize: 16, fontWeight: "800", width: 30, textAlign: "center" },
-  fulfillmentListLabel: { color: COLORS.ink, fontSize: 12, fontWeight: "600", flex: 1 },
+  fulfillmentList: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
+  fulfillmentListRow: { width: "48%", flexGrow: 1, minWidth: 132, minHeight: 62, flexDirection: "row", alignItems: "center", backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 10, gap: 8 },
+  fulfillmentListRowEmpty: { backgroundColor: COLORS.soft },
+  fulfillmentListCount: { color: COLORS.wine, fontSize: 18, fontWeight: "800", width: 28, textAlign: "center" },
+  fulfillmentListLabel: { color: COLORS.ink, fontSize: 11, lineHeight: 14, fontWeight: "600", flex: 1 },
   fulfillmentListArrow: { color: COLORS.muted, fontSize: 22, paddingHorizontal: 2 },
   card: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, padding: CURRENT_APPEARANCE.density === "Compact" ? 8 : CURRENT_APPEARANCE.density === "Spacious" ? 15 : 10, marginBottom: 10 },
   cardSoft: { backgroundColor: COLORS.card, borderColor: COLORS.line },
@@ -8633,15 +8602,15 @@ function makeStyles() { return StyleSheet.create({
   detailRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 5, gap: 8 },
   detailText: { color: COLORS.ink, fontSize: 12, fontWeight: "600" },
   bodyText: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginTop: 5 },
-  actionRow: { flexDirection: "row", flexWrap: "wrap", gap: 5, marginTop: 6 },
-  actionButton: { paddingVertical: CURRENT_APPEARANCE.density === "Compact" ? 7 : 9, paddingHorizontal: 13, backgroundColor: COLORS.card, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 11, borderWidth: 1, borderColor: COLORS.softLine },
+  actionRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 7, marginTop: 7 },
+  actionButton: { minHeight: 38, justifyContent: "center", alignItems: "center", paddingVertical: CURRENT_APPEARANCE.density === "Compact" ? 7 : 9, paddingHorizontal: 12, backgroundColor: COLORS.card, borderRadius: Number(CURRENT_APPEARANCE.buttonRoundness) || 11, borderWidth: 1, borderColor: COLORS.softLine },
   actionButton_puffy: { backgroundColor: COLORS.soft, borderColor: COLORS.softLine, borderBottomWidth: 2, borderBottomColor: COLORS.softLine, paddingVertical: 11 },
   actionButton_studio: { backgroundColor: COLORS.card, borderColor: COLORS.wine, borderBottomWidth: 2 },
   actionButton_stamped: { backgroundColor: COLORS.soft, borderColor: COLORS.ink, borderWidth: 1.5, borderBottomWidth: 3 },
   actionButton_leaf: { backgroundColor: COLORS.soft, borderColor: COLORS.green, borderBottomWidth: 2 },
   actionButton_square: { backgroundColor: COLORS.card, borderColor: COLORS.ink, borderWidth: 1.5 },
   actionButton_glass: { backgroundColor: COLORS.soft, borderColor: COLORS.softLine, shadowColor: COLORS.wine, shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 },
-  actionButton_minimal: { backgroundColor: "transparent", borderWidth: 0, borderBottomWidth: 1, borderBottomColor: COLORS.line },
+  actionButton_minimal: { backgroundColor: COLORS.soft, borderWidth: 1, borderColor: COLORS.line },
   actionButton_block: { backgroundColor: COLORS.wine, borderColor: COLORS.ink, borderWidth: 1.5, borderBottomWidth: 3 },
   actionButton_menu: { backgroundColor: COLORS.soft, borderColor: COLORS.softLine, borderBottomWidth: 2 },
   actionButton_cutout: { backgroundColor: COLORS.card, borderColor: COLORS.wine, borderStyle: "dashed" },
@@ -8870,10 +8839,16 @@ function makeStyles() { return StyleSheet.create({
   monthArrow: { width: 32, height: 32, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.rose, borderRadius: 9 },
   monthArrowText: { color: COLORS.wine, fontSize: 23, lineHeight: 25 },
   monthTitle: { color: COLORS.ink, fontSize: 16, fontWeight: "700" },
+  dateChooseControl: { minHeight: 43, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10 },
+  dateChooseValue: { color: COLORS.ink, fontSize: 12, fontWeight: "700" },
+  dateChooseHint: { color: COLORS.muted, fontSize: 9, marginTop: 2 },
+  datePickerBackdropTap: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
+  datePickerHeading: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  datePickerActions: { flexDirection: "row", justifyContent: "space-between", gap: 8, marginTop: 12 },
   todayButton: { alignSelf: "flex-end", padding: 4 },
   calendarWeek: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 2 },
   weekDay: { width: "14%", textAlign: "center", color: COLORS.muted, fontSize: 10, fontWeight: "700", paddingVertical: 6 },
-  calendarCell: { width: "14%", maxWidth: 72, aspectRatio: 1, borderRadius: 10, alignItems: "center", justifyContent: "center", alignSelf: "center" },
+  calendarCell: { width: "14.2%", maxWidth: 72, aspectRatio: 1, borderRadius: 10, alignItems: "center", justifyContent: "center", alignSelf: "center" },
   dateInputRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   dateTextInput: { flex: 1 },
   dateCalendarButton: { height: 46, width: 48, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.rose, alignItems: "center", justifyContent: "center" },
@@ -9011,8 +8986,21 @@ function makeStyles() { return StyleSheet.create({
   globalSearchInput: { minHeight: 46, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, color: COLORS.ink, backgroundColor: COLORS.card, marginTop: 13, fontSize: 13 },
   globalSearchResults: { maxHeight: 500, marginTop: 9 },
   globalSearchResult: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line, paddingVertical: 8 },
-  robotWrap: { width: 78, height: 76, alignItems: "center", justifyContent: "center", position: "relative" },
-  robotWrapCompact: { width: 48, height: 48 },
+  robotWrap: { width: 78, height: 94, alignItems: "center", justifyContent: "center", position: "relative" },
+  robotWrapCompact: { width: 40, height: 40 },
+  robotShell: { width: 66, height: 57, padding: 6, borderWidth: 2, borderColor: COLORS.ink, borderRadius: 12, alignItems: "center", justifyContent: "center", elevation: 2 },
+  robotShellCompact: { width: 37, height: 34, padding: 3, borderWidth: 1.5, borderRadius: 8 },
+  robotFaceWindow: { width: "100%", height: "100%", borderRadius: 6, backgroundColor: "rgba(255,255,255,0.88)", alignItems: "center", justifyContent: "center", gap: 6 },
+  robotFaceWindowCompact: { borderRadius: 4, gap: 3 },
+  robotEyes: { width: "53%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  robotEyesCompact: { width: "52%" },
+  robotMouthRow: { width: "82%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  robotMouthRowCompact: { width: "88%" },
+  robotBlush: { width: 8, height: 5, borderRadius: 5, backgroundColor: "#F18A98" },
+  robotBlushCompact: { width: 5, height: 3, borderRadius: 3 },
+  robotNeck: { width: 10, height: 5, backgroundColor: COLORS.softLine, marginTop: 1 },
+  robotBody: { width: 48, height: 20, borderRadius: 7, borderWidth: 1.5, borderColor: COLORS.ink, alignItems: "center", justifyContent: "center" },
+  robotBodyDot: { width: 7, height: 4, borderRadius: 3, backgroundColor: COLORS.card },
   robotEyeNew: { width: 6, height: 8, borderRadius: 4, backgroundColor: COLORS.onAccent },
   robotEyeNewCompact: { width: 4, height: 5 },
   robotFaceLine: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 },
@@ -9060,8 +9048,8 @@ function makeStyles() { return StyleSheet.create({
   robotCompactStarFace: { transform: [{ scale: 0.67 }], marginTop: 5 },
   starSparkleOne: { position: "absolute", right: 0, top: 9, color: COLORS.wine, fontSize: 15 },
   starSparkleTwo: { position: "absolute", left: 6, top: 18, color: COLORS.green, fontSize: 20 },
-  assistantPage: { flex: 1, minHeight: 0, gap: 8 },
-  assistantPageHeader: { minHeight: 50, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4 },
+  assistantPage: { flex: 1, minHeight: 0, gap: 7 },
+  assistantPageHeader: { minHeight: 46, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 2 },
   assistantBackButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, minWidth: 68, height: 36, paddingHorizontal: 8, borderRadius: 12, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line },
   assistantBackArrow: { color: COLORS.wine, fontSize: 24, lineHeight: 25 },
   assistantBackText: { color: COLORS.ink, fontSize: 11, fontWeight: "700" },
@@ -9070,6 +9058,7 @@ function makeStyles() { return StyleSheet.create({
   assistantPlannerButton: { height: 36, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, borderRadius: CURRENT_APPEARANCE.buttonRoundness, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
   assistantPlannerButtonText: { color: COLORS.wine, fontSize: 11, fontWeight: "800" },
   assistantDatePanel: { paddingHorizontal: 11, paddingTop: 8, paddingBottom: 5, backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, zIndex: 1 },
+  assistantDatePanelPhone: { paddingHorizontal: 9, paddingTop: 7, paddingBottom: 4 },
   assistantDatePanelTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   assistantSectionLabel: { color: COLORS.muted, fontSize: 9, letterSpacing: 1.2, fontWeight: "800" },
   assistantRangeSwitch: { flexDirection: "row", padding: 2, borderRadius: 10, backgroundColor: COLORS.soft, gap: 2 },
@@ -9078,11 +9067,13 @@ function makeStyles() { return StyleSheet.create({
   assistantRangeOptionText: { color: COLORS.muted, fontSize: 10, fontWeight: "700" },
   assistantRangeOptionTextSelected: { color: COLORS.onAccent },
   assistantDateFields: { flexDirection: "row", gap: 11, alignItems: "flex-end" },
+  assistantDateFieldsPhone: { gap: 6 },
   assistantPeriodHint: { flex: 1, minHeight: 40, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 8 },
-  assistantChatPanel: { flex: 1, minHeight: 100, backgroundColor: COLORS.soft, borderRadius: CURRENT_APPEARANCE.cardRadius, borderWidth: 1, borderColor: COLORS.softLine, overflow: "hidden" },
+  assistantChatPanel: { flex: 1, minHeight: 92, backgroundColor: COLORS.soft, borderRadius: CURRENT_APPEARANCE.cardRadius, borderWidth: 1, borderColor: COLORS.softLine, overflow: "hidden" },
   assistantMessagesScroll: { flex: 1, minHeight: 0 },
   assistantMessagesContent: { flexGrow: 1, justifyContent: "flex-end", padding: 12 },
   assistantReportPicker: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: CURRENT_APPEARANCE.cardRadius, paddingHorizontal: 10, paddingVertical: 8, maxHeight: 235 },
+  assistantReportPickerPhone: { maxHeight: 170, paddingHorizontal: 8, paddingVertical: 6 },
   assistantPickerHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   assistantGroupChoices: { gap: 6, paddingVertical: 4, alignItems: "center" },
   assistantGroupChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.soft },
@@ -9091,8 +9082,9 @@ function makeStyles() { return StyleSheet.create({
   assistantGroupChipTextSelected: { color: COLORS.onAccent },
   assistantReportChoicesScroll: { maxHeight: 116 },
   assistantChoiceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 7, paddingTop: 4, paddingBottom: 3 },
-  assistantActionDock: { flexDirection: "row", alignItems: "center", gap: 6, paddingTop: 2, flexWrap: "wrap" },
-  assistantDockAction: { minHeight: 39, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingHorizontal: 11, borderRadius: CURRENT_APPEARANCE.buttonRoundness, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
+  assistantActionDock: { minHeight: 40, flexDirection: "row", alignItems: "center", gap: 7, paddingTop: 1 },
+  assistantDockAction: { flex: 1, minWidth: 0, minHeight: 39, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingHorizontal: 9, borderRadius: CURRENT_APPEARANCE.buttonRoundness, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.card },
+  assistantDockActionTask: { flex: 0.8 },
   assistantDockActionText: { color: COLORS.ink, fontSize: 10, fontWeight: "700" },
   assistantDockPlan: { backgroundColor: COLORS.wine, borderColor: COLORS.wine, flex: 1 },
   assistantDockPlanText: { color: COLORS.onAccent },
@@ -9102,7 +9094,10 @@ function makeStyles() { return StyleSheet.create({
   assistantPlannerPanel: { height: "88%", maxHeight: 800, backgroundColor: COLORS.paper, borderTopLeftRadius: 22, borderTopRightRadius: 22, overflow: "hidden", paddingBottom: 8 },
   assistantPlannerHeader: { minHeight: 65, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: COLORS.line },
   assistantPlannerTitle: { color: COLORS.ink, fontSize: 20, fontWeight: "800" },
-  assistantPlannerActions: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.line },
+  assistantPlannerActions: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 7, paddingHorizontal: 13, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.line },
+  assistantPlannerAction: { width: "48%", minHeight: 39, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingHorizontal: 8 },
+  assistantPlannerActionWide: { width: "100%" },
+  assistantPlannerActionText: { color: COLORS.ink, fontSize: 11, fontWeight: "700" },
   assistantPlannerList: { flex: 1, minHeight: 0 },
   assistantPlannerListContent: { paddingHorizontal: 15, paddingBottom: 30 },
   assistantCompactHeader: { padding: 12, marginBottom: 4 },
