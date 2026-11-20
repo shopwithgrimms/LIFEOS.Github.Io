@@ -201,6 +201,20 @@ nav button[aria-current=page]{background:var(--sage-d);color:var(--on)}
 .sw{display:flex;gap:10px;flex-wrap:wrap}.sw button{display:grid;justify-items:center;gap:6px;background:none;border:0;cursor:pointer;color:var(--mute);font-size:.72rem;font-weight:600;padding:4px;border-radius:16px;min-width:56px}
 .sw i{width:40px;height:40px;border-radius:50%;border:3px solid var(--card);box-shadow:0 0 0 2px var(--line);display:block}
 .sw button[aria-pressed=true]{color:var(--ink)}.sw button[aria-pressed=true] i{box-shadow:0 0 0 3px var(--sage-d)}
+
+/* ===== Arena (game) ===== */
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;background:var(--field);flex:none;border:2px solid var(--line)}
+.av.me{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 22%,var(--card))}
+.rk{width:26px;text-align:center;font-weight:700;color:var(--mute);flex:none}
+.lb>li{cursor:pointer}.lb>li.me{background:color-mix(in srgb,var(--gold) 14%,transparent);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:14px}
+.up{color:var(--sage-d)}.dn{color:var(--clay)}
+.coach{border:2px solid var(--line);border-radius:22px;padding:14px;background:var(--field);cursor:pointer}
+.coach[aria-pressed=true],.coach:hover{border-color:var(--sage-d)}
+.tag{font-size:.7rem;padding:2px 8px;border-radius:99px;background:var(--sage-l);color:var(--sage-d);font-weight:600;white-space:nowrap}
+.tag.tt{background:color-mix(in srgb,var(--clay) 18%,var(--card));color:var(--clay)}
+.feed li{display:block}.feed .w{font-size:.74rem;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-top:10px}
+.xp{height:10px;border-radius:10px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:8px}.xp i{display:block;height:100%;background:#fff;border-radius:10px}
+nav button{min-width:0}
 </style>
 </head>
 <body>
@@ -338,7 +352,7 @@ const defS=()=>({v:4,prof:null,
  goals:{mode:'auto',cal:1800,pace:1,split:{p:30,c:40,f:30},fi:25,su:50,na:2300,water:2000,sleep:8,steps:8000,ex:30},
  set:{theme:'system',eatBack:false,lastBackup:0,bottles:[{n:'Glass',ml:250},{n:'Bottle',ml:500},{n:'Large',ml:1000}],cmp:{food:1,water:1,sleep:1,weight:1,steps:1,ex:1,habits:1}},
  weights:{},meas:{},photos:[],foods:[],favs:[],recent:[],recipes:[],meals:[],log:{},plan:{},grocery:[],prep:[],
- habits:HABITS0.map(([id,n])=>({id,n,on:true})),ach:{}});
+ habits:HABITS0.map(([id,n])=>({id,n,on:true})),ach:{},game:null});
 function norm(o){const d=defS();o=o&&typeof o==='object'?o:{};
  const S={...d,...o};['goals','set'].forEach(k=>S[k]={...d[k],...(o[k]||{})});
  S.goals.split={...d.goals.split,...((o.goals||{}).split||{})};S.set.cmp={...d.set.cmp,...((o.set||{}).cmp||{})};
@@ -551,6 +565,7 @@ function importData(text){let o;try{o=JSON.parse(text)}catch(e){return false}
  checkAch(true);S.savedAt=Date.now();flush();return true}
 /* ---------- icons ---------- */
 const IC={
+ arena:'<path d="M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8M10 17h4"/>',
  today:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>',
  food:'<path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/>',
  plan:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
@@ -917,6 +932,7 @@ function readProfile(fd0,sys){const v=k=>fd0.get(k)||'',err=[];const age=r0(num(
  const sw=v('sw')?(us?num(v('sw'))/2.20462:num(v('sw'))):kg;return{err,p:{name:v('name').trim().slice(0,40),sys,sex:v('sex')||'f',age,h,start:sw,goal:gkg,act:+v('act')||1.375},kg}}
 function viewWelcome(){const o=OB;return`<div class="welcome"><div class="c mb"><span class="hl">FREE · PRIVATE · NO ACCOUNT</span></div><h1 class="c">Welcome to Stillwater</h1><p class="mute c mt8 mb">A calm, complete weight-loss companion. Every feature is free, and your data never leaves this device.</p>
  <form class="card" data-f="onboard">${profileFields(o,true)}<label>Pace</label>${chips([[.5,'Gentle'],[1,'Steady'],[1.5,'Faster'],[2,'Max']].map(([v,l])=>[v,l+' · '+paceLbl(v)]),o.pace||1,'obpace')}<p class="xs mute mt8">We’ll set a daily calorie goal with built-in safety limits. You can change anything later.</p><div id="oberr"></div><button class="btn full mt">Start my journey</button></form>
+ <button class="btn ghost full mb" data-a="loadsample">🎬 Explore with sample data</button>
  <p class="xs mute c">Stillwater is a tracking tool, not medical advice. Check with a healthcare professional before making big changes.</p></div>`}
 function viewProfile(){const p=S.prof,g=S.goals,pl=plan(),T=targets(),pf={sys:p.sys,name:p.name,sex:p.sex,age:p.age,cm:r0(p.h),ft:Math.floor(p.h/2.54/12),inch:r1(p.h/2.54%12),w:f1(wd(curW())),gw:f1(wd(p.goal)),sw:f1(wd(p.start)),act:p.act},stale=S.set.lastBackup&&(Date.now()-S.set.lastBackup>12096e5),never=!S.set.lastBackup&&Object.keys(S.log).length>3;
  const sp=g.split;
@@ -931,18 +947,18 @@ function viewProfile(){const p=S.prof,g=S.goals,pl=plan(),T=targets(),pf={sys:p.
  <section class="card"><div class="hd"><h2>${ic('check')} Daily completion</h2></div><p class="mute sm mb">Choose what counts toward your daily completion ring.</p>${[['food','Food logged'],['water','Water goal'],['sleep','Sleep'],['weight','Weigh-in'],['steps','Steps'],['ex','Exercise'],['habits','Habits']].map(([k,l])=>`<label class="opt"><span>${l}</span><input type="checkbox" data-c="cmp" data-k="${k}" ${S.set.cmp[k]?'checked':''}></label>`).join('')}</section>
  <section class="card"><div class="hd"><h2>${ic('sun')} Appearance</h2></div>${chips([['system','Match device'],['light','Light'],['dark','Dark']],S.set.theme,'theme')}<p class="b mt mb sm">Color theme</p><div class="sw" role="group" aria-label="Color theme">${[['sage','Sage','#46634D','#7E9C7A'],['ocean','Ocean','#2F6677','#6FA3B5'],['lavender','Lavender','#5B4F94','#9A8FC4'],['rose','Rose','#96485A','#C98A94'],['sunset','Sunset','#8F5428','#CC9060'],['slate','Slate','#3F4D5C','#7D8B99']].map(([k,l,c,c2])=>`<button type="button" data-a="accent" data-v="${k}" aria-pressed="${(S.set.accent||'sage')===k}" aria-label="${l}"><i style="background:linear-gradient(135deg,${c} 50%,${c2} 50%)"></i>${l}</button>`).join('')}</div></section>
  <section class="card full"><div class="hd"><h2>${ic('download')} Save &amp; export</h2></div>${stale||never?`<div class="note warn">${never?'You haven’t downloaded a backup yet.':'It’s been over two weeks since your last backup.'} Browser data can be cleared, so keep a copy.</div>`:''}<p class="mute sm mb"><b>Saved automatically</b> on this device${S.savedAt?' · '+new Date(S.savedAt).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}. A second copy is kept in your browser’s extra storage.${S.set.lastBackup?' Last backup file: '+new Date(S.set.lastBackup).toLocaleDateString()+'.':''}</p>
-  <div class="chips"><button class="btn sm" data-a="export">${ic('download','s')} Download backup</button><label class="btn ghost sm" style="margin:0;cursor:pointer">${ic('upload','s')} Restore backup<input type="file" accept=".json,application/json" data-c="import" hidden></label><button class="btn ghost sm" data-a="exportcsv">Export CSV</button><button class="btn ghost sm" data-a="exportreport">Progress report</button><button class="btn danger sm" data-a="reset">Erase everything</button></div>
+  <div class="chips"><button class="btn sm" data-a="export">${ic('download','s')} Download backup</button><button class="btn ghost sm" data-a="${S.demo?'exitsample':'loadsample'}">🎬 ${S.demo?'Exit sample data':'Try sample data'}</button><label class="btn ghost sm" style="margin:0;cursor:pointer">${ic('upload','s')} Restore backup<input type="file" accept=".json,application/json" data-c="import" hidden></label><button class="btn ghost sm" data-a="exportcsv">Export CSV</button><button class="btn ghost sm" data-a="exportreport">Progress report</button><button class="btn danger sm" data-a="reset">Erase everything</button></div>
   <p class="xs mute mt8">The backup (.json) holds everything, including photos, and restores on any device. The CSV opens in Excel or Sheets. The progress report is a printable summary you can save as a PDF or share.</p></section>
  <section class="card full"><div class="hd"><h2>About Stillwater</h2></div><p class="mute sm">Stillwater is free and always will be: no premium tier, no trials, no locked features. It works offline once loaded, and it runs entirely in your browser. Calorie and nutrition figures are estimates. This app is not medical advice. Please talk to a healthcare professional about your health.</p></section></div>`}
 /* =================== SHELL, EVENTS =================== */
-const TABS=[['today','Today'],['food','Food'],['plan','Plan'],['progress','Progress'],['wellness','Wellness'],['profile','Profile']];
-const VIEWS={today:viewToday,food:viewFood,plan:viewPlan,progress:viewProgress,wellness:viewWellness,profile:viewProfile};
+const TABS=[['today','Today'],['food','Food'],['plan','Plan'],['progress','Progress'],['arena','Arena'],['wellness','Wellness'],['profile','Profile']];
+const VIEWS={today:viewToday,food:viewFood,plan:viewPlan,progress:viewProgress,arena:viewArena,wellness:viewWellness,profile:viewProfile};
 function applyTheme(){const t=S.set.theme,R=document.documentElement;if(t==='system')R.removeAttribute('data-theme');else R.setAttribute('data-theme',t);
  const ac=S.set.accent;if(ac&&ac!=='sage')R.setAttribute('data-accent',ac);else R.removeAttribute('data-accent');
  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=(getComputedStyle(R).getPropertyValue('--bg')||'#F6F1E4').trim()}
 function buildNav(){document.getElementById('nav').innerHTML=TABS.map(([k,l])=>`<button data-a="gotab" data-v="${k}" aria-label="${l}">${ic(k)}<span>${l}</span></button>`).join('')}
 function render(){const y=window.scrollY,app=document.getElementById('app'),nav=document.getElementById('nav');
- try{if(!S.prof){nav.hidden=true;app.innerHTML=viewWelcome()}else{nav.hidden=false;app.innerHTML=VIEWS[V.tab]();nav.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.v===V.tab?'page':'false'))}}
+ try{if(!S.prof){nav.hidden=true;app.innerHTML=viewWelcome()}else{nav.hidden=false;app.innerHTML=(S.demo?`<div class="note warn row sp" style="margin-bottom:14px"><span class="sm f1"><b>Sample data.</b> None of this is yours. Your real data is safe.</span><button class="btn sm" data-a="exitsample">Exit sample</button></div>`:'')+VIEWS[V.tab]();nav.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.v===V.tab?'page':'false'))}}
  catch(e){console.error(e);app.innerHTML=`<div class="card"><h2>Something went wrong</h2><p class="mute mt8">${esc(e.message)}</p><p class="mt8">Your data is safe. Try another tab, or download a backup from Profile.</p></div>`}
  app.className=V.anim?'view':'';V.anim=false;animRings();window.scrollTo(0,y)}
 function go(tab){if(RD&&tab!==V.tab&&!(tab==='food'||tab==='plan'))RD=null;V.tab=tab;V.anim=true;if(location.hash!=='#'+tab)location.hash=tab;render();window.scrollTo(0,0)}
@@ -1052,6 +1068,208 @@ const ACT={
 function snapOB(){const f=document.querySelector('form[data-f=onboard]');if(f)new FormData(f).forEach((v,k)=>OB[k]=v)}
 function habitsModal(){return mhd('Your habits')+`<ul class="list">${S.habits.map(h=>`<li><input type="checkbox" data-c="habon" data-id="${h.id}" ${h.on?'checked':''} aria-label="Show ${esc(h.n)}"><input value="${esc(h.n)}" data-c="habname" data-id="${h.id}" aria-label="Habit name"><button class="ib" data-a="habdel" data-v="${h.id}" aria-label="Delete habit">${ic('trash','s')}</button></li>`).join('')}</ul><form data-f="habadd" class="row mt"><input name="n" placeholder="New habit, e.g. Stretch for 5 minutes" aria-label="New habit" required><button class="btn">${ic('plus','s')}</button></form><p class="xs mute mt8">Tip: small and specific beats big and vague.</p>`}
 
+
+/* =================== ARENA: weight-loss showdown game =================== */
+const rng=seed=>{let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}};
+const gauss=r=>Math.sqrt(-2*Math.log(r()||1e-9))*Math.cos(2*Math.PI*r());
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+const ARCH={
+ comp:{e:'🔥',n:'The Competitor',m:1.15,sd:.25,bad:.04,grit:1,bio:'Hates losing. Checks the leaderboard before breakfast.'},
+ lazy:{e:'🛋️',n:'Couch Captain',m:.35,sd:.5,bad:.22,grit:.2,bio:'Fully committed to starting Monday. Every Monday.'},
+ disc:{e:'🥗',n:'Meal Prep Monk',m:.95,sd:.12,bad:.02,grit:1,bio:'Weighs the chicken. Weighs the rice. Weighs everything.'},
+ emo:{e:'🍫',n:'Stress Snacker',m:.7,sd:.35,bad:.15,grit:.5,bio:'Great until a bad day at work meets a vending machine.'},
+ crash:{e:'⚡',n:'All-or-Nothing',m:1.9,sd:.3,bad:.08,grit:.3,bio:'Huge first weeks, then hits a wall. Famous for it.'},
+ party:{e:'🎉',n:'Party Animal',m:.55,sd:.5,bad:.18,grit:.5,bio:'Never misses a brunch. The scale notices.'},
+ plat:{e:'🐢',n:'Slow Burner',m:.65,sd:.15,bad:.05,grit:.8,bio:'Stalls for weeks, then drops it all at once.'},
+ late:{e:'🌱',n:'Late Bloomer',m:.3,sd:.3,bad:.1,grit:.7,bio:'Slow start. Gets scarier every week.'}};
+const AKEYS=Object.keys(ARCH);
+const FIRST='Dana,Marcus,Priya,Tyler,Jasmine,Luis,Keisha,Brent,Mei,Omar,Gina,Hank,Tasha,Derek,Rosa,Cal,Nia,Vic,Britt,Andre,Lena,Trey,Sofia,Wes,Imani,Gus,Carmen,Jory,Alina,Reggie'.split(',');
+const LAST='Brooks,Nguyen,Patel,Rivera,Kowalski,Okafor,Bell,Moreno,Fischer,Tran,Walsh,Dixon,Haddad,Price,Sato,Lund'.split(',');
+const COACHES={
+ kind:{id:'kind',e:'🌻',n:'Coach Maya',team:'Team Sunrise',style:'The Nice One',blurb:'Warm, encouraging, patient. Her team has fewer blow-up weeks and steadier progress. Weekly challenges are gentle.',m:1.03,sd:.9,bad:.7,burn:0,
+  ch:{log:5,water:4,steps:3,move:2,cal:4},n_ch:2,xp:15,lines:['You showed up. That counts. 💛','Small wins add up, keep going!','Proud of you this week.']},
+ tough:{id:'tough',e:'🔥',n:'Coach Dre',team:'Team Ironclad',style:'The Drill Sergeant',blurb:'Relentless. Her team loses faster, but swings harder and people burn out. Weekly challenges are brutal, with big XP.',m:1.1,sd:1.25,bad:1,burn:.06,
+  ch:{log:7,water:6,steps:5,move:4,cal:6},n_ch:3,xp:30,lines:['Is that all you got?','Excuses burn zero calories.','Again. Harder.']}};
+COACHES.kind.n='Coach Maya';COACHES.tough.n='Coach Dre';
+const CHDEF={log:['📝','Log your food','days'],water:['💧','Hit your water goal','days'],steps:['👟','Hit your step goal','days'],move:['🏋️','Log a workout','days'],cal:['🎯','Stay under your calorie budget','days']};
+const lbs=kg=>kg*2.20462,kgl=l=>l/2.20462;
+const gOn=()=>S.game&&S.game.cast;
+
+function lbsToLose(){return Math.max(0,lbs(curW()-S.prof.goal))}
+function teamSize(){return(totalWeeks()+1)/2}
+function totalWeeks(){return(S.game&&S.game.weeks)||V.aw||31}
+
+function genNpc(r,team,coach,base,paceFrac,used){
+ let n;do{n=pick(r,FIRST)+' '+pick(r,LAST).charAt(0)+'.'}while(used.has(n));used.add(n);
+ const a=pick(r,AKEYS),sw=base*(.78+r()*.6);
+ return{id:uid(),n,a,t:team,sw,tw:sw,pace:paceFrac*(.8+r()*.4),mj:.9+r()*.2,sj:.85+r()*.3,wn:0,h:[sw],streak:0,plat:0,burn:0};
+}
+function genRoster(seed,coachIds){
+ const r=rng(seed),N=teamSize(),base=curW(),pf=clamp((S.goals.pace||1)/lbs(base),.003,.014),used=new Set(),out=[];
+ coachIds.forEach(c=>{const t=[];for(let i=0;i<N;i++)t.push(genNpc(r,c,COACHES[c],base,pf,used));out.push(t)});
+ return out;
+}
+function startGame(coachId,dm){const c0=curW(),dw=Math.min(5,totalWeeks()-1),bs=c0+kgl(1.3*dw);
+ const d=V.draft||{seed:Date.now()%1e9,roster:null};
+ if(!d.roster)d.roster=genRoster(d.seed,['kind','tough']);
+ const mine=coachId==='kind'?0:1,cast=[];
+ d.roster.forEach((t,i)=>{const arr=i===mine?t.slice(0,-1):t;cast.push(...arr)});
+ S.game={seed:d.seed,coach:coachId,start:dm?ak(today(),-7*dw):today(),base:dm?bs:curW(),weeks:totalWeeks(),N:teamSize(),demo:!!dm,cast,done:0,xp:0,bonus:{},feed:{}};
+ V.draft=null;V.seg.arena='board';
+ if(dm){const dk=[],r=rng(d.seed+5);for(let i=0;i<=7*dw;i++){const k=ak(S.game.start,i);if(S.weights[k]==null){S.weights[k]=bs-(bs-c0)*i/(7*dw)+(i>0&&i<7*dw?gauss(r)*bs*.003:0);dk.push(k)}}S.game.demoKeys=dk}
+ simAll();save();
+}
+function curWeek(){const g=S.game,d=Math.floor((pd(today())-pd(g.start))/864e5);return Math.floor(d/7)} // completed weeks
+const wkEnd=k=>ak(S.game.start,7*k);
+function mePts(){ // you: reported weight for weeks 0..resolved
+ const g=S.game,out=[g.base],miss=[false],ks=wDates();let prev=g.base;
+ for(let k=1;k<=g.done;k++){const lo=wkEnd(k-1),hi=wkEnd(k),inw=ks.filter(d=>d>lo&&d<=hi);
+  if(inw.length){prev=S.weights[inw[inw.length-1]];miss.push(false)}else miss.push(true);out.push(prev)}
+ return{h:out,miss};
+}
+function stepNpc(g,x,k,rank,N){
+ const r=rng(g.seed*7919+k*104729+x.sw*1000|0),A=ARCH[x.a],C=COACHES[x.t],T=g.weeks;
+ let m=A.m*x.mj*C.m,sd=A.sd*x.sj*C.sd,bad=A.bad*C.bad;
+ if(x.a==='crash')m=(k<=5?1.55:.3)*x.mj*C.m;
+ if(x.a==='late')m=(.25+.95*Math.min(1,k/(T*.5)))*x.mj*C.m;
+ if(x.a==='comp'){if(rank>N*.4)m*=1.2;else if(rank===0)m*=.93}
+ if(x.a==='emo'&&x.streak<0)bad*=2.6;
+ if(x.a==='crash'&&k>6)bad=.25;
+ if(x.a==='plat'){if(x.plat>0){m=.05;x.plat--}else if(x.pw){m=1.5;x.pw=0}else if(r()<.22){x.plat=1+(r()<.5?1:0);x.pw=1;m=.05}}
+ m*=1-.12*k/T;
+ let eff,binge=false;
+ if(r()<bad){eff=-(.2+r()*.9);binge=true}
+ else if(C.burn&&r()<C.burn*(1.2-A.grit)){eff=-(.1+r()*.6);binge=true}
+ else{eff=m+gauss(r)*sd;if(r()<.16)eff*=.2}
+ const pace=x.pace*x.tw;x.tw=Math.max(x.sw*.45,x.tw-pace*eff);
+ x.wn=x.wn*.35+gauss(r)*.0025*x.tw+(binge?.003*x.tw:0);
+ let rep=x.tw+x.wn;{const pv=x.h[x.h.length-1],dl=Math.max(-kgl(2.2),Math.min(kgl(1.9),pv-rep));rep=pv-dl;x.tw=rep-x.wn}x.streak=rep<x.h[x.h.length-1]?Math.max(1,x.streak+1):Math.min(-1,x.streak-1);
+ x.h.push(rep);
+}
+function standings(upto){ // returns rows sorted by % lost
+ const g=S.game,me=mePts(),k=upto==null?g.done:upto,rows=g.cast.map(x=>({id:x.id,n:x.n,a:x.a,t:x.t,e:ARCH[x.a].e,h:x.h,x,out:x.out||0}));
+ rows.push({id:'me',n:S.prof.name||'You',a:null,t:g.coach,e:'😎',h:me.h,me:1,miss:me.miss,out:g.out||0});
+ rows.forEach(r=>{const kk=Math.min(k,r.h.length-1,r.out||99),w0=r.h[0],w=r.h[kk],wp=r.h[Math.max(0,kk-1)];r.pct=(w0-w)/w0*100;r.d=w-wp;r.w=w});
+ return rows.sort((a,b)=>(a.out?1:0)-(b.out?1:0)||b.pct-a.pct);
+}
+function simAll(){const g=S.game,cur=curWeek();let ch=0;g.elim=g.elim||{};g.imm=g.imm||{};
+ while(g.done<Math.min(cur,g.weeks)){const k=g.done+1,rows=g.done?standings(g.done):g.cast.map(x=>({id:x.id}));
+  g.cast.forEach(x=>{if(x.out)return;const rk=rows.findIndex(r=>r.id===x.id);stepNpc(g,x,k,rk<0?0:rk,rows.length)});
+  g.done=k;ch=1;
+  const st=standings(k),me=st.find(r=>r.me),rk=st.indexOf(me)+1,pre=mePts(),C=COACHES[g.coach];
+  const imm=!g.out&&chList(k).every(c=>chProg(c,k)>=C.ch[c]);g.imm[k]=imm;
+  const live=st.filter(r=>!r.out);
+  if(live.length>1&&k<=g.weeks){const e=live.filter(r=>!(r.me&&imm)).map(r=>({r,w:r.me&&pre.miss[k]?-.01:(r.h[k-1]-r.h[k])/r.h[k-1]})).sort((a,b)=>a.w-b.w)[0];
+   if(e){if(e.r.me)g.out=k;else e.r.x.out=k;g.elim[k]={n:e.r.n,w:e.w*100,me:!!e.r.me}}}
+  if(!(g.out&&g.out<k))g.xp+=10+(rk===1?50:0)+(pre.miss[k]?-10:0)+(me.d<0?10:0);
+  const el=g.elim[k];g.feed[k]=feedFor(st,k);
+  if(imm)g.feed[k].unshift('🛡️ You earned immunity by finishing every challenge.');
+  if(el)g.feed[k].unshift(`🚪 ${el.me?'You were':esc(el.n)+' was'} eliminated with the weakest week (${f1(el.w)}%).`)}
+ g.xp=Math.max(0,g.xp);
+ if(ch)save();
+}
+function feedFor(st,k){const r=rng(S.game.seed+k*31),L=[],lastW=x=>x.h[Math.min(k,x.h.length-1)]-x.h[k-1];
+ const npcs=st.filter(x=>!x.me&&!(x.out&&x.out<k)),best=[...npcs].sort((a,b)=>a.d-b.d)[0],worst=[...npcs].sort((a,b)=>b.d-a.d)[0],lead=st[0];
+ L.push(`${lead.me?'You take':esc(lead.n)+' takes'} the lead at ${f1(lead.pct)}% lost.`);
+ if(best)L.push(`${best.e} ${esc(best.n)} (${ARCH[best.a].n}) had the week's biggest drop: ${f1(lbs(-best.d))} lb.`);
+ if(worst&&worst.d>0)L.push(`${worst.e} ${esc(worst.n)} gained ${f1(lbs(worst.d))} lb. ${pick(r,['Rough week.','The snack drawer wins again.','Coach is not thrilled.','Water weight? Maybe.'])}`);
+ const crash=npcs.find(x=>x.a==='crash'&&k===6);if(crash)L.push(`⚡ ${esc(crash.n)}'s hot streak just ended. The wall is real.`);
+ const lz=npcs.find(x=>x.a==='lazy'&&x.d<-.2);if(lz&&r()<.6)L.push(`🛋️ ${esc(lz.n)} actually lost weight. Everyone is suspicious.`);
+ return L}
+function teamScore(t){const st=standings();const a=st.filter(r=>r.t===t);return a.length?avg(a.map(r=>r.pct)):0}
+
+/* challenges (real app data) */
+function chList(k){const C=COACHES[S.game.coach],ks=Object.keys(C.ch),r=rng(S.game.seed+k*97),pool=[...ks],out=[];
+ while(out.length<C.n_ch&&pool.length)out.push(pool.splice(Math.floor(r()*pool.length),1)[0]);return out}
+function chProg(c,k){const lo=ak(wkEnd(k-1),1),hi=wkEnd(k),days=[];for(let d=lo;d<=hi&&d<=today();d=ak(d,1))days.push(d);
+ return days.filter(d=>{const y=L(d);
+  if(c==='log')return dayE(d).length>0;if(c==='water')return y.wa>=S.goals.water;if(c==='steps')return y.st>=S.goals.steps;
+  if(c==='move')return y.ex.length>0;if(c==='cal')return dayE(d).length>0&&dayT(d).k<=budget(d);return false}).length}
+function level(){const x=S.game.xp+Object.keys(S.game.bonus).length*0;let l=1,n=100;while(x>=n){l++;n+=100+l*40}return{l,x,next:n,prev:n-(100+l*40)+(l===1?0:0)}}
+
+/* ---------- views ---------- */
+function viewArena(){
+ const head='<div class="top"><div><p class="eyebrow">Season mode</p><h1>Arena</h1></div></div>';
+ if(S.prof.goal>=curW()-.2)return head+'<section class="card"><p>Arena needs a weight-loss goal. Set a goal weight lower than your current weight in Profile.</p></section>';
+ if(!gOn())return head+arenaIntro();
+ simAll();const g=S.game,sg=V.seg.arena||'board';
+ return head+arenaHero()+seg([['board','Board'],['daily','Daily'],['teams','Teams'],['feed','Feed'],['chal','Tasks']],sg,'seg-arena')+
+  (sg==='board'?arenaWatch()+arenaBoard():sg==='daily'?arenaDaily():sg==='teams'?arenaTeams():sg==='feed'?arenaFeed():arenaChal());
+}
+function arenaIntro(){
+ const W=totalWeeks(),N=teamSize();
+ const card=c=>{const C=COACHES[c];return`<section class="card"><div class="coach" data-a="pickcoach" data-v="${c}" role="button" tabindex="0"><div class="row"><div class="av">${C.e}</div><div class="f1"><h3>${C.n}</h3><p class="xs mute">${C.team} · ${C.style}</p></div><button class="btn sm" tabindex="-1">Join</button></div><p class="sm mt8">${C.blurb}</p><p class="xs mute mt8">${N} contestants: you plus ${N-1} teammates. Nobody is revealed until you pick.</p></div></section>`};
+ return`<section class="card hero"><h2 style="color:#fff">${N*2} contestants. ${W} weeks. One winner.</h2><p class="mute sm mt8">Two teams of ${N}, you included. Every week is a weigh-in and the contestant with the weakest week is eliminated. Finish every weekly challenge to earn immunity. Pick a coach to meet your team.</p></section>
+ <section class="card"><div class="hd"><h2>Program length</h2></div><div class="row wrap g8">${[7,11,15,21,31].map(w=>`<button class="btn sm ${w===W?'':'ghost'}" data-a="setweeks" data-v="${w}">${w} weeks</button>`).join('')}</div><div class="row g8 mt8"><span class="sm mute f1">Custom length</span><button class="ib" data-a="wkstep" data-v="-2" aria-label="Shorter season" ${W<=5?'disabled':''}>−</button><b style="min-width:84px;text-align:center">${W} weeks</b><button class="ib" data-a="wkstep" data-v="2" aria-label="Longer season" ${W>=41?'disabled':''}>+</button></div><p class="xs mute mt8">One person leaves each week, so ${W} weeks means ${N*2} contestants and ${N} per team.</p></section>
+ ${card('kind')}${card('tough')}<button class="btn ghost full" data-a="demo">🎬 Preview with demo data</button>`}
+function arenaHero(){const g=S.game,C=COACHES[g.coach],st=standings(),me=st.find(r=>r.me),rk=st.indexOf(me)+1,lv=level(),left=7*(g.done+1)-Math.floor((pd(today())-pd(g.start))/864e5),fin=g.done>=g.weeks,out=g.out,nl=st.filter(r=>!r.out).length;
+ const tm=['kind','tough'].map(t=>[t,teamScore(t)]).sort((a,b)=>b[1]-a[1]),myT=tm.findIndex(x=>x[0]===g.coach)+1;
+ return`<section class="card hero"><div class="row"><div class="av" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)">${C.e}</div><div class="f1"><p class="xs mute">${C.team} · ${C.n}${g.demo?' · DEMO':''}</p><h2 style="color:#fff">${fin?'Season finale':'Week '+Math.min(g.done+1,g.weeks)+' of '+g.weeks}</h2></div><div class="c"><b style="font-size:1.8rem;color:#fff">${out?'OUT':'#'+rk}</b><p class="xs mute">${out?'week '+out:'of '+nl+' left'}</p></div></div>
+ <p class="sm mt8">${out?'🚪 You were eliminated. Your season is over.':fin?(rk===1?'🏆 You won the season!':'Season over. You finished #'+rk+'.'):(left<=0?'⚖️ Weigh-in day. Log your weight to count.':'Next weigh-in in '+left+' day'+(left>1?'s':''))} · Team ${myT===1?'leading':'trailing'}</p>
+ <div class="xp"><i style="width:${clamp((lv.x-lv.prev)/(lv.next-lv.prev)*100,3,100)}%"></i></div><p class="xs mute mt8">Level ${lv.l} · ${lv.x} XP</p>
+ <div class="row mt g8">${fin||out?'<button class="btn soft f1" data-a="newseason">New season</button>':`<button class="btn soft f1" data-a="arenaweigh">⚖️ Log weigh-in</button>`}</div></section>`}
+function arenaWatch(){const g=S.game;if(g.out||g.done>=g.weeks)return'';const el=Object.values(g.elim||{}),a0=el.length?avg(el.map(e=>e.w)):.3,tg=clamp(a0+.25,.3,1.2),lb=f1(lbs(curW())*tg/100),C=COACHES[g.coach];
+ return`<section class="card"><div class="hd"><h2>🚪 Elimination watch</h2></div><p class="sm">Each weigh-in, the contestant with the weakest week goes home. A missed weigh-in counts as a gain.</p><ul class="sm mt8" style="padding-left:18px"><li>Lose about <b>${lb} lb</b> this week to stay clear of the cut line${el.length?'':' (an estimate until we see a real cut)'}.</li><li>Log your weight on weigh-in day, every week.</li><li>Finish all ${C.n_ch} challenges this week for <b>immunity</b>.</li></ul>${el.length?`<p class="xs mute mt8">Recent cut lines: ${el.slice(-4).map(e=>f1(e.w)+'%').join(', ')}</p>`:''}</section>`}
+const AO=['Hit about 10k steps','Strength session, 45 min','Meal prepped lunches','Stuck to the plan all day','Morning run, 3 mi','Spin class','Drank a gallon of water','Long walk after dinner'],
+ AM=['Light walk, nothing else','Skipped the gym, ate fine','Rest day','Half-hearted workout','Okay day, a few snacks'],
+ AB=['Pizza night 🍕','Late-night snacking','Brunch, zero regrets','Vending machine raid','Skipped the workout, ate out','Two slices of birthday cake'];
+function dayPath(x,k,e){const g=S.game,s=x.h[k-1],r=rng(g.seed*131+k*7919+(x.sw*1000|0)),cap=kgl(.45),p=[s];let n=0;
+ for(let j=1;j<=7;j++){n=j===7?0:Math.max(-cap,Math.min(cap,n*.4+gauss(r)*s*.004));p.push(s+(e-s)*j/7+n)}return p}
+function dayAct(x,k,j,up){const g=S.game,A=ARCH[x.a],C=COACHES[x.t],r=rng(g.seed*17+k*313+j*29+(x.sw*1000|0)),wkd=(pd(ak(wkEnd(k-1),j)).getDay()+6)%7>=5,b=clamp(A.bad*C.bad*1.4+(wkd?.12:0)+(up?.2:0),0,.8),v=r();
+ return v<b?pick(r,AB):v<b+(1-A.grit)*.3+.12?pick(r,AM):pick(r,AO)}
+const dayLi=(r,w,dt,a)=>`<li class="${r.me?'me':''}" data-a="${r.me?'noop':'viewnpc'}" data-v="${r.id}"><div class="av ${r.me?'me':''}">${r.e}</div><div class="t"><b>${esc(r.n)}${r.me?' (you)':''}</b><small>${a}</small></div><div class="k">${w}<small class="mute" style="display:block;font-weight:400">${dt}</small></div></li>`;
+function arenaDaily(){const g=S.game;let D=V.ad;if(!D||D>today())D=today();if(D<g.start)D=g.start;
+ const dd=Math.floor((pd(D)-pd(g.start))/864e5),k=Math.max(1,Math.ceil(dd/7)),j=dd<1?0:dd-(k-1)*7;
+ const nav=`<div class="row sp mb"><div class="datenav"><button data-a="adday" data-v="-1" aria-label="Previous day">${ic('chevL')}</button><span class="dl">${fdy(D)}</span><button data-a="adday" data-v="1" aria-label="Next day">${ic('chevR')}</button></div><span class="xs mute">${dd<1?'Starting weigh-in':'Week '+k+' · Day '+j}${j===7?' · ⚖️ Weigh-in':''}</span></div>`;
+ if(k>g.weeks)return`<section class="card">${nav}<p class="mute sm">The season has ended.</p></section>`;
+ const rows=g.done?standings(g.done):g.cast.map(x=>({id:x.id}));
+ const list=standings().filter(r=>!(r.out&&dd>=1&&r.out<k)).map(r=>{
+  if(r.me){const w=S.weights[D],y=L(D),a=[dayE(D).length?'Logged food':'',y.wa>=S.goals.water?'Hit water goal':'',y.st?r0(y.st).toLocaleString()+' steps':'',y.ex.length?'Workout':''].filter(Boolean).join(' · ');
+   return dayLi(r,w!=null?wfmt(w):'No weigh-in','',a||'Nothing logged yet')}
+  const x=r.x;let w=x.h[0],dt='',a='Starting weight';
+  if(j>0){let e=x.h[k];if(e==null){const c={...x,h:[...x.h]},rk=rows.findIndex(q=>q.id===x.id);stepNpc(g,c,k,rk<0?0:rk,rows.length);e=c.h[k]}
+   const p=dayPath(x,k,e);w=p[j];dt=deltaTxt(p[j]-p[j-1])+' '+wu();a=dayAct(x,k,j,e>x.h[k-1])+(x.out===k&&j===7?' · 🚪 Eliminated':'')}
+  return dayLi(r,wfmt(w),dt,a)}).join('');
+ return`<section class="card">${nav}<ul class="list lb">${list}</ul></section>`}
+function deltaTxt(d){const v=lbs(d);return`<span class="${v<=0?'up':'dn'}">${v<=0?'▼':'▲'} ${f1(Math.abs(v))}</span>`}
+function arenaBoard(){const st=standings();return`<section class="card"><div class="hd"><h2>${ic('progress')} Leaderboard</h2><span class="xs mute">% body weight lost</span></div><ul class="list lb">${st.map((r,i)=>`<li class="${r.me?'me':''}" data-a="${r.me?'noop':'viewnpc'}" data-v="${r.id}"><span class="rk">${i+1}</span><div class="av ${r.me?'me':''}">${r.e}</div><div class="t"><b>${esc(r.n)}${r.me?' (you)':''}</b><small>${r.out?'🚪 Out wk '+r.out+' · ':''}${r.me?(r.miss&&r.miss[S.game.done]?'Missed weigh-in':COACHES[r.t].team):ARCH[r.a].n+' · '+COACHES[r.t].team}</small></div><div class="k">${f1(r.pct)}%<small class="mute" style="display:block;font-weight:400">${S.game.done?deltaTxt(r.d):''} ${wu()}</small></div></li>`).join('')}</ul></section>`}
+function arenaTeams(){const st=standings();return['kind','tough'].map(t=>{const C=COACHES[t],m=st.filter(r=>r.t===t),sc=avg(m.map(r=>r.pct)),mx=Math.max(1,...['kind','tough'].map(x=>teamScore(x)));
+ return`<section class="card"><div class="row"><div class="av">${C.e}</div><div class="f1"><h3>${C.team}</h3><p class="xs mute">${C.n} · ${m.length-m.filter(r=>r.out).length}/${m.length} still in${t===S.game.coach?' · your team':''}</p></div><b>${f1(sc)}%</b></div><div class="bar mt8"><i style="width:${clamp(sc/mx*100,2,100)}%"></i></div><p class="xs mute mt8">Total lost: ${f1(lbs(sumA(m.map(r=>r.h[0]-r.w))))} lb</p></section>`}).join('')}
+function arenaFeed(){const g=S.game,ks=Object.keys(g.feed).map(Number).sort((a,b)=>b-a);
+ return`<section class="card"><div class="hd"><h2>📣 Weekly recap</h2></div>${ks.length?`<ul class="list feed">${ks.map(k=>`<li><p class="w">Week ${k} · ${fd(wkEnd(k))}</p>${g.feed[k].map(l=>`<p class="sm mt8">${l}</p>`).join('')}</li>`).join('')}</ul>`:'<p class="mute sm">First weigh-in is a week out. Results and drama will show up here.</p>'}</section>`}
+function arenaChal(){const g=S.game,C=COACHES[g.coach],k=Math.min(g.done+1,g.weeks),r=rng(Date.now()/864e5|0);
+ return`<section class="card"><div class="row"><div class="av">${C.e}</div><div class="f1"><h3>${C.n} says</h3><p class="sm mute">“${pick(r,C.lines)}”</p></div></div></section>
+ <section class="card"><div class="hd"><h2>🎯 Week ${k} challenges</h2><span class="tag ${g.coach==='tough'?'tt':''}">+${C.xp} XP each</span></div>${chList(k).map(c=>{const t=C.ch[c],p=Math.min(t,chProg(c,k)),ok=p>=t,D=CHDEF[c];
+  if(ok&&!g.bonus[k+c]){g.bonus[k+c]=1;g.xp+=C.xp;save()}
+  return`<div class="mt"><div class="row sp"><span>${D[0]} ${D[1]}</span><b class="sm">${ok?'✅ ':''}${p}/${t}</b></div><div class="bar mt8"><i style="width:${p/t*100}%"></i></div></div>`}).join('')}<p class="xs mute mt">Tracked automatically from your Food, Wellness and weight logs. Finish them all for elimination immunity.</p></section>`}
+function npcModal(id){const g=S.game,x=g.cast.find(c=>c.id===id);if(!x)return;const A=ARCH[x.a],C=COACHES[x.t],n=Math.min(g.done,x.h.length-1),h=x.h.slice(0,n+1),w0=h[0],wn=h[n],pct=(w0-wn)/w0*100,
+ ch=h.slice(1).map((v,i)=>lbs(v-h[i])),st=standings(),rk=st.findIndex(r=>r.id===id)+1,live=st.filter(r=>!r.out).length,
+ best=ch.length?Math.min(...ch):0,worst=ch.length?Math.max(...ch):0,av=ch.length?avg(ch):0,gains=ch.filter(v=>v>0).length,stalls=ch.filter(v=>v<=0&&v>-.5).length;
+ let sk=0;for(let i=ch.length-1;i>=0&&ch[i]<0;i--)sk++;
+ const mood=!ch.length?'Season just started.':sk>=3?'Hot streak: down '+sk+' weeks in a row.':gains>=Math.max(2,ch.length/3)?'Struggling, up in '+gains+' of '+ch.length+' weeks.':'Up and down, like everybody.';
+ const W=300,H=80,mn=Math.min(...h),mx=Math.max(...h)||1,pts=h.map((v,i)=>`${i/(Math.max(1,h.length-1))*W},${H-(v-mn)/((mx-mn)||1)*(H-10)-5}`).join(' ');
+ const stat=(b,l)=>`<div class="stat"><b>${b}</b><span>${l}</span></div>`;
+ let days='';if(n>=1){const p=dayPath(x,n,x.h[n]),up=ch[n-1]>0;days=`<h3 class="mt">Last week, day by day</h3><ul class="list">${[1,2,3,4,5,6,7].map(j=>`<li><div class="t"><b>Day ${j}${j===7?' · weigh-in':''}</b><small>${dayAct(x,n,j,up)}</small></div><div class="k">${wfmt(p[j])}<small class="mute" style="display:block;font-weight:400">${deltaTxt(p[j]-p[j-1])}</small></div></li>`).join('')}</ul>`}
+ const wk=ch.length?`<h3 class="mt">Week by week</h3><table class="tbl"><thead><tr><th>Wk</th><th>Weight</th><th>Change</th><th>Lost</th></tr></thead><tbody>${ch.map((d,i)=>`<tr><td>${i+1}</td><td>${wfmt(h[i+1])}</td><td>${deltaTxt(h[i+1]-h[i])}</td><td>${f1((w0-h[i+1])/w0*100)}%</td></tr>`).reverse().join('')}</tbody></table>`:'';
+ openModal(mhd(esc(x.n))+`<div class="row"><div class="av">${A.e}</div><div class="f1"><b>${A.n}</b><p class="xs mute">${C.team} · ${C.n}</p></div><b>${x.out?'🚪 Out wk '+x.out:'#'+rk+' of '+live}</b></div><p class="sm mt">${A.bio}</p><p class="sm mt8 b">${mood}</p>
+ <div class="stats s2 mt">${stat(wfmt(w0),'Starting')}${stat(wfmt(wn),'Now')}${stat(f1(lbs(w0-wn))+' lb','Total lost')}${stat(f1(pct)+'%','Body weight lost')}${stat(f1(-av)+' lb','Avg per week')}${stat(f1(-best)+' lb','Best week')}${stat(f1(worst)+' lb','Worst week')}${stat(gains+' up · '+stalls+' stalled','Rough weeks')}</div>
+ ${h.length>1?`<svg viewBox="0 0 ${W} ${H}" style="width:100%;margin-top:12px"><polyline points="${pts}" fill="none" stroke="var(--sage-d)" stroke-width="2.5" stroke-linejoin="round"/></svg>`:''}${days}${wk}`)}
+
+Object.assign(ACT,{
+ 'seg-arena':segGo('arena'),noop:()=>{},
+ pickcoach:async v=>{const C=COACHES[v];if(await ask(`You'll join ${C.team} under ${C.n}, and one roster spot goes to you. Coaches can't be changed mid-season.`,'Join '+C.team,'Choose '+C.n+'?')){startGame(v);V.anim=true;render();window.scrollTo(0,0);toast('Season started. First weigh-in in 7 days.')}},
+ reroll:()=>{V.draft=null;render()},
+ loadsample:async()=>{if(S.prof&&!S.demo&&!(await ask('Fills the app with about six weeks of made-up data so you can look around. Your real data is saved and comes back when you tap Exit sample.','Load sample','Try sample data?')))return;await loadSample()},
+ exitsample:async()=>{await exitSample()},
+ setweeks:v=>{V.aw=+v;V.draft=null;render()},
+ wkstep:v=>{V.aw=clamp(totalWeeks()+(+v),5,41);V.draft=null;render()},
+ demo:async()=>{if(await ask('Adds fake weigh-ins for the past few weeks so you can see a season in progress. New season removes them.','Start demo','Preview with demo data?')){startGame('kind',true);V.anim=true;render();window.scrollTo(0,0)}},
+ adday:v=>{const g=S.game,n=ak(V.ad||today(),+v);if(n>=g.start&&n<=today()){V.ad=n;render()}},
+ viewnpc:v=>npcModal(v),
+ arenaweigh:()=>openModal(weighModal(today())),
+ newseason:async()=>{if(await ask('Start over with a new coach and a new cast?','New season','New season?')){(S.game.demoKeys||[]).forEach(d=>delete S.weights[d]);S.game=null;V.draft=null;V.anim=true;commit()}}
+});
+
 const CHG={
  date:el=>{if(el.value){V.date=cap(el.value);render()}},
  qty:el=>{const q=num(el.value);MQ.qty=q>0?q:1;if(q>0)softQty();else refreshQty()},
@@ -1075,6 +1293,36 @@ function saveProfile(pr,kg,isNew,pace){const w=pr.sys==='us';
   if(w){S.goals.water=1893;S.set.bottles=[{n:'Glass',ml:237},{n:'Bottle',ml:473},{n:'Large',ml:946}]}else{S.goals.water=2000;S.set.bottles=[{n:'Glass',ml:250},{n:'Bottle',ml:500},{n:'Large',ml:1000}]}
   checkAch(true);V.tab='today';V.anim=true;V.date=today();V.pd=today();save();render();window.scrollTo(0,0);toast('You’re all set. Welcome to Stillwater 🌿')}
  else{const was=S.prof.sys;S.prof={...S.prof,...pr};if(Math.abs(kg-curW())>.05)setWeight(today(),kg);commit();toast('Profile saved')}}
+
+/* ---------- sample data mode (real data is stashed and restored on exit) ---------- */
+const REALKEY=KEY+'-real';
+function buildSample(){
+ const r=rng(20260);const N=BUILTIN.filter(f=>f.k>=40&&f.k<=450);
+ const sd=defS();sd.prof={name:'Sample',sys:'us',sex:'f',age:34,h:168,start:86.2,goal:68,act:1.375,startDate:ak(today(),-42)};
+ sd.goals.pace=1;sd.goals.water=1893;sd.set.bottles=[{n:'Glass',ml:237},{n:'Bottle',ml:473},{n:'Large',ml:946}];sd.demo=true;
+ const DAYS=42,mk=(f,q)=>{const e={id:uid(),n:f.n,s:f.s||'',q,ref:f.id,rc:0};NK.forEach(k=>e[k]=f[k]||0);return e};
+ for(let i=DAYS;i>=0;i--){const d=ak(today(),-i),prog=(DAYS-i)/DAYS;
+  if(i===0||r()>.07)sd.weights[d]=86.2-prog*3.9+(r()-.5)*.9;
+  if(i>0&&r()<.08)continue; // a few unlogged days
+  const day=emptyDay();
+  [['breakfast',2],['lunch',2],['dinner',2],['snack',1]].forEach(([m,n])=>{for(let j=0;j<n;j++)day.f[m].push(mk(N[Math.floor(r()*N.length)],r()<.8?1:1.5))});
+  day.wa=Math.round(1300+r()*1300);day.sl={h:Math.round((5.6+r()*3)*10)/10,q:2+Math.floor(r()*4)};
+  day.st=Math.round(3500+r()*8500);day.md=1+Math.floor(r()*5);day.hu=1+Math.floor(r()*5);day.sr=1+Math.floor(r()*5);
+  if(r()<.4){const t=EXTYPES[Math.floor(r()*EXTYPES.length)],m=20+Math.floor(r()*40);day.ex.push({id:uid(),t:t[0],m,k:Math.round(t[1]*sd.prof.start*m/60)})}
+  sd.habits.forEach(h=>{if(r()<.65)day.hb[h.id]=1});
+  if(i===3)day.jr='Felt strong on the walk today. Meal prep on Sunday really helped.';
+  sd.log[d]=day}
+ for(let w=0;w<=5;w++){const o={};MEAS.forEach(([m],j)=>{o[m]=[86,102,98,31,58,34][j]-w*(.5+j*.1)});sd.meas[ak(today(),-7*(5-w))]=o}
+ return sd}
+async function loadSample(){
+ if(!S.demo){let raw;try{raw=JSON.stringify(S);localStorage.setItem(REALKEY,raw)}catch(e){toast('Not enough browser storage to keep your data safe while previewing.');return}}
+ S=buildSample();V.tab='today';V.date=today();V.pd=today();V.draft=null;V.aw=V.aw||15;
+ checkAch(true);startGame('kind',true);applyTheme();await persistNow();V.anim=true;render();window.scrollTo(0,0);toast('Sample data loaded 🎬')}
+async function exitSample(){
+ let raw=null;try{raw=localStorage.getItem(REALKEY)}catch(e){}
+ let back=null;if(raw){try{back=norm(JSON.parse(raw))}catch(e){}}
+ S=back||defS();try{localStorage.removeItem(REALKEY)}catch(e){}
+ V.tab='today';V.date=today();V.pd=today();V.draft=null;applyTheme();await persistNow();V.anim=true;render();window.scrollTo(0,0);toast(back&&back.prof?'Your data is back':'Sample data removed')}
 const FORM={
  weight:(f,el)=>{const d=f.get('d')||today(),kg=wk(num(f.get('w')));if(!(kg>25&&kg<400))return toast('Please enter a valid weight');if(d>today())return toast('Weigh-ins can’t be in the future');setWeight(d,kg);if(el.dataset.m)closeModal(true);toast('Weight saved · '+wfmt(kg));commit()},
  quick:f=>{const c=MS&&MS.ctx;if(!c)return closeModal();const e={id:uid(),n:(f.get('n')||'').trim()||'Quick add',s:'',q:1,ref:null,rc:0,qa:1};NK.forEach(k=>e[k]=0);e.k=num(f.get('k'));e.p=num(f.get('p'));e.c=num(f.get('c'));e.f=num(f.get('f'));
