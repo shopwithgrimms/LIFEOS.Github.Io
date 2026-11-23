@@ -348,7 +348,32 @@ nav button{min-width:0}
 .mc-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:.84rem;line-height:1.4}
 .mcard .cw .xr{min-height:1.2em;margin-top:2px;font-size:.8rem}
 .cbtn{width:100%;background:none;border:0;padding:0;margin:0;text-align:left;cursor:pointer;color:inherit;font:inherit;min-height:32px}
+
+.gdc{background:linear-gradient(145deg,var(--h1) 0%,var(--h2) 58%,color-mix(in srgb,var(--gold) 75%,var(--h2)) 135%);color:#fff;border:0;border-radius:34px 34px 34px 10px;position:relative;overflow:hidden;box-shadow:0 26px 44px -28px rgba(50,90,60,.9)}
+.gdc:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 10% 16%,rgba(255,255,255,.5) 0 2px,transparent 3px),radial-gradient(circle at 86% 26%,rgba(255,255,255,.6) 0 2px,transparent 3px),radial-gradient(circle at 70% 84%,rgba(255,255,255,.4) 0 3px,transparent 4px),radial-gradient(circle at 24% 74%,rgba(255,255,255,.4) 0 2px,transparent 3px);animation:twk 3.5s ease-in-out infinite alternate}
+@keyframes twk{from{opacity:.25}to{opacity:1}}
+.gdc .mute{color:rgba(255,255,255,.82)}.gdc .ringtxt b{color:#fff}
+.gdn{font:500 3.6rem/1 var(--serif);letter-spacing:-.04em;display:block}
+.gdt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.gdt div{background:rgba(255,255,255,.16);border-radius:16px;padding:9px 6px;text-align:center}.gdt b{display:block;font:500 1.15rem var(--serif)}.gdt span{font-size:.7rem;opacity:.85}
+.gdchip{display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.2);border-radius:99px;padding:6px 13px;font-size:.84rem;font-weight:600}
+.gdmini{display:flex;align-items:center;gap:14px;cursor:pointer;background:linear-gradient(120deg,var(--card),color-mix(in srgb,var(--gold) 14%,var(--card)))}
+.gdmini .n{min-width:64px;text-align:center;background:linear-gradient(150deg,var(--h1),var(--h2));color:#fff;border-radius:20px;padding:8px 6px}.gdmini .n b{display:block;font:500 1.9rem/1 var(--serif)}.gdmini .n span{font-size:.68rem;opacity:.85}
+.gdp{background:linear-gradient(150deg,var(--sage-l),color-mix(in srgb,var(--gold) 20%,var(--card)));border:1px solid var(--sage-m);border-radius:22px;padding:14px 16px;margin-top:14px}
+.gdp .d{font:500 1.5rem/1.15 var(--serif);display:block}.gdp .r{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:.88rem}.gdp .r b{font-size:1.05rem}
+.mstl{list-style:none;padding:0;margin:0}.mstl li{position:relative;display:flex;gap:14px;padding-bottom:16px}
+.mstl li:before{content:"";position:absolute;left:21px;top:46px;bottom:-2px;width:3px;border-radius:3px;background:var(--line)}.mstl li:last-child:before{display:none}.mstl li.done:before{background:linear-gradient(var(--sage),var(--gold))}
+.mstl .dot{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;background:var(--field);border:2px solid var(--line);z-index:1}
+.mstl li.done .dot{background:linear-gradient(150deg,var(--sage),var(--gold));border:0;color:#fff}
+.mstl li.next .dot{border-color:var(--gold);animation:pls 2s ease-in-out infinite}
+@keyframes pls{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 55%,transparent)}50%{box-shadow:0 0 0 9px transparent}}
+.mstl .bd{flex:1;min-width:0;border:1px solid var(--line);border-radius:20px;padding:10px 14px;background:var(--field)}
+.mstl li.next .bd{background:linear-gradient(150deg,var(--sage-l),color-mix(in srgb,var(--gold) 24%,var(--card)));border-color:var(--gold)}
+.mstl li.done .bd{opacity:.8}.mstl .wk{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sage-d)}
+.mstl .wk,.mstl .row>.mute{white-space:nowrap}.mstl .row{flex-wrap:wrap;gap:2px 8px}.mstl .tt{font:500 1.05rem var(--serif);margin:2px 0}.mstl .when{font-size:.84rem;font-weight:600}
+@media(prefers-reduced-motion:reduce){.gdc:before,.mstl li.next .dot{animation:none}}
 .projd{font:500 1.7rem/1.15 var(--serif);display:block}
+.msd summary{cursor:pointer;font-weight:600;color:var(--sage-d);font-size:.86rem;margin-top:10px}.msd .tbl th{font-size:.74rem;color:var(--mute)}.msd .tbl td:first-child{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -544,7 +569,7 @@ async function persistNow(){S.savedAt=Date.now();clearTimeout(saveT);dirty=false
 /* If the second copy is newer (or the first one was wiped), bring it back. */
 async function reconcile(){try{const j=await idbGet(KEY);if(!j||dirty)return;const o=JSON.parse(j);if(!o||!o.prof)return;
  if(!S.prof||(o.savedAt||0)>(S.savedAt||0)+1500){S=norm(o);checkAch(true);applyTheme();render();toast('Your saved data was restored.')}}catch(e){}}
-function commit(){checkAch();save();render()}
+function commit(){checkAch();checkMs();save();render()}
 
 /* ---------- units ---------- */
 const US=()=>!S.prof||S.prof.sys!=='me';
@@ -580,8 +605,8 @@ const habOn=()=>S.habits.filter(h=>h.on);
 const hasAny=k=>{const d=S.log[k];if(!d)return false;return dayE(k).length>0||d.wa>0||d.sl||d.st>0||d.ex.length>0||Object.values(d.hb).some(Boolean)||d.md>0||d.hu>0||d.sr>0||!!d.jr||S.weights[k]!=null};
 
 /* ---------- goals ---------- */
-function plan(){const p=S.prof,g=S.goals,kg=curW(),bmr=10*kg+6.25*p.h-5*p.age+(p.sex==='m'?5:p.sex==='f'?-161:-78),tdee=bmr*p.act,
- floor=p.sex==='m'?1500:p.sex==='f'?1200:1350,losing=p.goal<kg-.1,raw=losing?tdee-g.pace*500:tdee;
+function plan(pc){const p=S.prof,g=S.goals,kg=curW(),bmr=10*kg+6.25*p.h-5*p.age+(p.sex==='m'?5:p.sex==='f'?-161:-78),tdee=bmr*p.act,
+ floor=p.sex==='m'?1500:p.sex==='f'?1200:1350,losing=p.goal<kg-.1,raw=losing?tdee-(pc==null?g.pace:pc)*500:tdee;
  let cal=raw;if(losing){cal=Math.max(cal,tdee*.75,floor);cal=Math.min(cal,tdee)}cal=Math.round(cal/10)*10;
  return{bmr:r0(bmr),tdee:r0(tdee),cal,limited:losing&&Math.abs(cal-raw)>=15,losing}}
 const calGoal=()=>S.goals.mode==='custom'?S.goals.cal:plan().cal;
@@ -615,6 +640,124 @@ function projMeas(pts,g){if(g==null||!pts.length)return null;const f=pts[0].v,l=
  const sl=de?nu/de:0;if(sl*want<=1e-6)return{st:'wrong'};
  const days=(g-l.v)/sl;if(days>1095)return{st:'far',slope:sl};
  return{st:'date',days,slope:sl,t:l.t+days*864e5}}
+
+/* ---- goal date, countdown & milestones ---- */
+const PACE_MIN=.25,PACE_MAX=2,LB=2.20462;
+const pcf=p=>US()?(Math.round(p*100)/100)+' lb/wk':(Math.round(p*.4536*100)/100)+' kg/wk';
+const inWords=n=>n<=0?'any day now':n===1?'tomorrow':n<14?'in '+n+' days':'in '+r0(n/7)+' weeks';
+const remLb=()=>Math.abs(curW()-S.prof.goal)*LB;
+function goalDate(){const p=S.prof,g=S.goals;if(!p)return null;if(g.gd)return g.gd;const sd=p.startDate||today(),lb=Math.abs(p.start-p.goal)*LB;if(lb<.05)return null;g.gd=ak(sd,Math.ceil(lb/(g.pace||1)*7));g.ga={d:sd,w:p.start};return g.gd}
+function applyGD(gd){const p=S.prof,g=S.goals,lb=remLb();if(lb<.05){g.gd='';g.ga=null;return{gd:'',adj:false}}
+ let days=Math.max(1,dd(today(),gd)),pace=lb/(days/7),adj=false;const cl=clamp(pace,PACE_MIN,PACE_MAX);
+ if(Math.abs(cl-pace)>.005){adj=true;pace=cl;days=Math.ceil(lb/pace*7);gd=ak(today(),days)}
+ g.pace=Math.round(pace*100)/100;g.gd=gd;g.ga={d:today(),w:curW()};return{gd,adj}}
+function setFromPace(pace){const g=S.goals,lb=remLb();g.pace=pace;if(lb<.05){g.gd='';return}g.gd=ak(today(),Math.ceil(lb/pace*7));g.ga={d:today(),w:curW()}}
+function gdInfo(){const p=S.prof;if(!p)return null;const gd=goalDate(),cur=curW(),reached=p.goal<p.start?cur<=p.goal+.001:cur>=p.goal-.001;if(!gd)return null;
+ const a=S.goals.ga||{d:p.startDate||today(),w:p.start},tot=Math.max(1,dd(a.d,gd)),days=dd(today(),gd),T=ewma(wPts()),tn=T.length?T[T.length-1].tv:cur;
+ const planW=d=>a.w+(p.goal-a.w)*clamp(dd(a.d,d)/tot,0,1),rate=Math.abs(a.w-p.goal)*LB/tot,ahead=(p.goal<a.w?1:-1)*(planW(today())-tn)*LB,dayDiff=rate>0?r0(ahead/rate):0;
+ return{gd,a,tot,days,reached,planW,tn,dayDiff,start:p.startDate||a.d,passed:days<0}}
+const wkNo=(I,d)=>Math.max(1,Math.floor(dd(I.start,d)/7)+1);
+const MSD=[[.01,'feel','💚','You’ll feel it','Less bloat, lighter mornings, more energy. Your body is already responding.'],[.02,'feel','😌','You’ll feel it','Waistbands start to ease and you feel lighter on your feet.'],[.03,'see','👀','You’ll see it','A little slimmer in your face and middle when you look in the mirror.'],[.05,'see','🪞','You’ll see it','Clearly visible. At 5% lost, blood pressure and blood sugar often start improving too.'],[.07,'hear','👂','You’ll hear it','“Have you lost weight?” People start noticing and saying so.'],[.1,'wear','👖','You’ll wear it','Clothes fit differently and many people drop a size around here.'],[.15,'feel','🚀','You’ll feel it','Stairs, walks and getting up off the floor feel noticeably easier.'],[.2,'hear','🤩','You’ll hear it','People who haven’t seen you in a while barely recognize you.'],[.25,'wear','👗','You’ll wear it','Often four or more sizes down. Time for a proper fitting and a new wardrobe.'],[.3,'see','✨','You’ll see it','A dramatically different shape. Strength training now helps firm up and protect muscle.']];
+function msList(){const I=gdInfo(),p=S.prof;if(!I)return null;const tot=Math.abs(p.start-p.goal),dir=p.goal<p.start?1:-1,out=[];
+ out.push({id:'start',w:p.start,em:'🌱',t:'Day 1',x:'You started. Every journey begins with one weigh-in.',done:1,date:I.start,pct:0});
+ if(dir>0)MSD.forEach(([pc,ty,em,t,x])=>{const l=p.start*pc;if(l<tot*.97&&l>.4)out.push({id:'p'+pc*100,w:p.start-l,em,t,x,pct:pc})});
+ out.push({id:'half',w:p.start-dir*tot/2,em:'🏁',t:'Halfway there',x:'Half the distance is behind you. The hardest part is done.',pct:0});
+ out.push({id:'goal',w:p.goal,em:'🏆',t:'You did it',x:'Goal weight reached. Look how far you’ve come.',pct:0,goal:1});
+ out.sort((a,b)=>dir*(b.w-a.w));
+ const pj=projWeight(),mode=V.msm==='pace'&&pj&&pj.st==='date'?'pace':'plan';
+ out.forEach(m=>{const hit=wDates().find(k=>dir*(S.weights[k]-m.w)<=.001);if(m.id==='start'){m.hit=I.start}else if(hit)m.hit=hit;m.done=!!m.hit;
+  if(!m.hit){m.date=mode==='pace'?ak(today(),r0(pj.at(m.w))):(()=>{const t=clamp((I.a.w-m.w)/(I.a.w-p.goal||1),0,1);return ak(I.a.d,r0(t*I.tot))})()}else m.date=m.hit});
+ const nx=out.find(m=>!m.done);if(nx)nx.next=1;return{list:out,mode,pj,I}}
+function checkMs(){if(!S.prof)return;const L0=msList();if(!L0)return;const ids=L0.list.filter(m=>m.done).map(m=>m.id),g=S.goals;
+ if(!Array.isArray(g.ms)){g.ms=ids;return}const nw=L0.list.filter(m=>m.done&&!g.ms.includes(m.id));g.ms=ids;
+ if(nw.length&&!S.demo){const m=nw[nw.length-1];celebrate(m.goal?'GOAL REACHED! You did it 🏆':m.em+' '+m.t.replace('You’ll','You')+'! '+f1(wd(Math.abs(S.prof.start-m.w)))+' '+wu()+' down')}}
+function gdModal(){const lb=remLb(),days=Math.max(1,dd(today(),MG.d)),pace=lb/(days/7),pl=plan(clamp(pace,PACE_MIN,PACE_MAX)),bad=pace>PACE_MAX+.005||pace<PACE_MIN-.005;
+ return mhd('Goal date')+`<form data-f="gdset"><p class="mute sm">Pick when you want to get there and Stillwater sets the weekly pace and daily calories for you. Change it any time.</p><div class="gdp"><span class="d">${fdy(MG.d)}</span><div class="r"><span><b>${inWords(days).replace('in ','')}</b></span><span><b>${pcf(pace)}</b> needed</span><span><b>${commas(pl.cal)}</b> kcal/day</span></div>${bad?`<p class="xs mt8" style="color:var(--clay)">${pace>PACE_MAX?'That’s faster than the 2 lb/week we recommend':'That’s slower than a quarter pound a week'}, so we’ll nudge it to the nearest safe date when you save.</p>`:''}</div>
+ <label>Goal date</label><input type="date" name="d" value="${MG.d}" min="${ak(today(),1)}" max="${ak(today(),1095)}" data-c="gdd" required>
+ <div class="row g8 mt wrap"><button type="button" class="btn ghost sm" data-a="gdadd" data-v="-7">− 1 week</button><button type="button" class="btn ghost sm" data-a="gdadd" data-v="7">+ 1 week</button><button type="button" class="btn ghost sm" data-a="gdadd" data-v="30">+ 1 month</button></div>
+ <p class="xs mute mt mb">Or pick a pace</p>${chips([[.5,'Gentle · '+pcf(.5)],[1,'Steady · '+pcf(1)],[1.5,'Faster · '+pcf(1.5)],[2,'Max · '+pcf(2)]],'','gdp')}<button class="btn full mt">Save goal date</button></form>`}
+let MG={d:''};
+function countCard(){const I=gdInfo(),p=S.prof;if(!I)return'';const lb=remLb(),w=Math.max(0,Math.ceil(I.days/7)),eta=projWeight();
+ if(I.reached)return`<section class="card gdc c"><span style="font-size:3rem">🏆</span><h2 style="margin:6px 0">You reached your goal!</h2><p class="mute">${f1(wd(Math.abs(p.start-p.goal)))} ${wu()} down since ${fdy(I.start)}. Be proud.</p></section>`;
+ const chip=I.passed?'🕒 Your date passed. Pick a fresh one, you’re still going':I.dayDiff>=3?`🔥 ${I.dayDiff} days ahead of plan`:I.dayDiff<=-3?`🌱 ${-I.dayDiff} days behind plan. Still very doable`:'✅ Right on track';
+ const next=(msList()||{list:[]}).list.find(m=>m.next);
+ return`<section class="card gdc"><div class="row sp"><p class="xs b" style="text-transform:uppercase;letter-spacing:.1em;opacity:.85">Countdown to goal</p><button class="btn sm" style="background:rgba(255,255,255,.22);color:#fff" data-a="gdedit">${ic('calendar','s')} Change date</button></div>
+ <div class="row" style="justify-content:center;margin:14px 0 6px">${ring('gdr',I.passed?1:1-I.days/I.tot,{size:200,sw:15,color:'#fff',track:'rgba(255,255,255,.25)',inner:`<b class="gdn" data-count="${Math.max(0,I.days)}">${Math.max(0,I.days)}</b><span style="color:rgba(255,255,255,.88)">${I.days===1?'day to go':I.passed?'days past':'days to go'}</span>`})}</div>
+ <p class="c" style="font:500 1.35rem var(--serif)">${fd(I.gd,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</p>
+ <p class="c mt8"><span class="gdchip">${chip}</span></p>
+ <div class="gdt"><div><b>${w}</b><span>weeks left</span></div><div><b>${f1(wd(lb/LB))}</b><span>${wu()} to lose</span></div><div><b>${pcf(lb/Math.max(.14,I.days/7))}</b><span>pace needed</span></div></div>
+ ${next?`<p class="sm c mt">${next.em} <b>${inWords(dd(today(),next.date)).replace(/^./,c=>c.toUpperCase())}</b> · ${next.t.toLowerCase()} · ${f1(wd(Math.abs(curW()-next.w)))} ${wu()} to go</p>`:''}
+ ${eta&&eta.st==='date'?`<p class="xs c mt8 mute">Your current trend points to ${projDate(eta.days)}</p>`:''}</section>`}
+function msCard(){const R=msList();if(!R)return'';const {list,mode,pj,I}=R,dn=list.filter(m=>m.done).length;
+ return`<section class="card"><div class="hd"><h2>${ic('award')} Your milestone map</h2><span class="tag">${dn} of ${list.length}</span></div>${chips([['plan','My goal date'],['pace','My actual pace']],mode,'msm')}${V.msm==='pace'&&mode==='plan'?'<p class="xs mute mt8">Pace dates unlock after about a week of weigh-ins. Showing your goal-date plan for now.</p>':''}
+ <ol class="mstl mt">${list.map(m=>{const dys=dd(today(),m.date),dl=m.id==='start'?'Started '+fdy(m.date):m.done?'✓ Reached '+fdy(m.date):(dys<0?'Planned ':'')+fd(m.date,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  return`<li class="${m.done?'done':''} ${m.next?'next':''}"><span class="dot" aria-hidden="true">${m.done&&m.id!=='start'?'✓':m.em}</span><div class="bd"><div class="row sp g8"><span class="wk">Week ${wkNo(I,m.date)}${m.next?' · Next up':''}</span><span class="mute xs">${m.done?'':inWords(dys)}</span></div><p class="tt">${m.em} ${m.done&&m.id!=='start'&&!m.goal?m.t.replace('You’ll','You').replace('feel it','felt it').replace('see it','saw it').replace('hear it','heard it').replace('wear it','wore it'):m.t}</p><p class="sm mute">${m.x}</p><p class="when mt8">${dl} · ${f1(wd(m.w))} ${wu()}${m.pct?' · −'+r0(m.pct*100)+'%':''}</p>${msDet(m)}</div></li>`}).join('')}</ol></section>`}
+/* ---- body projection: sizes, measurements & milestone detail ---- */
+const SZW=[[0,24,34],[2,25,35],[4,26,36],[6,27,37],[8,28,38],[10,29.5,39.5],[12,31,41],[14,33,43],[16,35,45],[18,37.5,47.5],[20,40,50],[22,42.5,52.5],[24,45,55],[26,47.5,57.5],[28,50,60],[30,52.5,62.5]];
+const CUPS=['AA','A','B','C','D','DD','DDD','G','H','I','J','K'],TOPW=[[32,'XS'],[35,'S'],[38,'M'],[41,'L'],[44,'XL'],[47,'XXL'],[51,'3X'],[55,'4X'],[99,'5X+']],TOPM=[[36,'S'],[40,'M'],[44,'L'],[48,'XL'],[52,'XXL'],[56,'3XL'],[60,'4XL'],[99,'5XL+']];
+const EQ=[[2,'a bag of sugar'],[5,'a sack of potatoes'],[8.6,'a gallon of milk'],[12,'a bowling ball'],[16,'a Thanksgiving turkey'],[20,'a full propane tank'],[30,'a big bag of dog food'],[40,'a medium-sized dog'],[50,'a bag of concrete'],[70,'a golden retriever'],[100,'a grown-up Great Dane']];
+const NT=[
+[.01,'Less puffiness and bloat; mornings feel lighter.','Nothing to fit yet. This stage is all about how you feel.','Your trend line settles as water weight sorts itself out.','Energy is often a little steadier through the afternoon.'],
+[.02,'Your face and midsection look less puffy by evening.','Waistbands feel a little easier at the end of the day.','Sleep and resting heart rate often start to improve with steady habits.','Getting off the couch and up the first flight of stairs feels lighter.'],
+[.03,'A slimmer jaw and neck line in photos; your middle looks softer and less round.','Belts gain a notch; tops drape better, though it’s not a full size yet.','Blood pressure and sleep quality can start moving the right way.','Walks feel easier and you recover faster after stairs.'],
+[.05,'Clearly visible in the mirror: face, collarbones and waist.','Pants feel loose at the waist and a top may feel roomy. Some people are already between sizes.','At 5% lost, blood pressure, blood sugar and cholesterol often begin to improve.','Crossing your legs, sitting in booths and airplane seats gets more comfortable.'],
+[.07,'Face and neck look leaner; shoulders and arms start to show shape.','Try the old clothes at the back of the closet. Some fit again.','Joint aches, especially knees and hips, often ease.','“Did you change something? Have you lost weight?” People start to say it.'],
+[.1,'A noticeably different silhouette: waist, hips, arms and thighs have all shrunk.','Many people drop a full size, sometimes two. Bra bands often need to come down.','At 10%, many people see real drops in blood pressure and blood sugar; snoring and sleep apnea often improve.','Seat belts and tight spaces are roomier, and stairs stop being a negotiation.'],
+[.15,'More definition in your face, collarbones and forearms; waist-to-hip ratio improves.','Likely two sizes down. Fitted basics start to look better than baggy.','Resting heart rate is often lower. If you take medication, your doctor may want to review it.','Getting up off the floor, carrying groceries and hills feel much easier.'],
+[.2,'People who haven’t seen you in a while barely recognize you.','Often three sizes down or more. Your closet is mostly new.','Cardiovascular and diabetes risk markers are often much better. Keep up regular check-ups.','Longer walks, light jogging and playing on the floor feel natural.'],
+[.25,'Your reflection looks like a different person. Strength work now protects muscle and skin tone.','Around four or more sizes down. A proper fitting is worth it.','Joint load is dramatically lower, and many people report big gains in mobility and mood.','Long flights, rides, beach days and travel feel like options again.'],
+[.3,'Loose skin may show on arms, belly or thighs. Protein and strength training help.','Your wardrobe is a whole new size range; tailoring is a good friend.','Maintenance now matters most. Aim to hold steady and keep your check-ups.','Your daily life barely resembles your Day 1. Look how far you’ve come.']];
+const evn=v=>2*Math.round(v/2),fitS=()=>S.set.fit||{},chartW=()=>{const f=fitS();return f.ch?f.ch==='w':S.prof.sex!=='m'};
+const szIx=(v,c)=>{const r=SZW;if(v<=r[0][c])return(v-r[0][c])/1.5;for(let i=1;i<r.length;i++)if(v<=r[i][c])return i-1+(v-r[i-1][c])/(r[i][c]-r[i-1][c]);return 15+(v-r[15][c])/2.5};
+const ixLbl=x=>{if(x<-.5)return'00';if(x>=15)return'30+';const lo=Math.floor(x),fr=x-lo;return fr>.35&&fr<.65&&lo>=0?SZW[lo][0]+'–'+SZW[lo+1][0]:''+SZW[Math.max(0,Math.round(x))][0]};
+const topLbl=(c,w)=>(w?TOPW:TOPM).find(x=>c<=x[0])[1];
+const maint=kg=>{const p=S.prof;return r0((10*kg+6.25*p.h-5*p.age+(p.sex==='m'?5:p.sex==='f'?-161:-78))*p.act)};
+function bodyAt(kg){const p=S.prof,h=p.h/100,t=p.sex==='m'?1:p.sex==='x'?.5:0,B=kg/(h*h),B0=curW()/(h*h),o={},ds=Object.keys(S.meas).sort().reverse();
+ const F={waist:[22.6,2.2],hips:[56,1.75],chest:[55,1.55],thigh:[26,1.25],arm:[11,.78],neck:[22.5,.4]},M={waist:[40,1.85],hips:[66,1.35],chest:[62,1.7],thigh:[24,1.1],arm:[13,.85],neck:[25.5,.55]};
+ Object.keys(F).forEach(k=>{const a=F[k][0]*(1-t)+M[k][0]*t,s=F[k][1]*(1-t)+M[k][1]*t,d=ds.find(x=>S.meas[x][k]>0);o[k]=(d?S.meas[d][k]:a+s*B0)+s*(B-B0)});return o}
+function sizes(kg){const f=fitS(),w=chartW(),b=bodyAt(kg),c=bodyAt(curW()),i=v=>v/2.54,r={b},pn=f.pant>0?+f.pant:null;
+ if(w){const ix=q=>Math.max(szIx(i(q.waist),1),szIx(i(q.hips),2));let x=ix(b);const j=SZW.findIndex(q=>q[0]===pn);if(j>=0)x+=j-ix(c);r.pant=ixLbl(x);
+  const kl=Math.max(0,curW()-kg),cd0=f.cup!==''&&f.cup!=null?+f.cup:3.5,u0=f.band>0?+f.band:i(c.chest)-cd0,u=u0-.197*kl,cd=Math.max(0,cd0*(1-1.1*kl/curW())),ci=clamp(Math.round(cd),0,11);
+  r.bra=clamp(evn(u),28,52)+CUPS[ci];r.sis=clamp(evn(u)+2,30,54)+CUPS[Math.max(0,ci-1)]}
+ else{const o=pn?pn-evn(i(c.waist)+1.5):0;r.pant='W'+evn(i(b.waist)+1.5+o);r.col=(Math.round(i(b.neck)*2)/2)+'"'}
+ r.top=topLbl(i(b.chest),w);return r}
+function msDet(m){if(m.id==='start')return'';const p=S.prof,w=chartW(),kg=m.w,s=sizes(kg),s0=sizes(curW()),h=p.h/100,t=p.sex==='m'?1:p.sex==='x'?.5:0,B=kg/(h*h),lostKg=Math.max(0,p.start-kg),pc=lostKg/p.start,lb=lostKg*LB,
+ bf=Math.max(5,1.2*B+.23*p.age-10.8*t-5.4),mt0=maint(kg),notch=Math.round((s0.b.waist-s.b.waist)/2.54),tier=NT.filter(x=>pc>=x[0]-1e-9).pop()||NT[0],ln=v=>f1(lnd(v)),eq=EQ.filter(x=>lb>=x[0]).pop(),
+ tgt=Math.max(p.sex==='m'?1500:p.sex==='f'?1200:1350,mt0-(S.goals.pace||1)*500),
+ R=(a,x,y)=>`<tr><td>${a}</td><td>${x}</td><td><b>${y}</b></td></tr>`,
+ rows=[R(w?'Pants / dress':'Pant waist',s0.pant,s.pant),R(w?'Top':'Shirt',s0.top,s.top),w?R('Bra (est.)',s0.bra,s.bra):R('Collar',s0.col,s.col)].concat([['waist','Waist'],['hips','Hips'],['chest',w?'Bust':'Chest'],['thigh','Thigh'],['arm','Upper arm'],['neck','Neck']].map(([k,l])=>R(l+' ('+lu()+')',ln(s0.b[k]),ln(s.b[k])))),
+ ul=(l,a)=>`<p class="xs b mute mt8" style="text-transform:uppercase;letter-spacing:.08em">${l}</p><ul class="tipl">${a.filter(Boolean).map(x=>`<li>${x}</li>`).join('')}</ul>`;
+ return`<details class="msd" ${m.next?'open':''}><summary>See the full picture</summary>
+ <div class="row wrap g8 mt8"><span class="pill">BMI ${f1(B)}</span><span class="pill">~${r0(bf)}% body fat</span><span class="pill">${m.goal?'Maintain ~':'Eat ~'}${commas(m.goal?mt0:tgt)} kcal</span></div>
+ <table class="tbl mt8"><thead><tr><th></th><th>Now</th><th>Then</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+ ${w&&s.sis?`<p class="xs mute mt8">Bra sister size at that point: ${s.sis}. Same cup volume, different band.</p>`:''}
+ ${ul('Your body',[lb>=2?`${f1(wd(lostKg))} ${wu()} down is about ${eq?'the weight of '+eq[1]:'a few bags of flour'}.`:'',tier[1]])}
+ ${ul('Your clothes',[tier[2],notch>=1?`About ${notch} belt hole${notch>1?'s':''} tighter than today.`:''])}
+ ${ul('Your health',[tier[3],lb>=2?`Each step puts roughly ${US()?r0(lb*4)+' lb':r0(lostKg*4)+' kg'} less load on each knee than on Day 1.`:''])}
+ ${ul('Daily life',[tier[4],m.goal?`Your needs settle near ${commas(mt0)} kcal a day. Plan maintenance before you arrive.`:''])}
+ <p class="xs mute mt8">Estimates from your height, weight and logged measurements. Bodies change differently, so use these as a guide.</p></details>`}
+function lookCard(){const R=msList();if(!R||R.I.reached)return'';const {mode,pj,I}=R,p=S.prof,w=chartW(),n=+V.lah||6,dir=p.goal<p.start?1:-1,
+ kgAt=d=>{const q=mode==='pace'?pj.tn+pj.rate*dd(today(),d)/7:I.planW(d);return dir>0?Math.max(p.goal,q):Math.min(p.goal,q)},
+ nx=(key,l)=>{const b=sizes(curW())[key];for(let k=1;k<=52;k++){const d=ak(today(),7*k),q=sizes(kgAt(d))[key];if(q!==b)return`<li>${l}: <b>${q}</b> around ${fd(d,{month:'short',day:'numeric'})} (week ${k})</li>`}return''},
+ now=sizes(curW()),rows=[`<tr><td>Now</td><td>${f1(wd(curW()))}</td><td>${f1(lnd(now.b.waist))}</td><td>${now.pant}</td><td>${now.top}</td>${w?`<td>${now.bra}</td>`:''}<td></td></tr>`];let pv=now;
+ for(let k=n>12?2:1;k<=n;k+=n>12?2:1){const kg=kgAt(ak(today(),7*k)),s=sizes(kg),ch=s.pant!==pv.pant||s.top!==pv.top||(w&&s.bra!==pv.bra);rows.push(`<tr><td>Wk ${k}</td><td>${f1(wd(kg))}</td><td>${f1(lnd(s.b.waist))}</td><td>${s.pant}</td><td>${s.top}</td>${w?`<td>${s.bra}</td>`:''}<td>${ch?'🎉':''}</td></tr>`);pv=s}
+ return`<section class="card"><div class="hd"><h2>${ic('calendar')} Look ahead: body &amp; sizes</h2><button class="lnk" data-a="fit">Calibrate</button></div>${chips([[6,'6 weeks'],[12,'12 weeks'],[26,'6 months']],n,'lah')}
+ <ul class="tipl mt">${nx('pant',w?'👖 Next pants size':'👖 Next pant waist')}${nx('top','👚 Next top size')}${w?nx('bra','👙 Next bra size'):''}</ul>
+ <div style="overflow-x:auto"><table class="tbl mt8"><thead><tr><th></th><th>${wu()}</th><th>Waist ${lu()}</th><th>${w?'Pants':'Waist'}</th><th>${w?'Top':'Shirt'}</th>${w?'<th>Bra</th>':''}<th></th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+ <p class="xs mute mt8">🎉 marks a size change. Based on ${mode==='pace'?'your actual pace':'your goal-date plan'}. Estimates only; brands and bodies vary. Tap Calibrate to enter what fits you today.</p></section>`}
+function fitModal(){const f=fitS(),w=chartW();return mhd('Sharpen your size estimates')+`<form data-f="fit"><p class="mute sm">Optional. Enter what fits you today and every projection shifts to match your body.</p>
+ <label>Size chart</label><select name="ch"><option value="w" ${w?'selected':''}>Women’s (pants, dress, bra)</option><option value="m" ${w?'':'selected'}>Men’s (waist, shirt, collar)</option></select>
+ <label>Current pants or dress size (US), or men’s waist</label><input name="pant" inputmode="numeric" value="${f.pant||''}" placeholder="e.g. 14, or 36">
+ <div class="f2"><div><label>Bra band</label><input name="band" inputmode="numeric" value="${f.band||''}" placeholder="34"></div><div><label>Cup</label><select name="cup"><option value="">Not sure</option>${CUPS.map((c,i)=>`<option value="${i}" ${String(f.cup)===String(i)?'selected':''}>${c}</option>`).join('')}</select></div></div>
+ <button class="btn full mt">Save</button><button type="button" class="btn ghost full mt8" data-a="fitclear">Reset to estimates</button></form>`}
+function miniCount(){const I=gdInfo();if(!I||I.reached)return'';const nx=(msList()||{list:[]}).list.find(m=>m.next);
+ return`<section class="card gdmini" data-a="gprog" role="button" tabindex="0" aria-label="Open goal countdown"><div class="n"><b data-count="${Math.max(0,I.days)}">${Math.max(0,I.days)}</b><span>days to go</span></div><div class="f1"><p class="b">Goal date · ${fd(I.gd,{month:'short',day:'numeric',year:'numeric'})}</p><p class="sm mute">${nx?nx.em+' '+inWords(dd(today(),nx.date)).replace(/^./,c=>c.toUpperCase())+': '+nx.t.toLowerCase():'Keep going'}</p>${bar(1-Math.max(0,I.days)/I.tot,1,{color:'linear-gradient(90deg,var(--sage),var(--gold))'})}</div>${ic('chevR','s')}</section>`}
+function obGoal(){const us=OB.sys==='us',w=num(OB.w),gw=num(OB.gw),lb=us?w-gw:(w-gw)*LB;if(!(lb>.5))return null;let pace=+OB.pace||1,date,adj=false;
+ if(OB.gdUser&&OB.gd&&OB.gd>today())pace=lb/(dd(today(),OB.gd)/7);const cl=clamp(pace,PACE_MIN,PACE_MAX);if(OB.gdUser&&OB.gd&&OB.gd>today()&&Math.abs(cl-pace)<.005)date=OB.gd;else{adj=Math.abs(cl-pace)>.005&&!!OB.gdUser;pace=cl;date=ak(today(),Math.ceil(lb/pace*7))}
+ return{lb,pace,date,days:dd(today(),date),adj}}
+function obPrev(){const o=obGoal();if(!o)return'<p class="xs mute mt8">Enter your current and goal weight to see your goal date.</p>';
+ return`<div class="gdp"><p class="xs b mute" style="text-transform:uppercase;letter-spacing:.1em">🎯 Your goal date</p><span class="d">${fd(o.date,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</span><div class="r"><span><b>${o.days}</b> days</span><span><b>${r0(o.days/7)}</b> weeks</span><span><b>${pcf(o.pace)}</b></span></div>${o.adj?'<p class="xs mt8" style="color:var(--clay)">Adjusted to the nearest safe pace.</p>':''}</div>`}
+function animCounts(){const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;document.querySelectorAll('[data-count]').forEach(el=>{const to=+el.dataset.count;if(rm||!to)return;const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/900);el.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)})}
 function setWeight(k,kg){if(kg>0)S.weights[k]=kg}
 
 /* ---------- foods ---------- */
@@ -862,7 +1005,7 @@ function viewToday(){const k=V.date,d=L(k),t=dayT(k),T=targets(),goal=budget(k),
  ${exRows(k)?`<ul class="list mt8">${exRows(k)}</ul>`:''}</section>`;
  const hs=habOn(),hd=hs.filter(h=>d.hb[h.id]).length;
  const habits=`<section class="card"><div class="hd"><h2>${ic('check')} Habits &amp; goals</h2><div class="row g8"><span class="mute sm">${hd}/${hs.length}</span><button class="btn soft sm" data-a="edithabits">Edit</button></div></div>${hs.length?hs.map(h=>`<button class="chk ${d.hb[h.id]?'d':''}" data-a="habit" data-v="${h.id}" aria-pressed="${!!d.hb[h.id]}"><i>${ic('check')}</i><span>${esc(h.n)}</span></button>`).join(''):'<p class="empty">Add habits in Wellness to see them here.</p>'}</section>`;
- return`<div class="top"><div><p class="eyebrow">${fd(k,{weekday:'long',month:'long',day:'numeric'})}</p><h1>${greet()}</h1></div></div><div class="mb">${dateNav(k)}</div>${weekCard()}${hero}${plateauCard()}${msg}${nudge}<div class="cols">${done}${nut}${water}${sleep}${weight}${move}<div class="full">${habits}</div></div>`}
+ return`<div class="top"><div><p class="eyebrow">${fd(k,{weekday:'long',month:'long',day:'numeric'})}</p><h1>${greet()}</h1></div></div><div class="mb">${dateNav(k)}</div>${weekCard()}${hero}${miniCount()}${plateauCard()}${msg}${nudge}<div class="cols">${done}${nut}${water}${sleep}${weight}${move}<div class="full">${habits}</div></div>`}
 
 /* =================== FOOD =================== */
 let MS=null,ES=null,MQ=null,RD=null;
@@ -1002,7 +1145,7 @@ function progWeight(){const p=S.prof,cur=curW(),lost=p.start-cur,rem=cur-p.goal,
  const step=US()?5:2,ms=[];if(p.goal<p.start){const sk=wk(step);for(let w=p.start-sk,i=0;w>p.goal+.05&&i<40;w-=sk,i++)ms.push(w);ms.push(p.goal)}
  const msR=ms.map((w,i)=>{const hit=wDates().find(k=>S.weights[k]<=w+.001);return{w,hit,last:i===ms.length-1}});const nxt=msR.find(m=>!m.hit);
  const mil=`<section class="card"><div class="hd"><h2>${ic('award')} Milestones</h2></div>${msR.length?`<ul class="list">${msR.map(m=>`<li><span class="badge" style="padding:0;border:0;background:none;opacity:1"><span class="bi" style="margin:0;${m.hit?'background:linear-gradient(150deg,var(--sage),var(--gold));color:#fff;border:0':''}">${ic(m.hit?'check':m.last?'award':'scale','s')}</span></span><div class="t"><b>${m.last?'Goal · ':''}${f1(wd(m.w))} ${wu()}</b><small>${m.hit?'Reached '+fdy(m.hit):(m===nxt?'Next up · '+f1(wd(cur-m.w))+' '+wu()+' to go':'Ahead')+(pj&&pj.st==='date'?' · projected '+projDate(pj.at(m.w)):'')}</small></div></li>`).join('')}</ul>`:'<p class="empty">Set a goal weight below your starting weight in Profile to see milestones.</p>'}</section>`;
- return`<div class="view-in">${hero}${tiles}${projCard}${plateauCard()}<div class="cols">${flu}<div>${chart}</div>${add}${allWeights()}${calc}<div>${wkT}${moT}</div>${mil}</div></div>`}
+ return`<div class="view-in">${countCard()}${hero}${msCard()}${lookCard()}${tiles}${projCard}${plateauCard()}<div class="cols">${flu}<div>${chart}</div>${add}${allWeights()}${calc}<div>${wkT}${moT}</div></div></div>`}
 
 /* ---- reports ---- */
 function rangeStats(a,b){const days=rangeDays(a,b),up=days.filter(k=>k<=today()),lg=up.filter(k=>dayE(k).length),s=lg.map(dayT),av=x=>avg(s.map(v=>v[x])),sl=up.filter(k=>L(k).sl),stp=up.filter(k=>L(k).st>0),hs=habOn(),T=ewma(wPts()),
@@ -1151,15 +1294,15 @@ function heightFields(p){if(p.sys==='me')return`<div><label>Height (cm)</label><
 function profileFields(p,isNew){return`<div class="chips mb" role="group" aria-label="Units"><button type="button" class="chip" data-a="${isNew?'obsys':'psys'}" data-v="us" aria-pressed="${p.sys==='us'}">US (lb, ft)</button><button type="button" class="chip" data-a="${isNew?'obsys':'psys'}" data-v="me" aria-pressed="${p.sys==='me'}">Metric (kg, cm)</button></div>
  <label style="margin-top:0">First name</label><input name="name" value="${esc(p.name||'')}" placeholder="What should we call you?" autocomplete="given-name">
  <div class="f2"><div><label>Sex (for calorie math)</label><select name="sex">${[['f','Female'],['m','Male'],['x','Prefer not to say']].map(([v,l])=>`<option value="${v}" ${p.sex===v?'selected':''}>${l}</option>`).join('')}</select></div><div><label>Age</label><input name="age" inputmode="numeric" value="${esc(p.age||'')}" required></div></div>
- <div class="f2">${heightFields(p)}<div><label>Current weight (${p.sys==='me'?'kg':'lb'})</label><input name="w" inputmode="decimal" value="${esc(p.w||'')}" required></div></div>
- <div class="f2"><div><label>Goal weight (${p.sys==='me'?'kg':'lb'})</label><input name="gw" inputmode="decimal" value="${esc(p.gw||'')}" required></div>${isNew?'':`<div><label>Starting weight (${p.sys==='me'?'kg':'lb'})</label><input name="sw" inputmode="decimal" value="${esc(p.sw||'')}" required></div>`}<div><label>Activity level</label><select name="act">${ACTLV.map(a=>`<option value="${a[0]}" ${+p.act===a[0]?'selected':''}>${a[1]}</option>`).join('')}</select></div></div>`}
+ <div class="f2">${heightFields(p)}<div><label>Current weight (${p.sys==='me'?'kg':'lb'})</label><input name="w" inputmode="decimal" value="${esc(p.w||'')}" required ${isNew?'data-i="obprev"':''}></div></div>
+ <div class="f2"><div><label>Goal weight (${p.sys==='me'?'kg':'lb'})</label><input name="gw" inputmode="decimal" value="${esc(p.gw||'')}" required ${isNew?'data-i="obprev"':''}></div>${isNew?'':`<div><label>Starting weight (${p.sys==='me'?'kg':'lb'})</label><input name="sw" inputmode="decimal" value="${esc(p.sw||'')}" required></div>`}<div><label>Activity level</label><select name="act">${ACTLV.map(a=>`<option value="${a[0]}" ${+p.act===a[0]?'selected':''}>${a[1]}</option>`).join('')}</select></div></div>`}
 function readProfile(fd0,sys){const v=k=>fd0.get(k)||'',err=[];const age=r0(num(v('age'))),us=sys==='us';
  const h=us?(num(v('ft'))*12+num(v('inch')))*2.54:num(v('cm')),w=num(v('w')),gw=num(v('gw')),kg=us?w/2.20462:w,gkg=us?gw/2.20462:gw;
  if(age<18||age>100)err.push('Stillwater is designed for adults (18+).');if(h<100||h>230)err.push('Please check your height.');if(kg<30||kg>350)err.push('Please check your current weight.');if(gkg<30||gkg>350)err.push('Please check your goal weight.');
  if(!err.length){const bmi=gkg/Math.pow(h/100,2);if(bmi<18.5){const mn=18.5*Math.pow(h/100,2);err.push(`That goal is below a healthy BMI range. For your height, please choose ${us?f1(mn*2.20462)+' lb':f1(mn)+' kg'} or more. A healthcare professional can help if you’d like to go lower.`)}}
  const sw=v('sw')?(us?num(v('sw'))/2.20462:num(v('sw'))):kg;return{err,p:{name:v('name').trim().slice(0,40),sys,sex:v('sex')||'f',age,h,start:sw,goal:gkg,act:+v('act')||1.375},kg}}
 function viewWelcome(){const o=OB;return`<div class="welcome"><div class="c mb"><span class="hl">FREE · PRIVATE · NO ACCOUNT</span></div><h1 class="c">Welcome to Stillwater</h1><p class="mute c mt8 mb">A calm, complete weight-loss companion. Every feature is free, and your data never leaves this device.</p>
- <form class="card" data-f="onboard">${profileFields(o,true)}<label>Pace</label>${chips([[.5,'Gentle'],[1,'Steady'],[1.5,'Faster'],[2,'Max']].map(([v,l])=>[v,l+' · '+paceLbl(v)]),o.pace||1,'obpace')}<p class="xs mute mt8">We’ll set a daily calorie goal with built-in safety limits. You can change anything later.</p><div id="oberr"></div><button class="btn full mt">Start my journey</button></form>
+ <form class="card" data-f="onboard">${profileFields(o,true)}<label>Pace</label>${chips([[.5,'Gentle'],[1,'Steady'],[1.5,'Faster'],[2,'Max']].map(([v,l])=>[v,l+' · '+paceLbl(v)]),o.pace||1,'obpace')}<div id="gdprev">${obPrev()}</div><label>Or pick your own goal date</label><input type="date" id="gdin" name="gd" value="${(obGoal()||{}).date||''}" min="${ak(today(),1)}" max="${ak(today(),1095)}" data-c="obgd"><p class="xs mute mt8">We’ll set a daily calorie goal with built-in safety limits. You can change anything later.</p><div id="oberr"></div><button class="btn full mt">Start my journey</button></form>
  <button class="btn ghost full mb" data-a="loadsample">🎬 Explore with sample data</button>
  <p class="xs mute c">Stillwater is a tracking tool, not medical advice. Check with a healthcare professional before making big changes.</p></div>`}
 function viewProfile(){const p=S.prof,g=S.goals,pl=plan(),T=targets(),pf={sys:p.sys,name:p.name,sex:p.sex,age:p.age,cm:r0(p.h),ft:Math.floor(p.h/2.54/12),inch:r1(p.h/2.54%12),w:f1(wd(curW())),gw:f1(wd(p.goal)),sw:f1(wd(p.start)),act:p.act},stale=S.set.lastBackup&&(Date.now()-S.set.lastBackup>12096e5),never=!S.set.lastBackup&&Object.keys(S.log).length>3;
@@ -1168,6 +1311,7 @@ function viewProfile(){const p=S.prof,g=S.goals,pl=plan(),T=targets(),pf={sys:p.
  <section class="card hero"><p style="font:500 1.5rem var(--serif)">${p.name?esc(p.name):'You'}</p><p style="opacity:.9">Every feature is unlocked, always. No ads, no subscriptions, no account. Your data stays on this device.</p></section>
  <div class="cols"><section class="card"><div class="hd"><h2>${ic('profile')} About you</h2></div><form data-f="profile">${profileFields(pf,false)}<button class="btn full mt">Save profile</button></form></section>
  <section class="card"><div class="hd"><h2>${ic('flame')} Nutrition goals</h2><button class="btn soft sm" data-a="editgoals">Edit all</button></div><form data-f="goalsn">${chips([['auto','Calculated for me'],['custom','My own number']],g.mode,'gmode')}
+  ${(()=>{const I=gdInfo();return I?`<div class="row sp mt gdp" style="margin-top:12px"><div><p class="xs b mute">🎯 GOAL DATE</p><b>${fdy(I.gd)}</b><span class="mute xs"> · ${Math.max(0,I.days)} days</span></div><button type="button" class="btn soft sm" data-a="gdedit">Change</button></div>`:''})()}
   ${g.mode==='auto'?`<div class="mt">${chips([[.5,paceLbl(.5)],[1,paceLbl(1)],[1.5,paceLbl(1.5)],[2,paceLbl(2)]],g.pace,'gpace')}</div>${g.pace>=2?'<div class="note mt">2 lb a week is the top of the generally recommended range. It works best with plenty of protein, sleep and a doctor’s okay if you have health conditions.</div>':''}<div class="stats s2 mt"><div class="stat"><b>${commas(pl.cal)}</b><span>Daily calories</span></div><div class="stat"><b>${commas(pl.tdee)}</b><span>Maintenance estimate</span></div></div>${pl.limited?`<div class="note warn">We held your goal at a safe floor (${pl.cal} kcal) rather than the full deficit you picked.</div>`:''}<p class="xs mute mt8">Mifflin-St Jeor estimate. Use it as a starting point and adjust to your real-world results.</p>`:`<label>Daily calories</label><input name="cal" inputmode="numeric" value="${g.cal}">`}
   <label>Macro split (% of calories)</label><div class="f3"><div><label class="xs">Protein %</label><input name="sp" inputmode="numeric" value="${sp.p}"></div><div><label class="xs">Carbs %</label><input name="sc" inputmode="numeric" value="${sp.c}"></div><div><label class="xs">Fat %</label><input name="sf" inputmode="numeric" value="${sp.f}"></div></div><p class="xs mute mt8">Targets: ${T.p} g protein · ${T.c} g carbs · ${T.f} g fat</p>
   <div class="f3"><div><label>Fiber (g)</label><input name="fi" inputmode="numeric" value="${g.fi}"></div><div><label>Sugar max (g)</label><input name="su" inputmode="numeric" value="${g.su}"></div><div><label>Sodium max (mg)</label><input name="na" inputmode="numeric" value="${g.na}"></div></div>
@@ -1196,7 +1340,7 @@ function buildNav(){document.getElementById('nav').innerHTML=TABS.map(([k,l])=>`
 function render(){syncMeas();const y=window.scrollY,app=document.getElementById('app'),nav=document.getElementById('nav');
  try{if(!S.prof){nav.hidden=true;app.innerHTML=viewWelcome()}else{nav.hidden=false;app.innerHTML=(S.demo?`<div class="note warn row sp" style="margin-bottom:14px"><span class="sm f1"><b>Sample data.</b> None of this is yours. Your real data is safe.</span><button class="btn sm" data-a="exitsample">Exit sample</button></div>`:'')+VIEWS[V.tab]();nav.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.v===V.tab?'page':'false'))}}
  catch(e){console.error(e);app.innerHTML=`<div class="card"><h2>Something went wrong</h2><p class="mute mt8">${esc(e.message)}</p><p class="mt8">Your data is safe. Try another tab, or download a backup from Profile.</p></div>`}
- app.className=V.anim?'view':'';V.anim=false;animRings();window.scrollTo(0,y)}
+ app.className=V.anim?'view':'';V.anim=false;animRings();animCounts();window.scrollTo(0,y)}
 function go(tab){if(RD&&tab!==V.tab&&!(tab==='food'||tab==='plan'))RD=null;V.tab=tab;V.anim=true;if(location.hash!=='#'+tab)location.hash=tab;render();window.scrollTo(0,0)}
 const segGo=t=>v=>{V.seg[t]=v;V.anim=true;render()};
 const rm=(arr,id)=>{const i=arr.findIndex(x=>x.id===id);if(i>=0)arr.splice(i,1)};
@@ -1295,8 +1439,8 @@ const ACT={
  /* profile */
  psys:v=>{S.prof.sys=v;commit()},
  obsys:v=>{snapOB();['w','gw','ft','inch','cm'].forEach(k=>delete OB[k]);OB.sys=v;render()},
- obpace:v=>{snapOB();OB.pace=+v;render()},
- gmode:v=>{S.goals.mode=v;commit()},gpace:v=>{S.goals.pace=+v;commit()},
+ obpace:v=>{snapOB();OB.pace=+v;OB.gdUser=false;render()},
+ gmode:v=>{S.goals.mode=v;commit()},gpace:v=>{setFromPace(+v);commit()},
  theme:v=>{S.set.theme=v;applyTheme();commit()},
  accent:v=>{S.set.accent=v;applyTheme();commit()},
  look:v=>{S.set.look=v;applyTheme();commit()},
@@ -1495,6 +1639,10 @@ function npcModal(id){const g=S.game,x=g.cast.find(c=>c.id===id);if(!x)return;co
 
 Object.assign(ACT,{
  editgoals:()=>openModal(goalsModal()),
+ gdedit:()=>{MG.d=goalDate()||ak(today(),84);if(MG.d<=today())MG.d=ak(today(),28);openModal(gdModal())},
+ gdadd:v=>{MG.d=ak(MG.d,+v);if(MG.d<=today())MG.d=ak(today(),1);setModal(gdModal())},
+ gdp:v=>{MG.d=ak(today(),Math.ceil(remLb()/(+v)*7));setModal(gdModal())},
+ gprog:()=>{V.seg.progress='weight';go('progress')},msm:v=>{V.msm=v;render()},
  resetgoals:()=>{const g=S.goals;g.ov={};g.mode='auto';g.fi=25;g.su=50;g.na=2300;g.split={p:30,c:40,f:30};closeModal(true);toast('Goals reset to calculated');commit()},
  wgoalsmodal:()=>openModal(mhd('Daily goals')+wgoalsForm()),
  stepgoal:()=>openModal(mhd('Step & exercise goals')+`<form data-f="stepgoal"><label style="margin-top:0">Daily step goal</label><input name="steps" inputmode="numeric" value="${S.goals.steps}" required autofocus><label>Daily exercise goal (min)</label><input name="ex" inputmode="numeric" value="${S.goals.ex}"><button class="btn full mt">Save</button></form>`),
@@ -1517,7 +1665,7 @@ Object.assign(ACT,{
  newseason:async()=>{if(await ask('Start over with a new coach and a new cast?','New season','New season?')){(S.game.demoKeys||[]).forEach(d=>delete S.weights[d]);S.game=null;V.draft=null;V.anim=true;commit()}}
 });
 
-const CHG={
+const CHG={gdd:el=>{if(el.value&&el.value>today()){MG.d=el.value;setModal(gdModal())}},obgd:el=>{snapOB();OB.gdUser=true;OB.gd=el.value;render()},
  sleepin:el=>{const d=LW(V.date);if(el.value.trim()===''){d.sl=null}else{if(!d.sl)d.sl={h:0,q:0};d.sl.h=clamp(num(el.value),0,24)}commit()},
  stepin:el=>{LW(V.date).st=Math.max(0,r0(num(el.value)));commit()},
  mtname:el=>{const t=(S.mtypes||[]).find(x=>x.id===el.dataset.id);if(t&&el.value.trim()){t.n=el.value.trim().slice(0,40);save();render()}},
@@ -1534,16 +1682,16 @@ const CHG={
  photodate:el=>{const p=S.photos.find(x=>x.id===el.dataset.id);if(p&&el.value){p.d=el.value;commit()}},
  import:async el=>{const f=el.files&&el.files[0];if(!f)return;const text=await f.text();el.value='';let ok;if(await ask('Restoring replaces everything currently in Stillwater on this device.','Restore','Restore this backup?')){ok=importData(text);if(ok){toast('Backup restored');V.tab='today';applyTheme();render()}else toast('That file isn’t a Stillwater backup')}}
 };
-const INP={fsearch:el=>{MS.q=el.value;const r=document.getElementById('res');if(r)r.innerHTML=resHtml()},
+const INP={obprev:()=>{snapOB();const o=obGoal(),b=document.getElementById('gdprev');if(b)b.innerHTML=obPrev();const i=document.getElementById('gdin');if(i&&o&&!OB.gdUser)i.value=o.date},fsearch:el=>{MS.q=el.value;const r=document.getElementById('res');if(r)r.innerHTML=resHtml()},
  qty:el=>{const q=num(el.value);if(q>0&&MQ)MQ.qty=q},
  journal:el=>{LW(V.date).jr=el.value;save()},
  rdn:el=>{if(RD)RD.n=el.value},rdnotes:el=>{if(RD)RD.notes=el.value},rds:el=>{if(RD)RD.serv=Math.max(1,r0(num(el.value))||1)}};
 
-function saveProfile(pr,kg,isNew,pace){const w=pr.sys==='us';
- if(isNew){S.prof={...pr,startDate:today()};S.goals.pace=pace||1;S.weights[today()]=kg;
+function saveProfile(pr,kg,isNew,pace,gd){const w=pr.sys==='us';
+ if(isNew){S.prof={...pr,startDate:today()};S.goals.pace=pace||1;S.weights[today()]=kg;if(gd)applyGD(gd);else setFromPace(S.goals.pace);S.goals.ms=null;
   if(w){S.goals.water=1893;S.set.bottles=[{n:'Glass',ml:237},{n:'Bottle',ml:473},{n:'Large',ml:946}]}else{S.goals.water=2000;S.set.bottles=[{n:'Glass',ml:250},{n:'Bottle',ml:500},{n:'Large',ml:1000}]}
   checkAch(true);V.tab='today';V.anim=true;V.date=today();V.pd=today();save();render();window.scrollTo(0,0);toast('You’re all set. Welcome to Stillwater 🌿')}
- else{const was=S.prof.sys;S.prof={...S.prof,...pr};if(Math.abs(kg-curW())>.05)setWeight(today(),kg);commit();toast('Profile saved')}}
+ else{const was=S.prof.sys,gch=Math.abs(S.prof.goal-pr.goal)>.01;S.prof={...S.prof,...pr};if(Math.abs(kg-curW())>.05)setWeight(today(),kg);if(gch)applyGD(S.goals.gd||today());commit();toast('Profile saved')}}
 
 /* ---------- sample data mode (real data is stashed and restored on exit) ---------- */
 const REALKEY=KEY+'-real';
@@ -1575,6 +1723,7 @@ async function exitSample(){
  S=back||defS();try{localStorage.removeItem(REALKEY)}catch(e){}
  V.tab='today';V.date=today();V.pd=today();V.draft=null;applyTheme();await persistNow();V.anim=true;render();window.scrollTo(0,0);toast(back&&back.prof?'Your data is back':'Sample data removed')}
 const FORM={
+ gdset:f=>{const d=f.get('d');if(!d||d<=today())return toast('Pick a future date');const r=applyGD(d);closeModal(true);toast(r.adj?'Adjusted to a safe pace · '+fdy(r.gd):'Goal date set 🎯');commit()},
  stepday:f=>{const d=f.get('d')||today();if(d>today())return toast('Dates can’t be in the future');LW(d).st=Math.max(0,r0(num(f.get('n'))));closeModal(true);toast('Steps saved');commit()},
  stepgoal:f=>{const g=S.goals;g.steps=Math.max(500,r0(num(f.get('steps'))||8000));g.ex=Math.max(5,r0(num(f.get('ex'))||30));closeModal(true);toast('Goals saved');commit()},
  goalsall:f=>{const g=S.goals;g.ov=g.ov||{};const old=targets(),oldCal=calGoal(),nc=clamp(r0(num(f.get('k'))||oldCal),800,6000);
@@ -1618,12 +1767,14 @@ const FORM={
  exadd:f=>{const t=f.get('t'),m=Math.max(1,r0(num(f.get('m')))),met=(EXTYPES.find(e=>e[0]===t)||[0,4])[1];let k=r0(num(f.get('k')));if(!k)k=r0(met*curW()*m/60);const st=Math.max(0,r0(num(f.get('st')))),dy=LW(V.date);const dd=num(f.get('dist'));dy.ex.push({id:uid(),t,m,k,st,...(dd>0?{dist:dStore(dd)}:{})});if(st)dy.st+=st;closeModal();toast('Workout logged');commit()},
  habadd:f=>{const n=(f.get('n')||'').trim();if(n){S.habits.push({id:'h'+uid(),n:n.slice(0,80),on:true});save();setModal(habitsModal());render()}},
  wgoals:f=>{const g=S.goals,w=num(f.get('water'));if(w>0)g.water=wvToMl(w);g.sleep=clamp(num(f.get('sleep'))||8,3,14);g.steps=Math.max(500,r0(num(f.get('steps'))||8000));g.ex=Math.max(5,r0(num(f.get('ex'))||30));S.set.stepsEx=f.get('se')==='on';closeModal(true);toast('Goals saved');commit()},
- onboard:(f)=>{const r=readProfile(f,OB.sys);if(r.err.length){document.getElementById('oberr').innerHTML=`<div class="note warn" role="alert">${esc(r.err[0])}</div>`;return}saveProfile(r.p,r.kg,true,OB.pace)},
+ onboard:(f)=>{const r=readProfile(f,OB.sys);if(r.err.length){document.getElementById('oberr').innerHTML=`<div class="note warn" role="alert">${esc(r.err[0])}</div>`;return}snapOB();saveProfile(r.p,r.kg,true,OB.pace,OB.gdUser&&OB.gd&&OB.gd>today()?OB.gd:'')},
  profile:f=>{const r=readProfile(f,S.prof.sys);if(r.err.length)return toast(r.err[0]);saveProfile(r.p,r.kg,false)},
  goalsn:f=>{const g=S.goals;if(g.mode==='custom')g.cal=clamp(r0(num(f.get('cal'))||1800),800,6000);let p=num(f.get('sp')),c=num(f.get('sc')),fa=num(f.get('sf'));const t=p+c+fa;if(t>0){const ns={p:r0(p/t*100),c:r0(c/t*100),f:100-r0(p/t*100)-r0(c/t*100)};g.ov=g.ov||{};if(ns.p!==g.split.p||ns.c!==g.split.c||ns.f!==g.split.f){delete g.ov.p;delete g.ov.c;delete g.ov.f}g.split=ns}
   g.fi=Math.max(0,r0(num(f.get('fi')))),g.su=Math.max(0,r0(num(f.get('su')))),g.na=Math.max(0,r0(num(f.get('na'))));S.set.eatBack=f.get('eb')==='on';toast('Goals saved');commit()}
 };
 
+ACT.fit=()=>openModal(fitModal());ACT.fitclear=()=>{delete S.set.fit;closeModal(true);toast('Back to estimates');commit()};ACT.lah=v=>{V.lah=+v;render()};
+FORM.fit=f=>{S.set.fit={ch:f.get('ch'),pant:num(f.get('pant'))||'',band:num(f.get('band'))||'',cup:f.get('cup')};closeModal(true);toast('Sizes updated');commit()};
 document.addEventListener('click',e=>{const t=e.target.closest('.tip');if(t){const w=t.closest('.cw'),x=w&&w.querySelector('.xr');if(x)x.innerHTML=t.dataset.tip}
  const el=e.target.closest('[data-a]');if(!el||el.disabled)return;const a=el.dataset.a;if(a==='showpick'){try{el.showPicker&&el.showPicker()}catch(_){}return}const f=ACT[a];if(f){const r=f(el.dataset.v,el,e);if(r&&r.catch)r.catch(console.error)}});
 document.addEventListener('pointerover',e=>{const t=e.target.closest&&e.target.closest('.tip');if(t&&e.pointerType!=='touch'){const x=t.closest('.cw').querySelector('.xr');if(x)x.innerHTML=t.dataset.tip}});
